@@ -23,7 +23,7 @@ def create_app():
 
     @app.route("/health", methods=["GET"])
     def health():
-        """Current health of the api server with meta data of the time and ip address"""
+        """Current health of the api server with meta data of the time"""
         # Debug only, might write a debug wrapper later
         return f"<p>Timestamp: {datetime.datetime.now().timestamp} | Server is healthy.</p>"
 
