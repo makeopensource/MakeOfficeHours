@@ -56,7 +56,7 @@ def create_app():
         Args:
             Request.cookie: A HTTP Cookie with the name `id` for the student bring removed.
             Cookie Example -
-                "id": "12344567890" # only one field seems werid maybe more?
+                "id": "12344567890"
 
         Returns:
             A JSON of request status and possible wait time in seconds
