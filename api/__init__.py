@@ -61,8 +61,7 @@ def create_app():
         Returns:
             A JSON of request status and possible wait time in seconds
             {
-                "message": "You are enqueued",
-                "wait_time": "5000"
+                "message": "You are removed from the queue"
             }
         """
         return f"{request.path} hit 😎, remove method is used."
