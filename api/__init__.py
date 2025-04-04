@@ -19,7 +19,30 @@ def create_app():
     """
     app = Flask(__name__)
 
-    # TODO: Basic login and signup path with session cookies
+    @app.route("/login", methods=["POST"])
+    def login():
+        """Checks if the current user have the right credentials to login
+        Args:
+            email: forum data field of email
+            password: forum data field of password
+
+        Returns:
+            The status of the login attempt
+        """
+        return "Login arrived"
+
+    @app.route("/signup", method=["POST"])
+    def signup():
+        """Creates an account using the given credentials, 
+        fails if email already register for an account
+        Args:
+            email: forum data field of email
+            password: forum data field of password
+
+        Returns:
+            The status of the signup attempt
+        """
+        return "Signup arrived"
 
     @app.route("/health", methods=["GET"])
     def health():
@@ -59,7 +82,7 @@ def create_app():
                 "id": "12344567890"
 
         Returns:
-            A JSON of request status and possible wait time in seconds
+            A JSON of request status
             {
                 "message": "You are removed from the queue"
             }
