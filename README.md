@@ -5,16 +5,11 @@
 # api
 A Flask API server that handles enqueuing and dequeuing students from the office hours queue.
 
-### How to run
+# Quick Started
+1. You will first need to install all the development packages mainly use for 
 
-#### Debug
 
-##### Local
-```bash
-flask --app api run --debug
-```
-
-##### Local
+##### Development
 ```bash
 docker compose up api-development--build
 ```

@@ -1,2 +1,1 @@
-"""Logging utils for MOH API server
-"""
+"""Logging utils for MOH API server"""
