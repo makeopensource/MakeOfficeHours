@@ -4,24 +4,35 @@
 
 # api
 
-A simple flask api server that handels students enqueue and dequeue
+A Flask API server that handles enqueuing and dequeuing students from the office hours queue.
 
-### how to run
+### How to run
 
 #### Debug
 ```bash
 flask --app api run --debug
 ```
 
-### pylint
+### Pylint
 
 Project uses pylint to keep the code style concurrent
 <!-- TODO: ask if we should use google's pylint setting -->
 
-You can run the pylint on the api folder by doing the following
+You can run the Pylint on the api folder by doing the following
+
 ```bash
 pylint api/
 ```
 
 #### Formatter
-Currently using the black formatter https://github.com/psf/black
+Using the Black formatter https://github.com/psf/black
+
+### Project structure
+
+
+
+
+### Resource
+Good resources to look at:
+- https://flask.palletsprojects.com/en/stable/blueprints/
+- https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-xv-a-better-application-structure

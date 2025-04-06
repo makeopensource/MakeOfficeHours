@@ -1,12 +1,9 @@
-"""Backend api server that is used in the MOH project.
+"""Backend API server that is used in the MOH project.
 
-A simple flask backend that will maintaine a live queue of current students in office hours and keep
-track of current student status in the within the queue
-by making request updating the `vist` table within the external postgrest database.
+A Flask API server that handles enqueuing and dequeuing students from the office hours queue.
 """
 
 # TODO: Make the doc string sound better
-
 
 import datetime
 from flask import Flask, request
@@ -15,44 +12,23 @@ from flask import Flask, request
 def create_app():
     """Create and return flask api server
 
-    This funciton is used to setup the flask api server loading all it's depended modulars
+    This function is used to set up the flask api server loading all it's depended on modular
     """
     app = Flask(__name__)
 
-    @app.route("/login", methods=["POST"])
-    def login():
-        """Checks if the current user have the right credentials to login
-        Args:
-            email: forum data field of email
-            password: forum data field of password
 
-        Returns:
-            The status of the login attempt
-        """
-        return "Login arrived"
 
-    @app.route("/signup", method=["POST"])
-    def signup():
-        """Creates an account using the given credentials, 
-        fails if email already register for an account
-        Args:
-            email: forum data field of email
-            password: forum data field of password
 
-        Returns:
-            The status of the signup attempt
-        """
-        return "Signup arrived"
 
     @app.route("/health", methods=["GET"])
     def health():
-        """Current health of the api server with meta data of the time"""
+        """Current health of the api server with metadata of the time"""
         # Debug only, might write a debug wrapper later
         return f"<p>Timestamp: {datetime.datetime.now().timestamp} | Server is healthy.</p>"
 
     @app.route("/enqueue", method=["POST"])
     def enqueue():
-        """Adding students into the current live queue of the office hour
+        """Add student to the current live queue for office hours
 
         Args:
             Request.cookie: A HTTP Cookie with the name `id` for the student bring removed.
@@ -70,12 +46,12 @@ def create_app():
 
     @app.route("/dequeue", method=["GET"])
     def dequeue():
-        """Removing the top student witin the current live queue, limited to TA only"""
+        """Removes the top student within the current live queue, limited to TA only"""
         return f"{request.path} hit 😎, dequeue method is used"
 
     @app.route("/remove", method=["DELETE"])
     def remove():
-        """Removing students from the queue base on id
+        """Removing students from the queue based on id
         Args:
             Request.cookie: A HTTP Cookie with the name `id` for the student bring removed.
             Cookie Example -
