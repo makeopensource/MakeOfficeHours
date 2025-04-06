@@ -1,6 +1,5 @@
 from . import auth
 
-
 @auth.route("/login", methods=["POST"])
 def login():
     """Checks if the current user has the right credentials to log in
@@ -13,8 +12,7 @@ def login():
     """
     return "Login arrived"
 
-
-@auth.route("/signup", method=["POST"])
+@auth.route("/signup", methods=["POST"])
 def signup():
     """Creates an account using the given credentials,
     fails if email already registered for an account

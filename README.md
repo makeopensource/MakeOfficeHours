@@ -3,20 +3,27 @@
 [![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
 
 # api
-
 A Flask API server that handles enqueuing and dequeuing students from the office hours queue.
 
 ### How to run
 
 #### Debug
+
+##### Local
 ```bash
 flask --app api run --debug
 ```
 
-### Pylint
+##### Local
+```bash
+docker compose up api-development--build
+```
 
+
+### Pylint
 Project uses pylint to keep the code style concurrent
-<!-- TODO: ask if we should use google's pylint setting -->
+
+[//]: # (TODO: ask if we should use google's pylint setting)
 
 You can run the Pylint on the api folder by doing the following
 
@@ -28,8 +35,7 @@ pylint api/
 Using the Black formatter https://github.com/psf/black
 
 ### Project structure
-
-
+[//]: # (TODO: Going to do a markdown of a file structure here so that you can see the project structure)
 
 
 ### Resource

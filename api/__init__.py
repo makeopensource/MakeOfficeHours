@@ -6,7 +6,11 @@ A Flask API server that handles enqueuing and dequeuing students from the office
 # TODO: Make the doc string sound better
 
 import datetime
+import json
+
 from flask import Flask, request
+
+from api.config import config
 
 
 def create_app():
@@ -16,17 +20,16 @@ def create_app():
     """
     app = Flask(__name__)
 
-
-
-
+    app.config.from_object(config.Config())
 
     @app.route("/health", methods=["GET"])
     def health():
         """Current health of the api server with metadata of the time"""
         # Debug only, might write a debug wrapper later
-        return f"<p>Timestamp: {datetime.datetime.now().timestamp} | Server is healthy.</p>"
+        app.logger.debug(datetime.datetime.now().timestamp())
+        return json.dumps({"timestamp": datetime.datetime.now()})
 
-    @app.route("/enqueue", method=["POST"])
+    @app.route("/enqueue", methods=["POST"])
     def enqueue():
         """Add student to the current live queue for office hours
 
@@ -44,12 +47,12 @@ def create_app():
         """
         return f"{request.path} hit 😎, enqueue method is used"
 
-    @app.route("/dequeue", method=["GET"])
+    @app.route("/dequeue", methods=["DELETE"])
     def dequeue():
         """Removes the top student within the current live queue, limited to TA only"""
         return f"{request.path} hit 😎, dequeue method is used"
 
-    @app.route("/remove", method=["DELETE"])
+    @app.route("/remove", methods=["DELETE"])
     def remove():
         """Removing students from the queue based on id
         Args:
