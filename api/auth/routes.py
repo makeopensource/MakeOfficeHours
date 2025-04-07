@@ -26,6 +26,6 @@ def signup():
         password: forum data field of password
 
     Returns:
-        The status of the signup attempt
+        The status of the sign-up attempt
     """
     return "Signup arrived"

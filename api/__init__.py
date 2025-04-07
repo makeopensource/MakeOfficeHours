@@ -1,6 +1,6 @@
 """Backend API server that is used in the MOH project.
 
-A Flask API server that handles enqueuing and dequeuing students from the office hours queue.
+A Flask API server that handles enqueue and dequeuing students from the office hours queue.
 """
 
 # TODO: Make the doc string sound better
@@ -14,9 +14,9 @@ from api.config import config
 
 
 def create_app():
-    """Create and return flask api server
+    """Create and return Flask API server
 
-    This function is used to set up the flask api server loading all it's depended on modular
+    This function is used to set up the Flask API server, loading all its dependencies
     """
     app = Flask(__name__)
 
@@ -24,7 +24,7 @@ def create_app():
 
     @app.route("/health", methods=["GET"])
     def health():
-        """Current health of the api server with metadata of the time"""
+        """Current health of the API server with metadata of the time"""
         # Debug only, might write a debug wrapper later
         app.logger.debug(datetime.datetime.now().timestamp())
         return json.dumps({"timestamp": datetime.datetime.now()})
@@ -36,7 +36,7 @@ def create_app():
         Args:
             Request.cookie: A HTTP Cookie with the name `id` for the student bring removed.
             Cookie Example -
-                "id": "12344567890" # only one field seems werid maybe more?
+                "id": "12344567890" # only one field seems weird maybe more?
 
         Returns:
             A JSON of request status and possible wait time in seconds

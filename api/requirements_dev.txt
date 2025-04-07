@@ -5,3 +5,4 @@ gunicorn
 # Development only packages:
 pylint[spelling]
 black
+pyenchant
