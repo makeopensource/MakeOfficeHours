@@ -42,13 +42,11 @@ def create_app():
         )
         # io.BytesIO provides a byte buffer reader, very neat
         # doc: https://docs.python.org/3/library/io.html#io.BytesIO
-        return send_file(io.BytesIO(respond.content), mimetype="image")
+        return send_file(io.BytesIO(respond.content), mimetype="image/jpeg")
 
     @app.route("/health", methods=["GET"])
     def health():
         """Current health of the API server with metadata of the time"""
-        # Debug only, might write a debug wrapper later
-        app.logger.debug(datetime.datetime.now().timestamp())
         return {"timestamp": str(datetime.datetime.now())}
 
     @app.route("/enqueue", methods=["POST"])
