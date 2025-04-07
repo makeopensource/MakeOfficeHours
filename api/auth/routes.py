@@ -1,4 +1,7 @@
+"""Authentication Blueprint for MOH
+"""
 from . import auth
+
 
 
 @auth.route("/login", methods=["POST"])
