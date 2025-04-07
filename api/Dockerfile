@@ -2,6 +2,8 @@ FROM python:latest
 LABEL authors="tomato"
 
 ARG API_MODE
+#This env is now re-used and set again within the container
+ENV API_MODE=$API_MODE
 
 WORKDIR app/
 

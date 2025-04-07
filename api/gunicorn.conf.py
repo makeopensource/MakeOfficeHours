@@ -1,5 +1,5 @@
-"""Configuration for gunicorn wsgi server
-"""
+"""Configuration for gunicorn wsgi server"""
+
 import multiprocessing
 
 bind = "0.0.0.0:8000"

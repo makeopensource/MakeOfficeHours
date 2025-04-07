@@ -3,6 +3,6 @@ gunicorn
 
 
 # Development only packages:
-pylint[spelling]
+pylint
 black
-pyenchant
+requests

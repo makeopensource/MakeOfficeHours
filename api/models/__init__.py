@@ -1,2 +1,1 @@
-"""Model folder for MOH API
-"""
+"""Model folder for MOH API"""

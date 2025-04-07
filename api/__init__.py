@@ -6,11 +6,15 @@ A Flask API server that handles enqueue and dequeuing students from the office h
 # TODO: Make the doc string sound better
 
 import datetime
+import io
 import json
 
+import requests
 from flask import Flask, request
+from flask import send_file
 
 from api.config import config
+from api.utils.debug import debug_access_only
 
 
 def create_app():
@@ -21,6 +25,24 @@ def create_app():
     app = Flask(__name__)
 
     app.config.from_object(config.Config())
+
+    app.logger.debug(app.config)
+
+    @app.route("/", methods=["GET"])
+    def home():
+        return f"Welcome to the homepage, you are currently in \
+{app.config.get("API_MODE", "Can not find API_MODE")}"
+
+    @app.route("/favicon.ico", methods=["GET"])
+    @debug_access_only
+    def favicon():
+        # Timeout is in seconds
+        respond = requests.get(
+            "https://makeopensource.org/assets/jesse-hartloff.jpg", timeout=5
+        )
+        # io.BytesIO provides a byte buffer reader, very neat
+        # doc: https://docs.python.org/3/library/io.html#io.BytesIO
+        return send_file(io.BytesIO(respond.content), mimetype="image")
 
     @app.route("/health", methods=["GET"])
     def health():
