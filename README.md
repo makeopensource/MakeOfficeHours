@@ -12,6 +12,11 @@ A Flask API server that handles enqueuing and dequeuing students from the office
 [//]: # (TODO: Going to do a markdown of a file structure here so that you can see the project structure)
 
 # Development
+For this project please use the following python version:
+`"3.10", "3.11", "3.12"`
+
+
+Running the development server:
 ```bash
 docker compose up api-development--build
 ```
