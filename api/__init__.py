@@ -30,7 +30,8 @@ def create_app():
 
     @app.route("/", methods=["GET"])
     def home():
-        return f"Welcome to the homepage, you are currently in {app.config.get("API_MODE", "Can not find API_MODE")}"
+        mode = app.config.get("API_MODE", "Can not find API_MODE")
+        return f"Welcome to the homepage, you are currently in {mode}"
 
     @app.route("/favicon.ico", methods=["GET"])
     @debug_access_only
