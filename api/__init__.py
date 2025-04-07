@@ -27,7 +27,7 @@ def create_app():
         """Current health of the API server with metadata of the time"""
         # Debug only, might write a debug wrapper later
         app.logger.debug(datetime.datetime.now().timestamp())
-        return json.dumps({"timestamp": datetime.datetime.now()})
+        return {"timestamp": str(datetime.datetime.now())}
 
     @app.route("/enqueue", methods=["POST"])
     def enqueue():
