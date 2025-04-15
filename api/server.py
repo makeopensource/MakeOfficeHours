@@ -15,7 +15,9 @@ from flask import send_file
 
 from api.config import config
 from api.utils.debug import debug_access_only
-
+import api.auth.routes as auth_routes
+import api.queue.routes as queue_routes
+import api.ratings.routes as ratings_routes
 
 def create_app():
     """Create and return Flask API server
@@ -27,6 +29,10 @@ def create_app():
     app.config.from_object(config.Config())
 
     app.logger.debug(app.config)
+
+    app.register_blueprint(auth_routes.blueprint)
+    app.register_blueprint(queue_routes.blueprint)
+    app.register_blueprint(ratings_routes.blueprint)
 
     @app.route("/", methods=["GET"])
     def home():
@@ -49,43 +55,7 @@ def create_app():
         """Current health of the API server with metadata of the time"""
         return {"timestamp": str(datetime.datetime.now())}
 
-    @app.route("/enqueue", methods=["POST"])
-    def enqueue():
-        """Add student to the current live queue for office hours
-
-        Args:
-            Request.cookie: A HTTP Cookie with the name `id` for the student bring removed.
-            Cookie Example -
-                "id": "12344567890" # only one field seems weird maybe more?
-
-        Returns:
-            A JSON of request status and possible wait time in seconds
-            {
-                "message": "You are enqueued",
-                "wait_time": "5000"
-            }
-        """
-        return f"{request.path} hit 😎, enqueue method is used"
-
-    @app.route("/dequeue", methods=["DELETE"])
-    def dequeue():
-        """Removes the top student within the current live queue, limited to TA only"""
-        return f"{request.path} hit 😎, dequeue method is used"
-
-    @app.route("/remove", methods=["DELETE"])
-    def remove():
-        """Removing students from the queue based on id
-        Args:
-            Request.cookie: A HTTP Cookie with the name `id` for the student bring removed.
-            Cookie Example -
-                "id": "12344567890"
-
-        Returns:
-            A JSON of request status
-            {
-                "message": "You are removed from the queue"
-            }
-        """
-        return f"{request.path} hit 😎, remove method is used."
 
     return app
+
+app = create_app()
