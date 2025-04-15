@@ -18,7 +18,7 @@ For this project please use the following python version:
 
 Running the development server:
 ```bash
-docker compose up api-development--build
+docker compose up api-development --build
 ```
 
 
