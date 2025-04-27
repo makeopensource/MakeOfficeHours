@@ -1,9 +1,10 @@
 """Authentication Blueprint for MOH"""
 
-from . import auth
+from flask import Blueprint
 
+blueprint = Blueprint("auth", __name__)
 
-@auth.route("/login", methods=["POST"])
+@blueprint.route("/login", methods=["POST"])
 def login():
     """Checks if the current user has the right credentials to log in
     Args:
@@ -16,7 +17,7 @@ def login():
     return "Login arrived"
 
 
-@auth.route("/signup", methods=["POST"])
+@blueprint.route("/signup", methods=["POST"])
 def signup():
     """Creates an account using the given credentials,
     fails if email already registered for an account
