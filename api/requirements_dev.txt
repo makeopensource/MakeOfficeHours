@@ -1,8 +1,0 @@
-Flask
-gunicorn
-
-
-# Development only packages:
-pylint
-black
-requests

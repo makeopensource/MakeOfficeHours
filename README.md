@@ -6,7 +6,10 @@
 A Flask API server that handles enqueuing and dequeuing students from the office hours queue.
 
 # Quick Started
-1. You will first need to install all the development packages mainly use for 
+1. You will first need to install all the development packages mainly use for, it will allow you to run tools locally for the project.
+```bash
+pip install -r utils.txt
+```
 
 # Project structure
 [//]: # (TODO: Going to do a markdown of a file structure here so that you can see the project structure)
@@ -15,12 +18,10 @@ A Flask API server that handles enqueuing and dequeuing students from the office
 For this project please use the following python version:
 `"3.10", "3.11", "3.12"`
 
-
 Running the development server:
 ```bash
 docker compose up api-development --build
 ```
-
 
 # Pylint
 Project uses pylint to keep the code style organized
@@ -36,7 +37,6 @@ Using the Black formatter https://github.com/psf/black
 ```bash
 black $(git ls-files '*.py') 
 ```
-
 
 # Resource
 Good resources to look at:
