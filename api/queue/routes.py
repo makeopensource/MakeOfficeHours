@@ -2,6 +2,8 @@
 
 from flask import Blueprint, request
 
+from api.database.db import db
+
 blueprint = Blueprint("queue", __name__)
 
 
@@ -27,6 +29,7 @@ def enqueue_card_swipe():
 
 @blueprint.route("/enqueue-ta-override", methods=["POST"])
 def enqueue_ta_override():
+    db.enqueue_student("Steve")
     """
     Force enqueue a student into the queue. Only usable by TAs and instructors
 
@@ -37,10 +40,11 @@ def enqueue_ta_override():
 
 @blueprint.route("/dequeue", methods=["DELETE"])
 def dequeue():
+    student = db.dequeue_student()
     """
     Remove the first student from the queue and create a Visit in the DB
     """
-    return ""
+    return student
 
 
 @blueprint.route("/get-queue", methods=["GET"])

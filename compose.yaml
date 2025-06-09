@@ -4,11 +4,12 @@ services:
       context: ./api/
     environment:
       API_MODE: "dev"
+      DB: "relational"
     volumes:
       - ./api:/app/api
     ports:
       - "8000:8000"
-    command: flask --app api.server:app run --debug --host=0.0.0.0 --port=8000
+    command: flask --app 'api.server:create_app()' run --debug --host=0.0.0.0 --port=8000
 
   api-production:
     extends:

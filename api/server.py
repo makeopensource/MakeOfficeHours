@@ -8,6 +8,7 @@ A Flask API server that handles enqueue and dequeuing students from the office h
 import datetime
 import io
 import json
+import os
 
 import requests
 from flask import Flask, request
@@ -15,9 +16,13 @@ from flask import send_file
 
 from api.config import config
 from api.utils.debug import debug_access_only
+from api.database.db import create_db
 import api.auth.routes as auth_routes
 import api.queue.routes as queue_routes
 import api.ratings.routes as ratings_routes
+
+from api.database.db import db
+
 
 def create_app():
     """Create and return Flask API server
@@ -37,7 +42,7 @@ def create_app():
     @app.route("/", methods=["GET"])
     def home():
         mode = app.config.get("API_MODE", "Can not find API_MODE")
-        return f"Welcome to the homepage, you are currently in {mode}"
+        return f"Welcome to the homepage, you are currently in {mode} mode"
 
     @app.route("/favicon.ico", methods=["GET"])
     @debug_access_only
@@ -58,4 +63,3 @@ def create_app():
 
     return app
 
-app = create_app()

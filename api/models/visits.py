@@ -1,1 +1,1 @@
-# All the infor for an OH visit
+# All the info for an OH visit
