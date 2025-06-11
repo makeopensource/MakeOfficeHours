@@ -29,3 +29,8 @@ def signup():
         The status of the sign-up attempt
     """
     return "Signup arrived"
+
+
+# TODO: update preferred name
+
+# TODO: accounts has UBIT (For AL lookups) and pn (For card swipes)

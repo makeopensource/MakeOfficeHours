@@ -1,7 +1,22 @@
-from api.database.mock_db.MockDBQueue import MockDBQueue
-from api.database.mock_db.MockDBRatings import MockDBRatings
+from api.database.interface import DBInterface
 
 
-class MockDB(MockDBQueue, MockDBRatings):
+class MockDB(DBInterface):
 
-    pass
+    def connect(self):
+        pass
+
+    def enqueue_student(self, student):
+        pass
+
+    def dequeue_student(self):
+        pass
+
+    def rate_student(self, student, rating, feedback):
+        pass
+
+    def create_account(self, ubit, pn):
+        pass
+
+    def add_to_roster(self, user_id, role):
+        pass
