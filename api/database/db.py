@@ -1,8 +1,8 @@
 import os
 
-from api.database.relational_db.RelationalDB import RelationalDB
-from api.database.testing_db.TestingDB import TestingDB
-from api.database.mock_db.MockDB import MockDB
+from api.database.relational_db.relational_db import RelationalDB
+from api.database.testing_db.testing_db import TestingDB
+from api.database.mock_db.mock_db import MockDB
 
 
 def create_db():

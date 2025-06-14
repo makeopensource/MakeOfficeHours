@@ -1,4 +1,4 @@
-from api.database.IRatings import IRatings
+from api.database.idb_ratings import IRatings
 
 
 class TestingDBRatings(IRatings):

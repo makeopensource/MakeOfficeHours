@@ -1,4 +1,4 @@
-from api.database.interface import DBInterface
+from api.database.db_interface import DBInterface
 
 
 class MockDB(DBInterface):

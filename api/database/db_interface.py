@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
-from api.database.IQueue import IQueue
-from api.database.IRatings import IRatings
-from api.database.IAccounts import IAccounts
-from api.database.IRoster import IRoster
+from api.database.idb_queue import IQueue
+from api.database.idb_ratings import IRatings
+from api.database.idb_accounts import IAccounts
+from api.database.idb_roster import IRoster
 
 class DBInterface(IQueue, IRatings, IAccounts, IRoster, ABC):
 

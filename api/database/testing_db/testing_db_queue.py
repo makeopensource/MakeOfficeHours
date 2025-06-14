@@ -1,4 +1,4 @@
-from api.database.IQueue import IQueue
+from api.database.idb_queue import IQueue
 
 
 class TestingDBQueue(IQueue):
