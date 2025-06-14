@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 
 
-class IAccounts:
+class IAccounts(ABC):
+
+    def __init__(self):
+        super().__init__()
 
     @abstractmethod
     def create_account(self, ubit, pn):

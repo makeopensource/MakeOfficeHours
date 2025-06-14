@@ -10,6 +10,9 @@ class DBInterface(IQueue, IRatings, IAccounts, IRoster, ABC):
 
     # All database implements must extend this class
 
+    def __init__(self):
+        super().__init__()
+
     @abstractmethod
     def connect(self):
         pass

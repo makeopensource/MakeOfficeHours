@@ -7,6 +7,9 @@ from api.database.testing_db.testing_db_accounts import TestingDBAccounts
 
 class TestingDB(DBInterface, TestingDBQueue, TestingDBRatings, TestingDBAccounts):
 
+    def __init__(self):
+        super().__init__()
+
     def connect(self):
         pass
 

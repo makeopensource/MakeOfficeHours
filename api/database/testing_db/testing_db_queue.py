@@ -4,6 +4,7 @@ from api.database.idb_queue import IQueue
 class TestingDBQueue(IQueue):
 
     def __init__(self):
+        super().__init__()
         self.queue = []
 
     def enqueue_student(self, student):
