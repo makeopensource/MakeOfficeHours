@@ -4,6 +4,7 @@ from flask import Blueprint
 
 blueprint = Blueprint("auth", __name__)
 
+
 @blueprint.route("/login", methods=["POST"])
 def login():
     """Checks if the current user has the right credentials to log in
@@ -29,7 +30,6 @@ def signup():
         The status of the sign-up attempt
     """
     return "Signup arrived"
-
 
 # TODO: update preferred name
 

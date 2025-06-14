@@ -5,5 +5,4 @@ from api.database.relational_db.relational_db_ratings import RelationalDBRatings
 
 
 class RelationalDB(DBInterface, RelationalDBQueue, RelationalDBRatings):
-
     pass

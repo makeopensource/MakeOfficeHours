@@ -19,4 +19,5 @@ def create_db():
         case _:
             raise ModuleNotFoundError("Could not find database named " + db_type)
 
+
 db = create_db()

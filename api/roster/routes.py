@@ -4,7 +4,6 @@ from flask import Blueprint
 
 blueprint = Blueprint("roster", __name__)
 
-
 # TODO: upload roster. Take a csv file and add all the students to the roster (ubit,pn,name,role)
 
 # TODO: get roster

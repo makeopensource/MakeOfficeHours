@@ -1,6 +1,6 @@
-
 def add_to_queue_by_card_swipe(swipe_data):
     pass
+
 
 def add_to_queue_by_ta_override(identifier):
     # identifier is resolved by checking if it's a valid UBIT, then pn, then account id

@@ -7,6 +7,5 @@ class RelationalDBQueue(IQueue):
         raise NotImplementedError()
         # do database stuff
 
-
     def dequeue_student(self):
         pass

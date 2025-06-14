@@ -15,7 +15,7 @@ services:
     extends:
       service: api-development
     environment:
-        API_MODE: "prod"
+      API_MODE: "prod"
     ports:
       - "8000:8000"
     command: gunicorn 'api.server:create_app()'

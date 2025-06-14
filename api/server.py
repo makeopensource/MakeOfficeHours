@@ -55,6 +55,4 @@ def create_app():
         """Current health of the API server with metadata of the time"""
         return {"timestamp": str(datetime.datetime.now())}
 
-
     return app
-
