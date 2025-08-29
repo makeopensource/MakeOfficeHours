@@ -24,7 +24,7 @@ docker compose up api-development --build
 ```
 
 # Pylint
-Project uses pylint to keep the code style organized
+Project uses pylint to keep the code style organized.
 
 You can run the Pylint on the api folder by doing the following
 
