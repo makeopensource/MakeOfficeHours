@@ -19,6 +19,7 @@ def polling():
         read = file.readlines()
         size = len(read)
 
+
     print("full")
 
 
