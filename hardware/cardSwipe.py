@@ -2,6 +2,11 @@ import os
 
 
 def cardSwipe():
-    name = input().split("^")[1].split(".")[0]
-    #print(name)
+    while True:
+        line = input()
+        try:
+            name = line.split("/^")[1][14:22]
+            print(name)
+        except Exception:
+            pass
 cardSwipe()
