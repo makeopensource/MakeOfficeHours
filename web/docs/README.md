@@ -47,12 +47,7 @@ web/
    cd /path/to/MakeOfficeHours/web
    ```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
+2. **Set up environment variables**
    Create a `.env.local` file in the web directory with the following variables:\
    __Important__: These secrets are not self-generated. Please request access from us to obtain the values.
    ```env
@@ -78,7 +73,7 @@ web/
     JWT_SECRET="your-jwt-secret"
    ```
 
-4. **Set up SSL certificates (for https development as we can't run localhost over http due to autolab Oauth config)**
+3. **Set up SSL certificates (for https development as we can't run localhost over http due to autolab Oauth config)**
    ```bash
    # Install mkcert if not already installed
    brew install mkcert  # macOS
