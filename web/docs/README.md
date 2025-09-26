@@ -12,8 +12,6 @@ The MakeOfficeHours web application is a modern, full-stack office hours queue m
 - **Authentication**: NextAuth.js with OAuth (Autolab integration)
 - **Database**: Supabase (PostgreSQL)
 - **UI Components**: Radix UI primitives
-- **State Management**: React hooks and context
-- **Deployment**: Docker with multi-stage builds
 
 ### Project Structure
 ```
