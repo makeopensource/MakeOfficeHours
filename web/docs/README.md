@@ -87,6 +87,11 @@ web/
 
 ### Development
 
+If using option 1 or 2, you must first install the dependencies locally
+```bash
+npm install
+```
+
 #### Option 1: Standard Development Server
 ```bash
 npm run dev
