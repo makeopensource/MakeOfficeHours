@@ -3,14 +3,11 @@
 A Flask API server that handles enqueue and dequeuing students from the office hours queue.
 """
 
-# TODO: Make the doc string sound better
-
 import datetime
 import io
-import json
 
 import requests
-from flask import Flask, request
+from flask import Flask
 from flask import send_file
 
 from api.config import config
@@ -18,6 +15,8 @@ from api.utils.debug import debug_access_only
 import api.auth.routes as auth_routes
 import api.queue.routes as queue_routes
 import api.ratings.routes as ratings_routes
+import api.roster.routes as roster_routes
+
 
 def create_app():
     """Create and return Flask API server
@@ -33,11 +32,12 @@ def create_app():
     app.register_blueprint(auth_routes.blueprint)
     app.register_blueprint(queue_routes.blueprint)
     app.register_blueprint(ratings_routes.blueprint)
+    app.register_blueprint(roster_routes.blueprint)
 
     @app.route("/", methods=["GET"])
     def home():
         mode = app.config.get("API_MODE", "Can not find API_MODE")
-        return f"Welcome to the homepage, you are currently in {mode}"
+        return f"Welcome to the homepage, you are currently in {mode} mode"
 
     @app.route("/favicon.ico", methods=["GET"])
     @debug_access_only
@@ -55,7 +55,4 @@ def create_app():
         """Current health of the API server with metadata of the time"""
         return {"timestamp": str(datetime.datetime.now())}
 
-
     return app
-
-app = create_app()
