@@ -33,4 +33,4 @@ def signup():
 
 # TODO: update preferred name
 
-# TODO: accounts has UBIT (For AL lookups) and pn (For card swipes)
+# TODO: account has UBIT (For AL lookups) and pn (For card swipes)

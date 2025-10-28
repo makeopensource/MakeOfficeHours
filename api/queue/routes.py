@@ -167,7 +167,7 @@ def remove_self():
     return f"{request.path} hit 😎, remove method is used."
 
 
-@blueprint.route("/remove-from-queue/<user_id>", methods=["POST"])
+@blueprint.route("/remove-from-queue", methods=["POST"])
 def remove(user_id):
     """
     role: TA
@@ -177,6 +177,7 @@ def remove(user_id):
     Args:
         param.user_id: The id of the student being removed. Note: This is the id of their account, not their UBIT/pn
         body.reason: a text reason for removing the user from the queue (eg. "No show")
+        body.user_id: user ID of the student being removed
 
     Body:
         {
@@ -192,3 +193,8 @@ def remove(user_id):
         }
     """
     return f"{request.path} hit 😎, remove method is used."
+
+
+# TODO: move to end of queue (Called by TAs to add the students they just saw back to the end of the queue)
+
+# TODO: Clear the queue
