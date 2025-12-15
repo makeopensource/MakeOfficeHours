@@ -22,4 +22,3 @@ def add_to_queue_by_ta_override(identifier):
 def add_to_queue(user_account):
     user_id = user_account["user_id"]
     db.enqueue_student(user_id)
-

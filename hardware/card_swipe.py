@@ -7,6 +7,7 @@ def decode_pn(raw):
     except Exception:
         return ""
 
+
 def cardSwipe():
     while True:
         line = input("Swipe card now!!! \n")

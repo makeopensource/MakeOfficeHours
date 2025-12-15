@@ -3,6 +3,7 @@
 from flask import Blueprint, request
 
 import api.queue.controller as controller
+from api.roster.controller import permission_required
 from api.database.db import db
 
 blueprint = Blueprint("queue", __name__)
@@ -41,6 +42,7 @@ def enqueue_card_swipe():
 
 
 @blueprint.route("/enqueue-ta-override", methods=["POST"])
+@permission_required("ta")
 def enqueue_ta_override():
     """
     role: TA
@@ -69,8 +71,6 @@ def enqueue_ta_override():
     Use case: A student didn't bring their card to OH so they can't swipe in. The TA can force add them to the queue
     """
 
-    # todo: permission checking. needs auth.
-
     body = request.get_json()
     identifier = body["identifier"]
 
@@ -80,8 +80,8 @@ def enqueue_ta_override():
     return {"message": "No student matching provided identifier"}, 404
 
 
-
 @blueprint.route("/help-a-student", methods=["POST"])
+@permission_required("ta")
 def dequeue():
     """
     role: TA
@@ -106,8 +106,6 @@ def dequeue():
         }
     """
 
-    # todo: permission checking. needs auth.
-
     student = db.dequeue_student()
 
     if student is None:
@@ -117,12 +115,12 @@ def dequeue():
         "id": int(student["user_id"]),
         "username": student["ubit"],
         "pn": str(student["person_num"]),
-        "preferred_name": student["preferred_name"]
+        "preferred_name": student["preferred_name"],
     }
 
 
-
 @blueprint.route("/get-queue", methods=["GET"])
+@permission_required("ta")
 def get_queue():
     """
     role: TA

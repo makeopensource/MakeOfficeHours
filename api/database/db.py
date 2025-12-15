@@ -15,7 +15,7 @@ def create_db():
         case "mock":
             return MockDB()
         case None:
-            raise EnvironmentError("environment variable \"DB\" not set")
+            raise EnvironmentError('environment variable "DB" not set')
         case _:
             raise ModuleNotFoundError("Could not find database named " + db_type)
 
