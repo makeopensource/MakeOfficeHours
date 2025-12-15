@@ -1,13 +1,25 @@
+from api.database.db import db
+from hardware.card_swipe import decode_pn
+
+
 def add_to_queue_by_card_swipe(swipe_data):
-    pass
+    pn = decode_pn(swipe_data)
+    student = db.lookup_person_number(pn)
+    if student is not None:
+        add_to_queue(student)
+        return True
+    return False
 
 
 def add_to_queue_by_ta_override(identifier):
-    # identifier is resolved by checking if it's a valid UBIT, then pn, then account id
-    pass
+    student = db.lookup_identifier(identifier)
+    if student is not None:
+        add_to_queue(student)
+        return True
+    return False
 
 
 def add_to_queue(user_account):
-    # called by both add_to_queue_by_card_swipe and add_to_queue_by_ta_override after user
-    # has been identified and their account was pulled from the db
-    pass
+    user_id = user_account["user_id"]
+    db.enqueue_student(user_id)
+

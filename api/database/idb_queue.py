@@ -13,3 +13,7 @@ class IQueue(ABC):
     @abstractmethod
     def dequeue_student(self):
         raise NotImplementedError()
+
+    @abstractmethod
+    def get_queue(self):
+        raise NotImplementedError()

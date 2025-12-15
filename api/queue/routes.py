@@ -2,6 +2,7 @@
 
 from flask import Blueprint, request
 
+import api.queue.controller as controller
 from api.database.db import db
 
 blueprint = Blueprint("queue", __name__)
@@ -29,7 +30,14 @@ def enqueue_card_swipe():
             "message": <string>
         }
     """
-    return f"{request.path} hit 😎, enqueue method is used"
+
+    body = request.get_json()
+    swipe_data = body["swipe_data"]
+
+    if controller.add_to_queue_by_card_swipe(swipe_data):
+        return {"message": "Student was added to the queue"}
+
+    return {"message": "No student matching the card swipe was found"}, 404
 
 
 @blueprint.route("/enqueue-ta-override", methods=["POST"])
@@ -60,7 +68,17 @@ def enqueue_ta_override():
 
     Use case: A student didn't bring their card to OH so they can't swipe in. The TA can force add them to the queue
     """
-    return ""
+
+    # todo: permission checking. needs auth.
+
+    body = request.get_json()
+    identifier = body["identifier"]
+
+    if controller.add_to_queue_by_ta_override(identifier):
+        return {"message": "Student was added to the queue"}
+
+    return {"message": "No student matching provided identifier"}, 404
+
 
 
 @blueprint.route("/help-a-student", methods=["POST"])
@@ -87,7 +105,21 @@ def dequeue():
             "message": <string>
         }
     """
-    return "Help them good!"
+
+    # todo: permission checking. needs auth.
+
+    student = db.dequeue_student()
+
+    if student is None:
+        return {"message": "The queue is empty"}, 400
+
+    return {
+        "id": int(student["user_id"]),
+        "username": student["ubit"],
+        "pn": str(student["person_num"]),
+        "preferred_name": student["preferred_name"]
+    }
+
 
 
 @blueprint.route("/get-queue", methods=["GET"])
@@ -114,7 +146,10 @@ def get_queue():
             "message": <string>
         }
     """
-    return ""
+
+    # todo: permission checking. needs auth.
+
+    return db.get_queue()
 
 
 @blueprint.route("/get-my-position", methods=["GET"])
