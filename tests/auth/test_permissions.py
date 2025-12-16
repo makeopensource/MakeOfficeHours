@@ -1,5 +1,5 @@
 import pytest
-
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,6 +18,15 @@ all_account_data = [
     {"username": "jimmy", "pn": "67676767"},
     {"username": "horse", "pn": "154345345"},
 ]
+
+@pytest.fixture
+def test_db():
+    db.filename = "testing.sqlite"
+    db.connect()
+    yield
+    db.connection.commit()
+    if os.path.exists("testing.sqlite"):
+        os.remove("testing.sqlite")
 
 
 @pytest.fixture
@@ -65,7 +74,7 @@ def admin_only():
     return "I'm at least an admin!", 200
 
 
-def test_ta_instructor_admin_permissions(client, accounts):
+def test_ta_instructor_admin_permissions(test_db, client, accounts):
     client.post("/signup", data={"ubit": "lucy5", "password": "jimmy"})
 
     client.post("/login", data={"ubit": "lucy5", "password": "jimmy"})
@@ -91,7 +100,7 @@ def test_ta_instructor_admin_permissions(client, accounts):
     assert client.get("/test-admin").status_code == 200
 
 
-def test_ta_queue_permissions(client, accounts):
+def test_ta_queue_permissions(test_db, client, accounts):
 
     response = client.post("/signup", data={"ubit": "lucy5", "password": "jimmy"})
 

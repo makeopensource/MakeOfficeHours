@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %} | Queue {% endblock %}
+
+{% block body %}
+
+    <h2 id="now-helping">Now Helping: Nobody</h2>
+    <button id="remove">Remove Head from Queue</button>
+    <br/>
+    <label for="enqueue-override">Enqueue Override</label>
+    <input id="enqueue-override" type="text">
+    <button id="submit-override">Submit Override</button>
+    <div id="queue-container"></div>
+
+    <script>
+        let timeout = setTimeout(fetch_queue, 10)
+
+        function fetch_queue() {
+            fetch("/get-queue").then(data => {
+                return data.json()
+            }).then(data => {
+                document.getElementById("queue-container").innerHTML = ''
+
+                for (let entry of data) {
+                    document.getElementById("queue-container").append(entry["ubit"])
+                }
+            })
+            timeout = setTimeout(fetch_queue, 5000)
+        }
+
+        document.getElementById("remove").onclick = () => {
+            fetch("/help-a-student", {method: "POST"}).then(data => {return data.json()}).then(data => {
+                document.getElementById("now-helping").innerHTML = `Now Helping: ${data["username"]}`;
+                fetch_queue()
+            })
+            timeout = setTimeout(fetch_queue, 10);
+        }
+
+        document.getElementById("submit-override").onclick = () => {
+            fetch("/enqueue-ta-override", {method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({"identifier": document.getElementById("enqueue-override").value})})
+            fetch_queue()
+        }
+    </script>
+
+
+{% endblock %}

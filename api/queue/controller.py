@@ -1,6 +1,10 @@
 from api.database.db import db
-from hardware.card_swipe import decode_pn
 
+def decode_pn(raw):
+    try:
+        return raw.split("/^")[1][14:22]
+    except Exception:
+        return ""
 
 def add_to_queue_by_card_swipe(swipe_data):
     pn = decode_pn(swipe_data)

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %} Home {% endblock %}
+
+{% block body %}
+
+    <p>Welcome to makeofficehours</p>
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+    <a href="/queue">Queue</a>
+
+    {% if config["DEBUG"] %}
+    <a href="/force-enroll">Force Enroll</a>
+    {% endif %}
+
+{% endblock %}

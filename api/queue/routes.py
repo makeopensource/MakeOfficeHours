@@ -171,7 +171,24 @@ def get_anon_queue():
             "message": <string>
         }
     """
-    return ""
+    if not (auth_token := request.cookies.get("auth_token")):
+        return {"message": "You are not logged in!"}, 403
+
+    user = db.get_authenticated_user(auth_token)
+
+    if not user:
+        return {"message": "You are not logged in!"}, 403
+
+    user_id = user["user_id"]
+
+    queue = db.get_queue()
+
+    for i, entry in enumerate(queue, 1):
+        if entry["id"] == user_id:
+            return {"position": i}
+
+
+    return {"message": "You are not in the queue!"}, 400
 
 
 @blueprint.route("/remove-self-from-queue", methods=["POST"])

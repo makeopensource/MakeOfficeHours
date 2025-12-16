@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %} | Queue {% endblock %}
+
+{% block body %}
+
+    <h2 id="position">Position: not applicable</h2>
+    <br/>
+    <div id="queue-container"></div>
+
+    <script>
+        let timeout = setTimeout(fetch_position, 10)
+
+        function fetch_position() {
+            fetch("/get-my-position").then(data => {
+                return data.json()
+            }).then(data => {
+                if (data["message"] === undefined) {
+                    document.getElementById("position").innerHTML = `Position: ${data["position"]}`
+                } else {
+                    document.getElementById("position").innerHTML = `Position: not applicable`
+                }
+            })
+            timeout = setTimeout(fetch_position, 5000)
+        }
+    </script>
+
+
+{% endblock %}
