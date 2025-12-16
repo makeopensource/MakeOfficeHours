@@ -4,8 +4,6 @@ from functools import wraps
 from flask import current_app, abort, request, Blueprint
 
 
-
-
 # Referenced: https://stackoverflow.com/a/55729767
 def debug_access_only(func):
     """Limit route access to debug mode only, return 404 if access outside of debug mode"""
@@ -17,4 +15,3 @@ def debug_access_only(func):
         return abort(404)
 
     return wrapped
-

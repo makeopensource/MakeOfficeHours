@@ -139,5 +139,3 @@ class RelationalDB(
                 """,
                 (role, user_id),
             )
-
-

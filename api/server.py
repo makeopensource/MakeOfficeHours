@@ -20,7 +20,6 @@ import api.roster.routes as roster_routes
 import api.utils.debug_routes as debug_routes
 
 
-
 def create_app():
     """Create and return Flask API server
 
@@ -63,11 +62,11 @@ def create_app():
         if not (user := db.get_authenticated_user(auth_token)):
             return redirect("/login")
 
-        if user["course_role"] == 'student':
+        if user["course_role"] == "student":
             return render_template("student_queue.html")
         return render_template("instructor_queue.html")
 
-    @app.route('/jimmy', methods=["GET"])
+    @app.route("/jimmy", methods=["GET"])
     def jimmy():
         if not (auth_token := request.cookies.get("auth_token")):
             return ""
@@ -76,8 +75,6 @@ def create_app():
             return ""
 
         return user
-
-
 
     @app.route("/favicon.ico", methods=["GET"])
     @debug_access_only

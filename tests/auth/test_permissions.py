@@ -19,6 +19,7 @@ all_account_data = [
     {"username": "horse", "pn": "154345345"},
 ]
 
+
 @pytest.fixture
 def test_db():
     db.filename = "testing.sqlite"

@@ -5,6 +5,7 @@ from api.utils.debug import debug_access_only
 
 blueprint = Blueprint("debug", __name__)
 
+
 @blueprint.route("/force-enroll", methods=["POST"])
 @debug_access_only
 def force_enroll():
@@ -16,7 +17,6 @@ def force_enroll():
     if role not in {"student", "ta", "instructor", "admin"}:
         return {"message": "Invalid role"}, 400
 
-    print(role)
     user_id = create_account(ubit, pn, role)
 
     return {"message": "Successfully enrolled", "id": user_id}

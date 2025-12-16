@@ -187,7 +187,6 @@ def get_anon_queue():
         if entry["id"] == user_id:
             return {"position": i}
 
-
     return {"message": "You are not in the queue!"}, 400
 
 

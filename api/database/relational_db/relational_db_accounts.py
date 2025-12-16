@@ -120,7 +120,6 @@ class RelationalDBAccounts(IAccounts):
                 (hashed, auth, username),
             ).fetchone()
 
-
         if not auth_token:
             return None
 
