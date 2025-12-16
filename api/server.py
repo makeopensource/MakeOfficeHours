@@ -66,16 +66,6 @@ def create_app():
             return render_template("student_queue.html")
         return render_template("instructor_queue.html")
 
-    @app.route("/jimmy", methods=["GET"])
-    def jimmy():
-        if not (auth_token := request.cookies.get("auth_token")):
-            return ""
-
-        if not (user := db.get_authenticated_user(auth_token)):
-            return ""
-
-        return user
-
     @app.route("/favicon.ico", methods=["GET"])
     @debug_access_only
     def favicon():
