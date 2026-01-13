@@ -3,7 +3,7 @@
 from flask import Blueprint, request
 
 import api.queue.controller as controller
-from api.roster.controller import permission_required
+from api.roster.controller import min_level
 from api.database.db import db
 
 blueprint = Blueprint("queue", __name__)
@@ -42,7 +42,7 @@ def enqueue_card_swipe():
 
 
 @blueprint.route("/enqueue-ta-override", methods=["POST"])
-@permission_required("ta")
+@min_level("ta")
 def enqueue_ta_override():
     """
     role: TA
@@ -81,7 +81,7 @@ def enqueue_ta_override():
 
 
 @blueprint.route("/help-a-student", methods=["POST"])
-@permission_required("ta")
+@min_level("ta")
 def dequeue():
     """
     role: TA
@@ -120,7 +120,7 @@ def dequeue():
 
 
 @blueprint.route("/get-queue", methods=["GET"])
-@permission_required("ta")
+@min_level("ta")
 def get_queue():
     """
     role: TA
@@ -155,7 +155,7 @@ def get_anon_queue():
     """
     role: self
 
-    Returns the position in the queue of the requester. If the requester is not in the queue, return a position of -1
+    Returns the position in the queue of the requester.
 
     Args:
         Request.cookie: The auth token used to identify the requester
@@ -163,12 +163,14 @@ def get_anon_queue():
     Returns:
         200 OK - You're in the queue and here's your position
         {
-            "position": <int>
+            "position": <int>,
+            "length": <int>
         }
 
         400 Bad Request - You are not in the queue
         {
-            "message": <string>
+            "message": <string>,
+            "length": <int>
         }
     """
     if not (auth_token := request.cookies.get("auth_token")):
@@ -185,9 +187,9 @@ def get_anon_queue():
 
     for i, entry in enumerate(queue, 1):
         if entry["id"] == user_id:
-            return {"position": i}
+            return {"position": i, "length": len(queue)}
 
-    return {"message": "You are not in the queue!"}, 400
+    return {"message": "You are not in the queue!", "length": len(queue)}, 400
 
 
 @blueprint.route("/remove-self-from-queue", methods=["POST"])

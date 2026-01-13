@@ -1,10 +1,14 @@
+import hashlib
 import secrets
 
 from api.database.idb_accounts import IAccounts
 import bcrypt
+import hashlib
+
+from api.database.idb_roster import IRoster
 
 
-class RelationalDBAccounts(IAccounts):
+class RelationalDBAccounts(IAccounts, IRoster):
 
     def create_account(self, ubit, pn):
 
@@ -78,6 +82,7 @@ class RelationalDBAccounts(IAccounts):
         }
 
     def get_authenticated_user(self, auth_token):
+        hashed_token = hashlib.sha256(auth_token.encode()).digest()
         with self.cursor() as cursor:
             user = cursor.execute(
                 """
@@ -87,7 +92,7 @@ class RelationalDBAccounts(IAccounts):
                 WHERE auth_token = ?
                 AND expires_at > CURRENT_TIMESTAMP
             """,
-                (auth_token,),
+                (hashed_token,),
             ).fetchone()
 
         if not user:
@@ -106,6 +111,7 @@ class RelationalDBAccounts(IAccounts):
 
         hashed = bcrypt.hashpw(pw.encode(), bcrypt.gensalt())
         auth = secrets.token_urlsafe(32)
+        hashed_auth = hashlib.sha256(auth.encode()).digest()
 
         with self.cursor() as cursor:
             auth_token = cursor.execute(
@@ -117,13 +123,13 @@ class RelationalDBAccounts(IAccounts):
                 WHERE users.ubit = ?
                 RETURNING auth_token
             """,
-                (hashed, auth, username),
+                (hashed, hashed_auth, username),
             ).fetchone()
 
         if not auth_token:
             return None
 
-        return auth_token[0]
+        return auth
 
     def sign_in(self, username, pw) -> str | None:
         with self.cursor() as cursor:
@@ -145,6 +151,8 @@ class RelationalDBAccounts(IAccounts):
             return None
 
         auth_token = secrets.token_urlsafe(32)
+        hashed_auth = hashlib.sha256(auth_token.encode()).digest()
+
 
         with self.cursor() as cursor:
             cursor.execute(
@@ -153,12 +161,13 @@ class RelationalDBAccounts(IAccounts):
                 SET auth_token = ?, expires_at = datetime('now', '+30 days')
                 WHERE user_id = ?
             """,
-                (auth_token, user_id),
+                (hashed_auth, user_id),
             )
 
         return auth_token
 
     def sign_out(self, auth_token):
+        hashed_auth = hashlib.sha256(auth_token.encode()).digest()
         with self.cursor() as cursor:
             cursor.execute(
                 """
@@ -166,5 +175,25 @@ class RelationalDBAccounts(IAccounts):
             SET auth_token = "", expires_at = CURRENT_TIMESTAMP
             WHERE auth_token = ?
             """,
-                (auth_token,),
+                (hashed_auth,),
             )
+
+    def add_to_roster(self, user_id, role):
+
+        with self.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE users
+                SET course_role = ?
+                WHERE user_id = ?
+                """,
+                (role, user_id),
+            )
+
+    def get_roster(self):
+        with self.cursor() as cursor:
+            users = cursor.execute("SELECT ubit from users")
+
+
+    def set_preferred_name(self, identifier, name):
+        pass

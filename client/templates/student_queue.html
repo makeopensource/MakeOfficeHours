@@ -1,28 +1,77 @@
 {% extends "base.html" %}
 
-{% block title %} | Queue {% endblock %}
+{% block title %} Queue {% endblock %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename="css/student-queue.css") }}">
+{% endblock %}
+
+
+{% block banner %}
+
+<header id="queue-banner" class="banner bad">You are not in the queue!</header>
+
+{% endblock %}
 
 {% block body %}
 
-    <h2 id="position">Position: not applicable</h2>
-    <br/>
-    <div id="queue-container"></div>
+    <div id="queue">
+        <div id="info" class="queue-section">
+            <div id="pfp" class="circle"></div>
+            <div id="user">
+                <h2>Fih (he/him)</h2>
+                <button id="edit" disabled>Edit Info</button>
+            </div>
+        </div>
+        <div id="position-info" class="queue-section">
+            <div class="all-centered columns">
+                <div id="my-position" class="circle pos">67</div>
+                Your Position
+            </div>
+            <div class="all-centered columns">
+                <div id="queue-length" class="circle pos">123</div>
+                Queue Size
+            </div>
+        </div>
+        <div class="queue-section columns all-centered">
+            <button id="exit-queue" class="danger">Exit Queue</button>
+        </div>
+    </div>
 
     <script>
-        let timeout = setTimeout(fetch_position, 10)
 
-        function fetch_position() {
+        function setBanner(to) {
+            const banner = document.getElementById("queue-banner")
+            if (to) {
+                banner.textContent = "You are in the queue!"
+                banner.className = "banner"
+            } else {
+                banner.textContent = "You are not in the queue!"
+                banner.className = "banner bad"
+            }
+        }
+
+        function fetchPosition() {
             fetch("/get-my-position").then(data => {
                 return data.json()
             }).then(data => {
                 if (data["message"] === undefined) {
-                    document.getElementById("position").innerHTML = `Position: ${data["position"]}`
+                    document.getElementById("my-position").textContent = `${data["position"]}`
+                    setBanner(true)
                 } else {
-                    document.getElementById("position").innerHTML = `Position: not applicable`
+                    document.getElementById("my-position").textContent = `N/A`
+                    setBanner(false)
                 }
+                document.getElementById("queue-length").textContent = `${data["length"]}`
             })
-            timeout = setTimeout(fetch_position, 5000)
         }
+
+        function poll() {
+            fetchPosition()
+            setTimeout(poll, 5000)
+        }
+
+        poll()
+
     </script>
 
 

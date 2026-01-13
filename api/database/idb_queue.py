@@ -17,3 +17,7 @@ class IQueue(ABC):
     @abstractmethod
     def get_queue(self):
         raise NotImplementedError()
+
+    @abstractmethod
+    def remove_student(self, student, reason):
+        raise NotImplementedError()

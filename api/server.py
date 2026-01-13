@@ -25,7 +25,7 @@ def create_app():
 
     This function is used to set up the Flask API server, loading all its dependencies
     """
-    app = Flask(__name__, template_folder="../client/templates")
+    app = Flask(__name__, template_folder="../client/templates", static_folder="../client/static")
 
     app.config.from_object(config.Config())
 
@@ -41,30 +41,22 @@ def create_app():
     def home():
         return render_template("home.html")
 
-    @app.route("/login", methods=["GET"])
-    def login():
-        return render_template("login.html")
-
-    @app.route("/register", methods=["GET"])
-    def register():
-        return render_template("register.html")
-
-    @app.route("/force-enroll", methods=["GET"])
-    @debug_access_only
-    def force_enroll():
-        return render_template("force_enroll.html")
-
     @app.route("/queue", methods=["GET"])
     def queue():
         if not (auth_token := request.cookies.get("auth_token")):
-            return redirect("/login")
+            return redirect("/home")
 
         if not (user := db.get_authenticated_user(auth_token)):
-            return redirect("/login")
+            return redirect("/home")
 
         if user["course_role"] == "student":
             return render_template("student_queue.html")
         return render_template("instructor_queue.html")
+
+    @app.route("/dev-login", methods=["GET"])
+    @debug_access_only
+    def dev_login():
+        return render_template("dev_login.html")
 
     @app.route("/favicon.ico", methods=["GET"])
     @debug_access_only

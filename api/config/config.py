@@ -8,3 +8,4 @@ class Config:
 
     def __init__(self):
         self.API_MODE = os.getenv("API_MODE", "Can not find mode")
+        self.MAX_CONTENT_LENGTH = 16 * 1000 * 1000

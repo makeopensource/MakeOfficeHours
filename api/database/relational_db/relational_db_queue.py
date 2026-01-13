@@ -54,3 +54,6 @@ class RelationalDBQueue(IQueue):
                 )
 
         return users_l
+
+    def remove_student(self, student, reason):
+        pass

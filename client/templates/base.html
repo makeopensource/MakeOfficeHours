@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>makeofficehours | {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    {% block head %} {% endblock %}
 </head>
 <body>
 
-<h1>makeofficehours</h1>
+<header id="site-header">
+    <h1>Make Office Hours</h1>
+</header>
 
-{% block body %}
+{% block banner %}{% endblock %}
 
-{% endblock %}
+<section>
+    {% block body %}
+
+    {% endblock %}
+</section>
 
 </body>
 </html>

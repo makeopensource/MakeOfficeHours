@@ -9,3 +9,7 @@ class IRoster(ABC):
     @abstractmethod
     def add_to_roster(self, user_id, role):
         raise NotImplementedError()
+
+    @abstractmethod
+    def get_roster(self):
+        raise NotImplementedError()

@@ -6,7 +6,7 @@ load_dotenv()
 
 from api.database.db import db
 from api.auth.controller import create_account
-from api.roster.controller import permission_required
+from api.roster.controller import min_level
 from api.server import create_app
 
 app = create_app()
@@ -58,19 +58,19 @@ def client():
 
 
 @app.route("/test-ta")
-@permission_required("ta")
+@min_level("ta")
 def ta_only():
     return "I'm at least TA!", 200
 
 
 @app.route("/test-instructor")
-@permission_required("instructor")
+@min_level("instructor")
 def ins_only():
     return "I'm at least an instructor!", 200
 
 
 @app.route("/test-admin")
-@permission_required("admin")
+@min_level("admin")
 def admin_only():
     return "I'm at least an admin!", 200
 

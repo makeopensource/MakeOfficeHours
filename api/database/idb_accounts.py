@@ -44,3 +44,8 @@ class IAccounts(ABC):
     def sign_out(self, auth_token):
         # invalidates the specified auth token
         raise NotImplementedError()
+
+    @abstractmethod
+    def set_preferred_name(self, identifier, name):
+        # set the user's preferred name based on identifier
+        raise NotImplementedError()

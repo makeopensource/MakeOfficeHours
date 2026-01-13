@@ -4,13 +4,12 @@
 
 {% block body %}
 
-    <p>Welcome to makeofficehours</p>
-    <a href="/login">Login</a>
-    <a href="/register">Register</a>
-    <a href="/queue">Queue</a>
+    <div id="login-buttons">
+        <button class="login-button" id="autolab-login">Login with Autolab</button>
 
-    {% if config["DEBUG"] %}
-    <a href="/force-enroll">Force Enroll</a>
-    {% endif %}
+        {% if config["DEBUG"] %}
+            <button class="login-button" id="dev-login" onclick="window.location = '/dev-login'">Dev Login</button>
+        {% endif %}
+    </div>
 
 {% endblock %}

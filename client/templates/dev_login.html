@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %} Dev Login {% endblock %}
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dev-login.css') }}">
+{% endblock %}
+
+
+{% block body %}
+
+    <div id="forms">
+        <div class="dev-form" id="enroll">
+            <h2>Force Enroll</h2>
+            <form action="/force-enroll" method="post" enctype="application/x-www-form-urlencoded">
+                <label for="ubit">UBITName</label>
+                <input name="ubit" type="text" id="ubit">
+                <br/>
+                <label for="pn">Person Number</label>
+                <input name="pn" type="text" id="pn">
+                <br/>
+                <label for="role">Role</label>
+                <select name="role" id="role">
+                    <option value="student">Student</option>
+                    <option value="ta">TA</option>
+                    <option value="instructor">Instructor</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <br/>
+                <button type="submit">Enroll</button>
+            </form>
+        </div>
+        <div class="dev-form" id="register">
+            <h2>Register</h2>
+
+            <form action="/signup" method="post" enctype="application/x-www-form-urlencoded">
+                <label for="ubit">UBITName</label>
+                <input name="ubit" type="text" id="ubit">
+                <br/>
+                <label for="password">Password</label>
+                <input name="password" type="password" id="password">
+                <br/>
+                <button type="submit">Register</button>
+            </form>
+        </div>
+        <div class="dev-form" id="login">
+                <h2>Login</h2>
+                <form action="/login" method="post" enctype="application/x-www-form-urlencoded">
+                    <label for="ubit">UBITName</label>
+                    <input name="ubit" type="text" id="ubit">
+                    <br/>
+                    <label for="password">Password</label>
+                    <input name="password" type="password" id="password">
+                    <br/>
+                    <button type="submit">Login</button>
+                </form>
+        </div>
+    <div id="message"></div>
+    <button onclick="window.location = '/queue'">Go to Queue</button>
+    </div>
+
+    <script>
+        forms = document.getElementsByTagName("form")
+
+        for (const form of forms) {
+            form.reset()
+            form.addEventListener("submit", (e) => {
+                e.preventDefault()
+                const data = new FormData(form)
+                fetch(form.action, {
+                    method: form.method,
+                    body: data
+                }).then((res) => {
+                    return res.json()
+                }).then(data => {
+                    document.getElementById("message").textContent = data["message"]
+                })
+            })
+        }
+    </script>
+
+{% endblock %}

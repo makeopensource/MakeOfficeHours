@@ -14,6 +14,9 @@ def force_enroll():
     pn = body.get("pn")
     role = body.get("role")
 
+    if not ubit or not pn or not role:
+        return {"message": "Bad request"}, 400
+
     if role not in {"student", "ta", "instructor", "admin"}:
         return {"message": "Invalid role"}, 400
 

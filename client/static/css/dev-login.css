@@ -1,0 +1,15 @@
+.dev-form {
+    margin: 10px;
+}
+
+.dev-form > * {
+    margin-bottom: 4px;
+}
+
+form > * {
+    margin-bottom: 4px;
+}
+
+select, button, input {
+    padding: 4px;
+}

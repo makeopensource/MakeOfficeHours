@@ -1,0 +1,41 @@
+#queue {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.queue-section {
+    justify-content: center;
+    display: flex;
+    flex-grow: 0;
+}
+
+.queue-section > * {
+    margin: 8px;
+}
+
+.circle.pos {
+    background-color: var(--accent-color);
+    color: white;
+    box-shadow: 0 2px 4px gray;
+}
+
+#user {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#user > * {
+    margin-bottom: 8px;
+}
+
+#exit-queue {
+    width: 30%;
+}
+
+textarea {
+    resize: none;
+    width: 30%;
+    height: 50%;
+}
