@@ -3,11 +3,15 @@
     --bg-color: #FFFFFF;
 }
 
-.banner.bad {
+#queue-banner.bad {
     background-color: #FDD3D0
 }
 
-.banner {
+.disabled {
+    display: none;
+}
+
+#queue-banner {
     background-color: #CFF7D3;
     height: 5vh;
     color: black;
@@ -17,12 +21,13 @@ button {
     background-color: #D9D9D9;
     border: 0;
     border-radius: 25px;
-    height: 2rem;
+    min-height: 2.4rem;
     font-size: 1rem;
     color: black;
     font-weight: bold;
     max-width: 100%;
-    padding: 8px;
+    padding: 12px;
+    /*box-shadow: 1px 1px 3px gray;*/
 }
 
 button:hover {
@@ -33,6 +38,21 @@ button:hover {
 
 button.danger {
     background-color: #EC221F;
+    color: white;
+}
+
+button.danger:hover {
+    background-color: #B4221F;
+    color: white;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    transition: none;
+}
+
+button.important {
+    background-color: var(--accent-color);
     color: white;
 }
 
@@ -103,7 +123,6 @@ section {
     box-shadow: 1px 3px 4px gray;
     border: 0;
     font-weight: bold;
-    line-height: 80px;
 }
 
 .circle {
@@ -115,4 +134,42 @@ section {
     align-items: center;
     justify-content: center;
     font-size: 2.5rem;
+}
+
+input {
+    font-size: 1rem;
+    min-height: 2rem;
+    border-radius: 10px;
+    border: 2px solid #D9D9D9;
+    padding: 0 8px;
+}
+
+.flex {
+    flex: 1;
+}
+
+.no-grow {
+    flex: 1;
+    flex-grow: 0;
+    width: fit-content;
+}
+
+.modal, .small-modal {
+    display: none;
+    margin: auto;
+    padding: 64px;
+    border: 2px solid #B9B9B9;
+    border-radius: 10px;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.modal-big-text {
+    width: 100%;
+    height: 6rem;
+    overflow-y: scroll;
+    resize: none;
+    border-radius: 10px;
+    border: 2px solid #D9D9D9;
+    padding: 8px;
 }

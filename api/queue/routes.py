@@ -3,6 +3,7 @@
 from flask import Blueprint, request
 
 import api.queue.controller as controller
+from api.queue.controller import remove_from_queue_without_visit
 from api.roster.controller import min_level
 from api.database.db import db
 
@@ -86,9 +87,17 @@ def dequeue():
     """
     role: TA
 
-    Remove the first student from the queue and create a Visit in the DB
+    Remove the specified student from the queue and create a Visit in the DB
 
     Not allowed if TA is already in a visit
+
+    Args:
+        body.id: The ID of the account to dequeue
+
+    Body:
+        {
+            "id": <string>
+        }
 
     Returns:
         200 OK - Student was dequeued
@@ -99,23 +108,34 @@ def dequeue():
             "preferred_name: <string>
         }
 
-        400 Bad Request - The queue is empty
+        400 Bad Request - The queue is empty or user is not in the queue
         403 Unauthorized - Requester does not have TA permissions
         {
             "message": <string>
         }
     """
 
-    student = db.dequeue_student()
+    body = request.get_json()
+
+    if not (auth_token := request.cookies.get("auth_token")):
+        return {"message": "You are not logged in!"}, 403
+
+    user = db.get_authenticated_user(auth_token)
+    user_id = user["user_id"]
+
+    student = db.dequeue_specified_student(body["id"])
 
     if student is None:
         return {"message": "The queue is empty"}, 400
+
+    visit = db.create_visit(body["id"], user_id, student["enqueue_time"])
 
     return {
         "id": int(student["user_id"]),
         "username": student["ubit"],
         "pn": str(student["person_num"]),
         "preferred_name": student["preferred_name"],
+        "visitID": visit
     }
 
 
@@ -215,7 +235,23 @@ def remove_self():
             "message": <string>
         }
     """
-    return f"{request.path} hit 😎, remove method is used."
+
+    if not (auth_token := request.cookies.get("auth_token")):
+        return {"message": "You are not logged in!"}, 403
+
+    user = db.get_authenticated_user(auth_token)
+
+    if not user:
+        return {"message": "You are not logged in!"}, 403
+
+    user_id = user["user_id"]
+    body = request.get_json()
+
+    remove_from_queue_without_visit(user_id, f"[SELF-REMOVE]: {body["reason"]}")
+
+
+
+    return {"message":"Removed self from queue."}
 
 
 @blueprint.route("/remove-from-queue", methods=["POST"])
@@ -245,7 +281,59 @@ def remove(user_id):
     """
     return f"{request.path} hit 😎, remove method is used."
 
+@blueprint.route("/clear-queue", methods=["DELETE"])
+@min_level('ta')
+def clear_queue():
+    db.clear_queue()
+    return {"message": "Successfully cleared the queue."}
+
+
+@blueprint.route("/enqueue-override-front")
+@min_level('ta')
+def enqueue_override_front():
+    """ Exact same behavior as /enqueue-ta-override, except it sends the student to the front.
+
+    Args:
+        body.identifier: A unique identifier for the student This can either be their UBIT, pn, or the id of their account
+
+    Body:
+        {
+            "identifier": <string>
+        }
+
+    Returns:
+        200 OK - Student was added to the queue
+        403 Unauthorized - Requester does not have TA permissions
+        404 Not Found - No student matching provided identifier
+        {
+            "message": <string>,
+        }
+    """
+    body = request.get_json()
+    identifier = body["identifier"]
+
+    if controller.add_to_queue_by_ta_override(identifier, True):
+        return {"message": "Student was added to the front of the queue"}
+
+    return {"message": "No student matching provided identifier"}, 404
+
+@blueprint.route("/end-visit", methods=["POST"])
+@min_level('ta')
+def end_visit():
+    body = request.get_json()
+
+    visit = body.get("id")
+    reason = body.get("reason")
+
+    if visit is None or reason is None:
+        return {"message": "Malformed request"}, 400
+
+    db.end_visit(visit, reason)
+
+    return {"message": "Ended the visit"}
+
+
 
 # TODO: move to end of queue (Called by TAs to add the students they just saw back to the end of the queue)
 
-# TODO: Clear the queue
+

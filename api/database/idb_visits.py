@@ -22,10 +22,11 @@ class IVisits(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def end_visit(self, visit_id):
+    def end_visit(self, visit_id, reason):
         """Mark in the database that the specified visit
         has ended.
 
         :param visit_id: The numeric ID representing the specific visit
+        :param reason:   The resolution of the visit
         """
         raise NotImplementedError()

@@ -1,0 +1,58 @@
+#instructor-queue {
+    display: flex;
+    flex-direction: column;
+    margin: 32px 128px;
+}
+
+#queue-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+@media screen and (min-width: 992px) {
+    #buttons-r {
+        margin-left: auto;
+    }
+}
+
+.queue-section {
+    margin-bottom: 4px;
+}
+
+#queue-container {
+    margin: 32px 16px;
+}
+
+.queue-entry {
+    display: flex;
+    border: 2px solid #B9B9B9;
+    border-top: 0;
+    align-items: center;
+    padding: 16px;
+    background-color: #F5F5F5;
+}
+
+.queue-entry.top {
+    border-top: 2px solid #B9B9B9;
+}
+
+.queue-entry-info {
+    font-weight: bold;
+}
+
+.queue-entry-buttons {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+}
+
+#buttons-l, #buttons-r {
+    display: flex;
+    gap: 4px;
+}
+
+.input-modal-container {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+}

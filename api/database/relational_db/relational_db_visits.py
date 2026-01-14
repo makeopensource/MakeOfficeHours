@@ -20,14 +20,14 @@ class RelationalDBVisits(IVisits):
 
 
 
-    def end_visit(self, visit_id):
+    def end_visit(self, visit_id, reason):
         # YYYY-MM-DD HH:MM:SS
         now = str(datetime.datetime.now().isoformat(' ', timespec="seconds"))
 
         with self.cursor() as cursor:
             cursor.execute("""
                 UPDATE visits
-                SET session_end = ?
+                SET session_end = ?, session_end_reason = ?
                 WHERE visit_id = ? AND session_end is null
-            """)
+            """, (now, reason, visit_id))
 

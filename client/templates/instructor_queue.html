@@ -2,53 +2,61 @@
 
 {% block title %} Queue {% endblock %}
 
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/instructor-queue.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/visit.css') }}">
+    <script src="{{ url_for('static', filename='js/instructor_queue.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/visit.js') }}" defer></script>
+{% endblock %}
+
 {% block body %}
 
-    <h2 id="now-helping">Now Helping: Nobody</h2>
-    <button id="remove">Remove Head from Queue</button>
-    <br/>
-    <label for="enqueue-override">Enqueue Override</label>
-    <input id="enqueue-override" type="text">
-    <button id="submit-override">Submit Override</button>
-    <div id="queue-container"></div>
+    <dialog id="force-enqueue-dialog" class="small-modal">
+        <label for="force-enqueue">Student Identifier (UBITName or Person Number)</label><br/>
+        <input type="text" id="force-enqueue" class="flex" name="force-enqueue">
 
-    <script>
-        function fetch_queue() {
-            fetch("/get-queue").then(data => {
-                return data.json()
-            }).then(data => {
-                document.getElementById("queue-container").innerHTML = ''
+        <div class="input-modal-container">
+            <button id="close-enqueue-dialog" class="no-grow">Cancel</button>
+            <button id="submit-force-enqueue" class="no-grow important">Submit</button>
+        </div>
 
-                for (let entry of data) {
-                    document.getElementById("queue-container").append(entry["ubit"])
-                }
-            })
-        }
+        <p id="enqueue-error-message"></p>
 
-        document.getElementById("remove").onclick = () => {
-            fetch("/help-a-student", {method: "POST"}).then(data => {return data.json()}).then(data => {
-                document.getElementById("now-helping").innerHTML = `Now Helping: ${data["username"]}`;
-                setTimeout(fetch_queue, 50)
-            })
-        }
+    </dialog>
 
-        document.getElementById("submit-override").onclick = () => {
-            fetch("/enqueue-ta-override", {method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({"identifier": document.getElementById("enqueue-override").value})})
-            setTimeout(fetch_queue, 50)
-        }
+    <dialog id="clear-queue-dialog" class="small-modal">
+        <p><strong>Are you sure?</strong></p>
+        <p>If you clear the queue, <strong>all students</strong> will permanently lose their position.</p>
+        <div class="input-modal-container">
+            <button id="clear-queue-cancel">No, keep everyone's position in the queue.</button>
+            <button id="clear-queue-confirm" class="danger">Yes, clear the queue.</button>
+        </div>
 
-        function poll() {
-            fetch_queue()
-            setTimeout(poll, 5000)
-        }
+        <p id="clear-queue-error-message"></p>
+    </dialog>
 
-        poll()
+    {% include "visit.html" %}
 
-    </script>
 
+    <div id="instructor-queue">
+        <div class="queue-section">
+            <h2 id="welcome-text">Hello, Jimmy!</h2>
+            <h2 id="student-count-text">0 students in the queue.</h2>
+        </div>
+        <div id="queue-buttons" class="queue-section">
+            <div id="buttons-l">
+                <button>Edit My Info</button>
+                <button>Clock In</button>
+            </div>
+            <div id="buttons-r">
+                {% if manager %}
+                <button id="manage-course-button">Manage Course</button>
+                {% endif %}
+                <button id="enqueue-dialog-button">Enqueue Student</button>
+                <button id="clear-queue-dialog-button" class="danger">Clear Queue</button>
+            </div>
+        </div>
+        <div id="queue-container" class="queue-section"></div>
+    </div>
 
 {% endblock %}

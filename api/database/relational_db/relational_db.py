@@ -24,7 +24,7 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
                 (
                     user_id INTEGER PRIMARY KEY,
                     preferred_name VARCHAR(64),
-                    last_name VARCHAR (64),
+                    last_name VARCHAR(64),
                     ubit VARCHAR(16) UNIQUE,
                     person_num INTEGER UNIQUE,
                     course_role VARCHAR(16)
@@ -37,7 +37,8 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
                 CREATE TABLE IF NOT EXISTS queue
                 (
                     user_id INTEGER UNIQUE,
-                    joined TEXT DEFAULT (datetime('now', 'localtime'))
+                    joined TEXT DEFAULT (datetime('now', 'localtime')),
+                    priority INTEGER
                 );
                 """
             )
@@ -63,6 +64,7 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
                     ta_id INTEGER,
                     session_start TEXT DEFAULT (datetime('now','localtime')),
                     session_end TEXT,
+                    session_end_reason TEXT,
                     enqueue_time TEXT
                     );
                 """

@@ -11,6 +11,10 @@ class IQueue(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def enqueue_student_front(self, student):
+        raise NotImplementedError()
+
+    @abstractmethod
     def dequeue_student(self):
         raise NotImplementedError()
 
@@ -19,5 +23,9 @@ class IQueue(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def remove_student(self, student, reason):
+    def remove_student(self, student):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def clear_queue(self):
         raise NotImplementedError()

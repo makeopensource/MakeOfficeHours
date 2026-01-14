@@ -1,0 +1,43 @@
+#visit {
+    padding: 64px;
+    width: 75%;
+    height: 70%;
+    margin: auto;
+    flex-direction: row;
+}
+
+#student-info {
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+}
+
+#student-visit-reason {
+    width: 40rem;
+    min-height: 10rem;
+    resize: none;
+    border-radius: 10px;
+    border: 2px solid #D9D9D9;
+    padding: 16px;
+}
+
+#student-info > br {
+    margin-top: 48px;
+}
+
+#visit-controls {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    margin: 32px;
+    gap: 8px;
+}
+
+#ta-visit-notes {
+    min-height: 10rem;
+    resize: none;
+    border-radius: 10px;
+    border: 2px solid #D9D9D9;
+    padding: 16px;
+}

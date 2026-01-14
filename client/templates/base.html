@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>makeofficehours | {% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <script src="{{ url_for('static', filename='js/base.js') }}" defer></script>
     {% block head %} {% endblock %}
 </head>
 <body>
@@ -12,13 +13,19 @@
     <h1>Make Office Hours</h1>
 </header>
 
-{% block banner %}{% endblock %}
+<header id="queue-banner" class="banner disabled"></header>
 
 <section>
     {% block body %}
 
     {% endblock %}
 </section>
+
+<script>
+
+
+
+</script>
 
 </body>
 </html>

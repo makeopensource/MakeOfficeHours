@@ -12,6 +12,7 @@ from flask import send_file
 
 from api.config import config
 from api.database.db import db
+from api.roster.controller import min_level, get_power_level
 from api.utils.debug import debug_access_only
 import api.auth.routes as auth_routes
 import api.queue.routes as queue_routes
@@ -44,14 +45,35 @@ def create_app():
     @app.route("/queue", methods=["GET"])
     def queue():
         if not (auth_token := request.cookies.get("auth_token")):
-            return redirect("/home")
+            return redirect("/")
 
         if not (user := db.get_authenticated_user(auth_token)):
-            return redirect("/home")
+            return redirect("/")
 
         if user["course_role"] == "student":
             return render_template("student_queue.html")
-        return render_template("instructor_queue.html")
+
+        if get_power_level(user["course_role"]) >= 5:
+            return render_template("instructor_queue.html", manager=True)
+
+        return render_template("instructor_queue.html", manager=False)
+
+    @app.route("/user/<user_id>", methods=["GET"])
+    @min_level('ta')
+    def get_user_info(user_id):
+        user = db.lookup_identifier(user_id)
+        return user
+
+    @app.route("/me", methods=["GET"])
+    def get_my_info():
+        if not (auth_token := request.cookies.get("auth_token")):
+            return {"message": "You are not authenticated."}, 401
+
+        if not (user := db.get_authenticated_user(auth_token)):
+            return {"message": "You are not authenticated."}, 401
+
+        return user
+
 
     @app.route("/dev-login", methods=["GET"])
     @debug_access_only

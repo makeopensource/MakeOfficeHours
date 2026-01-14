@@ -7,9 +7,25 @@ class RelationalDBQueue(IQueue):
         with self.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT OR IGNORE INTO queue (user_id) VALUES (?)
+                INSERT OR IGNORE INTO queue (user_id, priority) VALUES (?, 0)
             """,
                 (student,),
+            )
+
+    def enqueue_student_front(self, student):
+        with self.cursor() as cursor:
+            priority = cursor.execute("SELECT MAX(priority) FROM queue").fetchone()[0]
+            if priority is None:
+                priority = 0
+            else:
+                priority += 1
+
+            cursor.execute(
+                """
+                INSERT OR IGNORE INTO queue (user_id, priority)
+                VALUES (?, ?)
+                """,
+                (student, priority),
             )
 
     def dequeue_student(self):
@@ -20,10 +36,10 @@ class RelationalDBQueue(IQueue):
 
             user = cursor.execute(
                 """
-                SELECT users.user_id, preferred_name, ubit, person_num 
+                SELECT users.user_id, preferred_name, ubit, person_num, joined 
                 FROM queue 
                 INNER JOIN users ON queue.user_id = users.user_id 
-                ORDER BY joined
+                ORDER BY priority DESC, joined
             """
             ).fetchone()
             cursor.execute("DELETE FROM queue WHERE user_id = ?", (user[0],))
@@ -33,6 +49,31 @@ class RelationalDBQueue(IQueue):
             "preferred_name": user[1],
             "ubit": user[2],
             "person_num": str(user[3]),
+            "enqueue_time": user[4]
+        }
+
+    def dequeue_specified_student(self, student_id):
+        with self.cursor() as cursor:
+            user = cursor.execute(
+                """
+                SELECT users.user_id, preferred_name, ubit, person_num, joined 
+                FROM queue 
+                INNER JOIN users ON queue.user_id = users.user_id 
+                WHERE users.user_id = ?
+            """, (student_id,)
+            ).fetchone()
+
+            if user is None:
+                return None
+
+            cursor.execute("DELETE FROM queue WHERE user_id = ?", (user[0],))
+
+        return {
+            "user_id": user[0],
+            "preferred_name": user[1],
+            "ubit": user[2],
+            "person_num": str(user[3]),
+            "enqueue_time": user[4]
         }
 
     def get_queue(self):
@@ -55,5 +96,16 @@ class RelationalDBQueue(IQueue):
 
         return users_l
 
-    def remove_student(self, student, reason):
-        pass
+    def clear_queue(self):
+        with self.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM queue"
+            )
+
+    def remove_student(self, student):
+        with self.cursor() as cursor:
+            queue_info = cursor.execute("SELECT * FROM queue WHERE user_id = ?", (student, )).fetchone()
+
+            cursor.execute("DELETE FROM queue WHERE user_id = ?", (student, ))
+
+            return {"user_id": queue_info[0], "joined": queue_info[1]}

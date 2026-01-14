@@ -3,20 +3,33 @@
 {% block title %} Queue {% endblock %}
 {% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename="css/student-queue.css") }}">
+    <script src="{{ url_for('static', filename='js/student_queue.js') }}" defer></script>
+
 {% endblock %}
 
 
 {% block banner %}
 
-<header id="queue-banner" class="banner bad">You are not in the queue!</header>
 
 {% endblock %}
 
 {% block body %}
 
+    <dialog id="self-dequeue-dialog" class="small-modal">
+        <p><strong>Sorry to see you go!</strong> If you leave the queue now, you'll lose your position.</p>
+        <p>To rejoin, you will have to swipe back in.</p>
+        <label for="self-dequeue-reason">Why are you leaving the queue?</label>
+        <textarea id="self-dequeue-reason" class="modal-big-text" required></textarea>
+        <br/>
+        <div class="input-modal-container">
+            <button id="close-dequeue-dialog">Nevermind, return to queue.</button>
+            <button id="submit-self-dequeue" class="important">End Visit</button>
+        </div>
+    </dialog>
+
     <div id="queue">
         <div id="info" class="queue-section">
-            <div id="pfp" class="circle"></div>
+{#            <div id="pfp" class="circle"></div>#}
             <div id="user">
                 <h2>Fih (he/him)</h2>
                 <button id="edit" disabled>Edit Info</button>
@@ -39,38 +52,7 @@
 
     <script>
 
-        function setBanner(to) {
-            const banner = document.getElementById("queue-banner")
-            if (to) {
-                banner.textContent = "You are in the queue!"
-                banner.className = "banner"
-            } else {
-                banner.textContent = "You are not in the queue!"
-                banner.className = "banner bad"
-            }
-        }
 
-        function fetchPosition() {
-            fetch("/get-my-position").then(data => {
-                return data.json()
-            }).then(data => {
-                if (data["message"] === undefined) {
-                    document.getElementById("my-position").textContent = `${data["position"]}`
-                    setBanner(true)
-                } else {
-                    document.getElementById("my-position").textContent = `N/A`
-                    setBanner(false)
-                }
-                document.getElementById("queue-length").textContent = `${data["length"]}`
-            })
-        }
-
-        function poll() {
-            fetchPosition()
-            setTimeout(poll, 5000)
-        }
-
-        poll()
 
     </script>
 
