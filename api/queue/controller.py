@@ -38,6 +38,6 @@ def add_to_front_of_queue(user_account):
 
 def remove_from_queue_without_visit(student, reason):
     queue_info = db.remove_student(student)
-    visit = db.create_visit(student, None, queue_info["joined"])
+    visit = db.create_visit(student, None, queue_info["joined"], "")
     db.end_visit(visit, reason)
 

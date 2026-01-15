@@ -21,29 +21,8 @@
 
 #queue-container {
     margin: 32px 16px;
-}
-
-.queue-entry {
-    display: flex;
-    border: 2px solid #B9B9B9;
-    border-top: 0;
-    align-items: center;
-    padding: 16px;
-    background-color: #F5F5F5;
-}
-
-.queue-entry.top {
-    border-top: 2px solid #B9B9B9;
-}
-
-.queue-entry-info {
-    font-weight: bold;
-}
-
-.queue-entry-buttons {
-    margin-left: auto;
-    display: flex;
-    gap: 4px;
+    border: 2px solid #D9D9D9;
+    border-bottom: 0;
 }
 
 #buttons-l, #buttons-r {

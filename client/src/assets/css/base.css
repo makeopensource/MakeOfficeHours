@@ -15,6 +15,8 @@
     background-color: #CFF7D3;
     height: 5vh;
     color: black;
+    margin-top: -32px;
+    margin-bottom: 16px;
 }
 
 button {
@@ -82,8 +84,13 @@ header {
     align-items: flex-start;
 }
 
+.right-al-item {
+    align-self: flex-end;
+}
+
 .columns {
     flex-direction: column;
+    display: flex;
 }
 
 .columns > * {
@@ -155,7 +162,6 @@ input {
 }
 
 .modal, .small-modal {
-    display: none;
     margin: auto;
     padding: 64px;
     border: 2px solid #B9B9B9;

@@ -4,6 +4,7 @@
     height: 70%;
     margin: auto;
     flex-direction: row;
+    display: flex;
 }
 
 #student-info {

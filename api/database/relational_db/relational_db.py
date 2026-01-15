@@ -38,7 +38,8 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
                 (
                     user_id INTEGER UNIQUE,
                     joined TEXT DEFAULT (datetime('now', 'localtime')),
-                    priority INTEGER
+                    priority INTEGER,
+                    enqueue_reason TEXT
                 );
                 """
             )
@@ -62,6 +63,7 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
                     visit_id INTEGER PRIMARY KEY,
                     student_id INTEGER,
                     ta_id INTEGER,
+                    student_visit_reason TEXT,
                     session_start TEXT DEFAULT (datetime('now','localtime')),
                     session_end TEXT,
                     session_end_reason TEXT,

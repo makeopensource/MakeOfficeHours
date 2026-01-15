@@ -8,13 +8,13 @@ class RelationalDBVisits(IVisits):
     def __init__(self):
         super().__init__()
 
-    def create_visit(self, student, ta, enqueue_time) -> int:
+    def create_visit(self, student, ta, enqueue_time, visit_reason) -> int:
         with self.cursor() as cursor:
             visit_id = cursor.execute("""
-                INSERT INTO visits (student_id, ta_id, enqueue_time) VALUES (
-                ?, ?, ?)
+                INSERT INTO visits (student_id, ta_id, enqueue_time, student_visit_reason) VALUES (
+                ?, ?, ?, ?)
                 RETURNING visit_id
-            """, (student, ta, enqueue_time)).fetchone()[0]
+            """, (student, ta, enqueue_time, visit_reason)).fetchone()[0]
 
             return visit_id
 

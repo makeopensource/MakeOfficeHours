@@ -3,6 +3,7 @@
 from flask import Blueprint, request
 
 import api.queue.controller as controller
+from api.auth.controller import get_user
 from api.queue.controller import remove_from_queue_without_visit
 from api.roster.controller import min_level
 from api.database.db import db
@@ -105,7 +106,9 @@ def dequeue():
             "id": <int>,
             "username": <string>,
             "pn": <string>,
-            "preferred_name: <string>
+            "preferred_name: <string>,
+            "visitID": <string>,
+            "visit_reason": <string>
         }
 
         400 Bad Request - The queue is empty or user is not in the queue
@@ -128,14 +131,15 @@ def dequeue():
     if student is None:
         return {"message": "The queue is empty"}, 400
 
-    visit = db.create_visit(body["id"], user_id, student["enqueue_time"])
+    visit = db.create_visit(body["id"], user_id, student["enqueue_time"], student["enqueue_reason"])
 
     return {
         "id": int(student["user_id"]),
         "username": student["ubit"],
         "pn": str(student["person_num"]),
         "preferred_name": student["preferred_name"],
-        "visitID": visit
+        "visitID": visit,
+        "visit_reason": student["enqueue_reason"]
     }
 
 
@@ -164,8 +168,6 @@ def get_queue():
             "message": <string>
         }
     """
-
-    # todo: permission checking. needs auth.
 
     return db.get_queue()
 
@@ -255,6 +257,7 @@ def remove_self():
 
 
 @blueprint.route("/remove-from-queue", methods=["POST"])
+@min_level('ta')
 def remove(user_id):
     """
     role: TA
@@ -332,7 +335,24 @@ def end_visit():
 
     return {"message": "Ended the visit"}
 
+@blueprint.route("/update-reason", methods=["PATCH"])
+@min_level('student')
+def update_reason():
+    body = request.get_json()
 
+    user = get_user(request.cookies)
+
+    if user is None:
+        return {"message": "You are not authenticated"}, 401
+
+    reason = body.get("reason")
+
+    if not reason:
+        return {"message": "Malformed request"}, 400
+
+    db.set_reason(user["user_id"], reason)
+
+    return {"message": "Reason updated"}
 
 # TODO: move to end of queue (Called by TAs to add the students they just saw back to the end of the queue)
 

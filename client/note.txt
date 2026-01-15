@@ -1,1 +1,0 @@
-At the moment, the API server is hosting the frontend

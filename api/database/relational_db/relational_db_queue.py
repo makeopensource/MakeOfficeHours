@@ -56,7 +56,7 @@ class RelationalDBQueue(IQueue):
         with self.cursor() as cursor:
             user = cursor.execute(
                 """
-                SELECT users.user_id, preferred_name, ubit, person_num, joined 
+                SELECT users.user_id, preferred_name, ubit, person_num, joined, enqueue_reason 
                 FROM queue 
                 INNER JOIN users ON queue.user_id = users.user_id 
                 WHERE users.user_id = ?
@@ -73,7 +73,8 @@ class RelationalDBQueue(IQueue):
             "preferred_name": user[1],
             "ubit": user[2],
             "person_num": str(user[3]),
-            "enqueue_time": user[4]
+            "enqueue_time": user[4],
+            "enqueue_reason": user[5]
         }
 
     def get_queue(self):
@@ -109,3 +110,9 @@ class RelationalDBQueue(IQueue):
             cursor.execute("DELETE FROM queue WHERE user_id = ?", (student, ))
 
             return {"user_id": queue_info[0], "joined": queue_info[1]}
+
+    def set_reason(self, student, reason):
+        with self.cursor() as cursor:
+            cursor.execute(
+                "UPDATE queue SET enqueue_reason = ? WHERE user_id = ?", (reason, student)
+            )

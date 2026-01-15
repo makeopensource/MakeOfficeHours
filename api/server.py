@@ -38,26 +38,6 @@ def create_app():
     app.register_blueprint(roster_routes.blueprint)
     app.register_blueprint(debug_routes.blueprint)
 
-    @app.route("/", methods=["GET"])
-    def home():
-        return render_template("home.html")
-
-    @app.route("/queue", methods=["GET"])
-    def queue():
-        if not (auth_token := request.cookies.get("auth_token")):
-            return redirect("/")
-
-        if not (user := db.get_authenticated_user(auth_token)):
-            return redirect("/")
-
-        if user["course_role"] == "student":
-            return render_template("student_queue.html")
-
-        if get_power_level(user["course_role"]) >= 5:
-            return render_template("instructor_queue.html", manager=True)
-
-        return render_template("instructor_queue.html", manager=False)
-
     @app.route("/user/<user_id>", methods=["GET"])
     @min_level('ta')
     def get_user_info(user_id):
@@ -73,12 +53,6 @@ def create_app():
             return {"message": "You are not authenticated."}, 401
 
         return user
-
-
-    @app.route("/dev-login", methods=["GET"])
-    @debug_access_only
-    def dev_login():
-        return render_template("dev_login.html")
 
     @app.route("/favicon.ico", methods=["GET"])
     @debug_access_only

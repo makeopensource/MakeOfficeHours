@@ -29,3 +29,7 @@ class IQueue(ABC):
     @abstractmethod
     def clear_queue(self):
         raise NotImplementedError()
+
+    @abstractmethod
+    def set_reason(self, student, reason):
+        raise NotImplementedError()

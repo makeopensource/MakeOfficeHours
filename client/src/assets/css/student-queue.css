@@ -34,8 +34,19 @@
     width: 30%;
 }
 
-textarea {
+#student-visit-reason {
     resize: none;
-    width: 30%;
-    height: 50%;
+    height: 8rem;
+    width: 20rem;
+    padding: 16px;
+    border: 2px solid #D9D9D9;
+    border-radius: 10px;
+}
+
+br {
+    margin-top: 16px;
+}
+
+#student-name {
+    text-align: center;
 }

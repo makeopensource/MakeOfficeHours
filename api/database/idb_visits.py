@@ -6,7 +6,7 @@ class IVisits(ABC):
         super().__init__()
 
     @abstractmethod
-    def create_visit(self, student, ta, enqueue_time) -> int:
+    def create_visit(self, student, ta, enqueue_time, visit_reason) -> int:
         """Create a database entry for the ongoing visit
         between the specified student and TA.
 
@@ -17,6 +17,7 @@ class IVisits(ABC):
         :param ta: The user ID of the TA
         :param enqueue_time: Timestamp when the student joined the queue,
                              in the format "YYYY-MM-DD HH:MM:SS"
+        :param visit_reason: Student-supplied reason for joining the queue
         :return: A numeric ID representing the specific visit
         """
         raise NotImplementedError()
