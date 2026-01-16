@@ -1,3 +1,5 @@
+import datetime
+
 from api.database.idb_queue import IQueue
 
 
@@ -107,6 +109,9 @@ class RelationalDBQueue(IQueue):
         with self.cursor() as cursor:
             queue_info = cursor.execute("SELECT * FROM queue WHERE user_id = ?", (student, )).fetchone()
 
+            if queue_info is None:
+                return None
+
             cursor.execute("DELETE FROM queue WHERE user_id = ?", (student, ))
 
             return {"user_id": queue_info[0], "joined": queue_info[1]}
@@ -115,4 +120,12 @@ class RelationalDBQueue(IQueue):
         with self.cursor() as cursor:
             cursor.execute(
                 "UPDATE queue SET enqueue_reason = ? WHERE user_id = ?", (reason, student)
+            )
+
+    def move_to_end(self, student):
+        now = str(datetime.datetime.now().isoformat(' ', timespec="seconds"))
+
+        with self.cursor() as cursor:
+            cursor.execute(
+                "UPDATE queue SET joined = ?, priority = 0 WHERE user_id = ?", (now, student)
             )

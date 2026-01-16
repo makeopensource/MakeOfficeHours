@@ -3,6 +3,7 @@
 import {ref} from "vue";
 import {useRouter} from "vue-router";
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
+import EditInfo from "@/components/EditInfo.vue";
 
 const router = useRouter()
 
@@ -18,7 +19,7 @@ fetch("/api/me").then(res => {
   }
   return res.json()
 }).then(data => {
-  studentName.value = `${data["preferred_name"]} ${data["last_name"]}`
+  studentName.value = `${data["preferred_name"]}`
 })
 
 let bannerClass = ref("bad")
@@ -85,6 +86,8 @@ function updateReason() {
 
 }
 
+const preferredNameUpdate = ref<typeof ConfirmationDialog>();
+
 </script>
 
 <template>
@@ -105,11 +108,13 @@ function updateReason() {
     </div>
   </ConfirmationDialog>
 
+  <EditInfo ref="preferredNameUpdate" :default_name="studentName" @name-change="(name) => { studentName = name }"/>
+
   <div id="queue">
     <div id="info" class="queue-section">
       <div id="user">
         <h2 id="student-name">{{ studentName }}</h2>
-        <button id="edit" disabled>Edit Info</button>
+        <button id="edit" @click="preferredNameUpdate?.show()">Edit Info</button>
       </div>
     </div>
     <div id="position-info" class="queue-section">

@@ -33,3 +33,7 @@ class IQueue(ABC):
     @abstractmethod
     def set_reason(self, student, reason):
         raise NotImplementedError()
+
+    @abstractmethod
+    def move_to_end(self, student):
+        raise NotImplementedError()

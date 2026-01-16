@@ -2,6 +2,7 @@
 
 from flask import Blueprint, request
 
+from api.auth.controller import get_user
 from api.roster.controller import min_level, add_to_roster
 from api.database.db import db
 
@@ -87,6 +88,26 @@ def get_roster():
 
     """
     pass
+
+@min_level('student')
+@blueprint.route("/update-name", methods=["PATCH"])
+def update_preferred_name():
+    user = get_user(request.cookies)
+
+    if user is None:
+        return {"message": "You are not authenticated!"}, 401
+
+    body = request.get_json()
+
+    if (name := body.get("name")) is None:
+        return {"message": "Malformed request."}, 400
+
+    db.set_preferred_name(user["ubit"], name)
+
+    return {"message": "Updated preferred name."}
+
+
+
 
 
 

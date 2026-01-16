@@ -196,4 +196,16 @@ class RelationalDBAccounts(IAccounts, IRoster):
 
 
     def set_preferred_name(self, identifier, name):
-        pass
+        with self.cursor() as cursor:
+
+            user = cursor.execute(
+                """
+                    UPDATE users SET preferred_name = ?
+                    WHERE ubit = ? OR person_num = ? OR user_id = ?
+                    RETURNING user_id
+                """, (name, identifier, identifier, identifier)).fetchone()
+
+            if user is None:
+                return None
+
+            return user[0]

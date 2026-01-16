@@ -4,8 +4,23 @@ import QueueEntry from "@/components/QueueEntry.vue";
 import {ref} from "vue";
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import Visit from "@/components/Visit.vue";
+import EditInfo from "@/components/EditInfo.vue";
+import {useRouter} from "vue-router";
 
 const students = ref([])
+
+const router = useRouter()
+
+const taName = ref<string>("");
+
+fetch("/api/me").then(res => {
+  if (!res.ok) {
+    router.push("/")
+  }
+  return res.json()
+}).then(data => {
+  taName.value = data["preferred_name"]
+})
 
 function getQueue() {
   fetch("/api/get-queue").then(res => {
@@ -81,6 +96,33 @@ function clearQueue() {
   })
 }
 
+
+const removeStudentDialog = ref<typeof ConfirmationDialog>();
+let removeStudentId: number | undefined = undefined;
+const removeStudentReason = ref("");
+
+function showRemoveStudentDialog(id: number) {
+  removeStudentId = id;
+  removeStudentDialog.value?.show();
+}
+
+function removeStudent() {
+  fetch("/api/remove-from-queue", {
+    method: "POST",
+    body: JSON.stringify({"reason": removeStudentReason.value, "user_id": removeStudentId}),
+    headers: {"Content-Type": "application/json"}
+  }).then(res => {
+    if (res.ok) {
+      removeStudentDialog.value?.hide();
+      removeStudentReason.value = "";
+      removeStudentId = undefined;
+      getQueue();
+    }
+  })
+}
+
+const editInfo = ref<typeof EditInfo>();
+
 </script>
 
 <template>
@@ -109,24 +151,29 @@ function clearQueue() {
     </div>
     <p id="clear-queue-error-message"></p>
   </ConfirmationDialog>
-  <dialog id="force-enqueue-dialog" class="small-modal">
 
+  <ConfirmationDialog ref="removeStudentDialog">
+      <p><strong>Are you sure?</strong> This student will permanently lose their position in the queue.</p>
+      <br/>
+      <label for="remove-student-reason">Reason</label>
+      <textarea v-model="removeStudentReason" class="modal-big-text" id="remove-student-reason" placeholder="Why is this student being removed?" required></textarea>
+      <div class="input-modal-container">
+        <button @click="removeStudentDialog?.hide()" id="remove-student-cancel">No, keep this student in the queue.</button>
+        <button @click="removeStudent" id="remove-student-confirm" class="danger">Yes, remove this student.</button>
+      </div>
+  </ConfirmationDialog>
 
-  </dialog>
-
-  <dialog id="clear-queue-dialog" class="small-modal">
-
-  </dialog>
+  <EditInfo is_instructor="true" @name-change="(name) => { taName = name }" :default_name="taName" ref="editInfo"/>
 
 
   <div id="instructor-queue">
     <div class="queue-section">
-      <h2 id="welcome-text">Hello, Jimmy!</h2>
-      <h2 id="student-count-text">{{ students?.length }} students in the queue.</h2>
+      <h2 id="welcome-text">Hello, {{ taName }}!</h2>
+      <h2 id="student-count-text">{{ students?.length }} student{{ students?.length !== 1 ? "s" : "" }} in the queue.</h2>
     </div>
     <div id="queue-buttons" class="queue-section">
       <div id="buttons-l">
-        <button>Edit My Info</button>
+        <button @click="editInfo?.show()">Edit My Info</button>
         <button>Clock In</button>
       </div>
       <div id="buttons-r">
@@ -137,7 +184,7 @@ function clearQueue() {
     </div>
     <div id="queue-container" class="queue-section">
       <QueueEntry v-for="student in students" :name="student['preferred_name']" :ubit="student['ubit']"
-                  :id="student['id']" @call-student="callStudent"/>
+                  :id="student['id']" @call-student="callStudent" @remove-student="showRemoveStudentDialog"/>
     </div>
   </div>
 </template>

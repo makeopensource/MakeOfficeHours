@@ -249,29 +249,28 @@ def remove_self():
     user_id = user["user_id"]
     body = request.get_json()
 
-    remove_from_queue_without_visit(user_id, f"[SELF-REMOVE]: {body["reason"]}")
-
-
-
-    return {"message":"Removed self from queue."}
+    if remove_from_queue_without_visit(user_id, f"[SELF-REMOVE]: {body["reason"]}"):
+        return {"message":"Removed self from queue."}
+    else:
+        return {"message": "You are not in the queue!"}, 400
 
 
 @blueprint.route("/remove-from-queue", methods=["POST"])
 @min_level('ta')
-def remove(user_id):
+def remove():
     """
     role: TA
 
     Removing students from the queue by id. Creates a visit in the db to store the reason for the removal
 
     Args:
-        param.user_id: The id of the student being removed. Note: This is the id of their account, not their UBIT/pn
         body.reason: a text reason for removing the user from the queue (eg. "No show")
         body.user_id: user ID of the student being removed
 
     Body:
         {
-            "reason": <string>
+            "reason": <string>,
+            "user_id": <integer>
         }
 
     Returns:
@@ -282,7 +281,20 @@ def remove(user_id):
             "message": <string>
         }
     """
-    return f"{request.path} hit 😎, remove method is used."
+
+    body = request.get_json()
+
+    if body.get("user_id") is None or body.get("reason") is None:
+        return {"message": "Malformed request"}, 400
+
+
+    user_id = body.get("user_id")
+    reason = body.get("reason")
+
+    if remove_from_queue_without_visit(user_id, f"[REMOVED BY TA]: {reason}"):
+        return {"message": "Removed student from queue"}
+    return {"message": "Student is not in queue"}, 400
+
 
 @blueprint.route("/clear-queue", methods=["DELETE"])
 @min_level('ta')
@@ -354,6 +366,14 @@ def update_reason():
 
     return {"message": "Reason updated"}
 
-# TODO: move to end of queue (Called by TAs to add the students they just saw back to the end of the queue)
+@blueprint.route("/move-to-end", methods=["PATCH"])
+@min_level('ta')
+def move_to_end():
+    body = request.get_json()
 
+    if (user_id := body.get("user_id")) is None:
+        return {"message": "Malformed request"}, 400
+
+    db.move_to_end(user_id)
+    return {"message": "Moved student to end of the queue"}
 

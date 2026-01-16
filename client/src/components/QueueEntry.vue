@@ -3,7 +3,7 @@
 import {ref} from "vue";
 
 defineProps(["name", "ubit", "id"])
-defineEmits(["call-student"])
+defineEmits(["call-student", "remove-student"])
 
 </script>
 
@@ -13,7 +13,7 @@ defineEmits(["call-student"])
     <div class="queue-entry-info">{{ name }} ({{ ubit }})</div>
     <div class="queue-entry-buttons">
       <button @click="$emit('call-student', id)">Call</button>
-      <button>Remove</button>
+      <button @click="$emit('remove-student', id)">Remove</button>
       <button>Move to End</button>
     </div>
   </div>

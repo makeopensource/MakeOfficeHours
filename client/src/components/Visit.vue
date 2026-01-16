@@ -53,7 +53,7 @@ function submitVisit() {
       <button class="no-grow" disabled>View Autolab Submission</button>
       <br/>
       <label for="student-visit-reason">Visit Reason</label>
-      <textarea class="visit-reason-textbox" id="student-visit-reason" disabled>None provided.</textarea>
+      <textarea class="visit-reason-textbox" id="student-visit-reason" disabled>{{ visit_info["visit_reason"] !== null ? visit_info["visit_reason"] : "None provided."}}</textarea>
     </div>
 
     <div id="visit-controls">
