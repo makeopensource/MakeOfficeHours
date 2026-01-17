@@ -19,7 +19,7 @@ const dropdownVisible = ref<boolean>(false);
         <button @click="$emit('remove-student', id)">Remove</button>
         <button @click="$emit('move-to-end', id)">Move to End</button>
       </div>
-        <div :class="dropdownVisible ? 'open' : '' " class="queue-dropdown-toggle">&#9654</div>
+      <div :class="dropdownVisible ? 'open' : '' " class="queue-dropdown-toggle">&#9658;</div>
     </div>
     <div ref="dropdown" :class="dropdownVisible ? 'visible' : ''" class="queue-entry-dropdown">
       <div class="dropdown-buttons">
