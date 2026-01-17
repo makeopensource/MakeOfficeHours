@@ -31,3 +31,13 @@ class IVisits(ABC):
         :param reason:   The resolution of the visit
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def get_in_progress_visits(self):
+        """ Return all database entries for visits that have
+        not ended.
+
+
+        :return:
+        """
+        raise NotImplementedError()

@@ -30,8 +30,8 @@
     margin-bottom: 8px;
 }
 
-#exit-queue {
-    width: 30%;
+.wide-button {
+    width: 20rem;
 }
 
 #student-visit-reason {

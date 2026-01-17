@@ -31,3 +31,25 @@ class RelationalDBVisits(IVisits):
                 WHERE visit_id = ? AND session_end is null
             """, (now, reason, visit_id))
 
+
+    def get_in_progress_visits(self):
+        with self.cursor() as cursor:
+            result = cursor.execute("""
+                SELECT visit_id, student_id, student_visit_reason, ta_id, enqueue_time, session_start FROM visits
+                WHERE session_end IS NULL
+            """).fetchall()
+
+        visits = []
+        for row in result:
+            visits.append({
+                "visit_id": row[0],
+                "student_id": row[1],
+                "student_visit_reason": row[2],
+                "ta_id": row[3],
+                "enqueue_time": row[4],
+                "session_start": row[5]
+            })
+        return visits
+
+
+

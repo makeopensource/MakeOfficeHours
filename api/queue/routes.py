@@ -81,6 +81,53 @@ def enqueue_ta_override():
 
     return {"message": "No student matching provided identifier"}, 404
 
+@blueprint.route("/restore-visit", methods=["GET"])
+@min_level("ta")
+def restore_visit():
+    """
+    Returns a visit in the database involving the user that hasn't
+    ended yet, if such a visit exists.
+
+    i.e. if a TA refreshes the queue before ending the visit
+
+
+    Returns:
+        200 OK - visit found
+        {
+            "id": <int>,
+            "username": <string>,
+            "pn": <string>,
+            "preferred_name: <string>,
+            "visitID": <string>,
+            "visit_reason": <string>
+        }
+
+        404 Not Found - no such visit exists
+    """
+    user = get_user(request.cookies)
+
+    if user is None:
+        return {"message": "You are not authenticated!"}, 403
+
+    user_id = user["user_id"]
+
+    in_progress = db.get_in_progress_visits()
+    in_progress = list(filter(lambda v: v["ta_id"] == user_id, in_progress))
+
+    if len(in_progress) == 0:
+        return {"message": "You have no in-progress visits."}, 404
+
+    visit = in_progress[0]
+    student = db.lookup_identifier(visit["student_id"])
+
+    return {
+        "id": visit["student_id"],
+        "username": student["ubit"],
+        "pn": student["person_num"],
+        "preferred_name": student["preferred_name"],
+        "visitID": visit["visit_id"],
+        "visit_reason": visit["student_visit_reason"]
+    }
 
 @blueprint.route("/help-a-student", methods=["POST"])
 @min_level("ta")

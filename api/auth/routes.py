@@ -2,8 +2,9 @@
 
 import json
 import urllib.parse
+import requests
 
-from flask import Blueprint, request, make_response, redirect
+from flask import Blueprint, request, make_response
 from api.database.db import db
 from api.auth.controller import AUTOLAB_ID, AUTOLAB_SECRET, REDIRECT_URI
 
@@ -93,21 +94,6 @@ def signout():
     res.set_cookie("auth_token", "", max_age=0, httponly=True, secure=True)
 
     return res
-
-@blueprint.route("/authorize")
-def authorize_al():
-
-    params = {
-        "response_type": "code",
-        "client_id": AUTOLAB_ID,
-        "redirect_uri": REDIRECT_URI,
-        "scope": "user_info"
-    }
-
-    return redirect(
-        f"https://autolab.cse.buffalo.edu/oauth/authorize?{urllib.parse.urlencode(params)}"
-    )
-
 
 
 # TODO: update preferred name

@@ -13,6 +13,8 @@ const router = useRouter()
 
 const taName = ref<string>("");
 
+const courseManager = ref<boolean>(false);
+
 fetch("/api/me").then(res => {
   if (!res.ok) {
     router.push("/")
@@ -20,6 +22,7 @@ fetch("/api/me").then(res => {
   return res.json()
 }).then(data => {
   taName.value = data["preferred_name"]
+  courseManager.value = data["course_role"] == 'instructor' || data["course_role"] == 'admin'
 })
 
 function getQueue() {
@@ -123,11 +126,33 @@ function removeStudent() {
 
 const editInfo = ref<typeof EditInfo>();
 
+function getInProgressVisit() {
+  fetch("/api/restore-visit").then(res => {
+    if (!res.ok) {
+      throw new Error("No in-progress visit found.")
+    }
+    return res.json()
+  }).then(data => {
+    visitInfo.value = data
+    visitDialog.value?.show()
+  }).catch(() => {})
+}
+
+getInProgressVisit()
+
+function signOut() {
+  fetch("/api/signout", { method: "POST" }).then(res => {
+    if (res.ok) {
+      router.push("/")
+    }
+  })
+}
+
 </script>
 
 <template>
 
-  <Visit ref="visitDialog" :visit_info="visitInfo"/>
+  <Visit ref="visitDialog" :visit_info="visitInfo" @close="getInProgressVisit"/>
 
   <ConfirmationDialog @open="resetForceEnqueueDialog" ref="forceEnqueueDialog">
     <label for="force-enqueue">Student Identifier (UBITName or Person Number)</label><br/>
@@ -175,9 +200,10 @@ const editInfo = ref<typeof EditInfo>();
       <div id="buttons-l">
         <button @click="editInfo?.show()">Edit My Info</button>
         <button>Clock In</button>
+        <button id="signout" @click="signOut">Sign Out</button>
       </div>
       <div id="buttons-r">
-        <button id="manage-course-button">Manage Course</button>
+        <button v-show="courseManager" id="manage-course-button">Manage Course</button>
         <button @click="forceEnqueueDialog?.show()" id="enqueue-dialog-button">Enqueue Student</button>
         <button @click="clearQueueDialog?.show()" id="clear-queue-dialog-button" class="danger">Clear Queue</button>
       </div>

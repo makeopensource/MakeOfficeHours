@@ -88,6 +88,14 @@ function updateReason() {
 
 const preferredNameUpdate = ref<typeof ConfirmationDialog>();
 
+function signOut() {
+  fetch("/api/signout", { method: "POST" }).then(res => {
+    if (res.ok) {
+      router.push("/")
+    }
+  })
+}
+
 </script>
 
 <template>
@@ -102,7 +110,7 @@ const preferredNameUpdate = ref<typeof ConfirmationDialog>();
       <label for="self-dequeue-reason">Why are you leaving the queue?</label>
       <textarea ref="selfDequeueReason" id="self-dequeue-reason" class="modal-big-text" required></textarea>
     </div>
-    <div>
+    <div class="button-container">
       <button @click="leaveQueueDialog?.hide()" id="close-dequeue-dialog">Nevermind, return to queue.</button>
       <button @click="leaveQueue" id="submit-self-dequeue" class="important">End Visit</button>
     </div>
@@ -139,7 +147,8 @@ const preferredNameUpdate = ref<typeof ConfirmationDialog>();
       </div>
     </div>
     <div class="queue-section columns all-centered">
-      <button :disabled="!enqueued" @click="leaveQueueDialog?.show()" id="exit-queue" class="danger">Exit Queue</button>
+      <button :disabled="!enqueued" @click="leaveQueueDialog?.show()" class="wide-button danger">Exit Queue</button>
+      <button class="wide-button">Sign Out {{ enqueued ? "(will not remove you from queue)" : "" }}</button>
     </div>
   </div>
 

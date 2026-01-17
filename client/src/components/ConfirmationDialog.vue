@@ -36,12 +36,19 @@ defineExpose({show: show, hide: hide})
 
 dialog {
   margin: auto;
-  padding: 64px;
+  padding: 3%;
   border: 2px solid #B9B9B9;
   border-radius: 10px;
   flex-direction: column;
   gap: 8px;
   display: flex;
+}
+
+@media screen and (max-width: 992px) {
+    dialog {
+        transform: scale(90%);
+        padding: 6%;
+    }
 }
 
 </style>

@@ -1,5 +1,5 @@
 :root {
-    --accent-color: #6155F5;
+    --accent-color: #0461cf;
     --bg-color: #FFFFFF;
 }
 
@@ -63,7 +63,7 @@ html {
 }
 
 h1 {
-    font-size: 3.2rem;
+    font-size: 2.2rem;
 }
 
 header {
@@ -98,7 +98,7 @@ header {
 }
 
 #site-header {
-    height: 14vh;
+    height: 10vh;
     background-color: var(--accent-color);
     color: white;
     box-shadow: 1px 1px 4px gray;
@@ -163,7 +163,7 @@ input {
 
 .modal, .small-modal {
     margin: auto;
-    padding: 64px;
+    padding: 6%;
     border: 2px solid #B9B9B9;
     border-radius: 10px;
     flex-direction: column;
@@ -178,4 +178,9 @@ input {
     border-radius: 10px;
     border: 2px solid #D9D9D9;
     padding: 8px;
+}
+
+.button-container {
+    display: flex;
+    gap: 4px;
 }
