@@ -350,7 +350,7 @@ def clear_queue():
     return {"message": "Successfully cleared the queue."}
 
 
-@blueprint.route("/enqueue-override-front")
+@blueprint.route("/enqueue-override-front", methods=["POST"])
 @min_level('ta')
 def enqueue_override_front():
     """ Exact same behavior as /enqueue-ta-override, except it sends the student to the front.
@@ -421,6 +421,8 @@ def move_to_end():
     if (user_id := body.get("user_id")) is None:
         return {"message": "Malformed request"}, 400
 
-    db.move_to_end(user_id)
-    return {"message": "Moved student to end of the queue"}
+    if db.move_to_end(user_id):
+        return {"message": "Moved student to end of the queue"}
+
+    return {"message": "Specified user is not in queue"}, 400
 

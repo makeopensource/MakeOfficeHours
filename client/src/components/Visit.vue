@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 import {ref} from "vue";
+import {send} from "vite";
 
 const props = defineProps(["visit_info"])
 const emit = defineEmits(["close"])
@@ -26,7 +27,7 @@ const hide = () => {
 defineExpose({show: show, hide: hide})
 
 
-function submitVisit() {
+function submitVisit(after?: () => void) {
   taNotesBox.value?.reportValidity();
 
   if (taNotesBox.value?.checkValidity()) {
@@ -35,12 +36,39 @@ function submitVisit() {
       body: JSON.stringify({"id": props?.visit_info["visitID"], "reason": taNotesText.value}),
       headers: {"Content-Type": "application/json"}
     }).then(res => {
-      if (res.ok) {
+      if (res.ok && after) {
+        after();
+      } else if (res.ok) {
         hide();
       }
     })
   }
 }
+
+const sendToFront = () => {
+  fetch("/api/enqueue-override-front", {
+    method: "POST",
+    body: JSON.stringify({ "identifier": props.visit_info["username"] }),
+    headers: {"Content-Type": "application/json"}
+  }).then(res => {
+    if (res.ok) {
+      hide();
+    }
+  })
+}
+
+const sendToBack = () => {
+  fetch("/api/enqueue-ta-override", {
+    method: "POST",
+    body: JSON.stringify({"identifier": props.visit_info["username"]}),
+    headers: {"Content-Type": "application/json"}
+  }).then(res => {
+    if (res.ok) {
+      hide();
+    }
+  })
+}
+
 
 </script>
 
@@ -60,9 +88,9 @@ function submitVisit() {
       <label for="ta-visit-notes">Visit Notes</label>
       <textarea ref="taNotesBox" v-model="taNotesText" id="ta-visit-notes" placeholder="How did the visit go?"
                 required></textarea>
-      <button @click="submitVisit" id="end-visit">End Visit</button>
-      <button id="end-visit-return-front">End and Return to Front</button>
-      <button id="end-visit-return-back">End and Return to Back</button>
+      <button @click="() => submitVisit()" id="end-visit">End Visit</button>
+      <button @click="() => submitVisit(sendToFront)" id="end-visit-return-front">End and Return to Front</button>
+      <button @click="() => submitVisit(sendToBack)" id="end-visit-return-back">End and Return to Back</button>
     </div>
 
 

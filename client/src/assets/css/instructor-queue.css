@@ -1,12 +1,37 @@
 #instructor-queue {
     display: flex;
     flex-direction: column;
-    margin: 32px 128px;
+    margin: 32px 8%;
 }
 
 #queue-buttons {
     display: flex;
     gap: 4px;
+}
+
+@media screen and (max-width: 991px) {
+    #instructor-queue {
+        margin: 32px 2%;
+    }
+
+    #queue-buttons {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    #buttons-l {
+        justify-content: center;
+    }
+
+    #buttons-r {
+        justify-content: center;
+        flex-direction: column;
+        margin: 0 10%;
+    }
+
+    h1, h2, h3 {
+        text-align: center;
+    }
 }
 
 @media screen and (min-width: 992px) {
@@ -27,7 +52,7 @@
 
 #buttons-l, #buttons-r {
     display: flex;
-    gap: 4px;
+    gap: 8px;
 }
 
 .input-modal-container {

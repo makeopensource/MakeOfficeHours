@@ -6,6 +6,7 @@ import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import Visit from "@/components/Visit.vue";
 import EditInfo from "@/components/EditInfo.vue";
 import {useRouter} from "vue-router";
+import Alert from "@/components/Alert.vue";
 
 const students = ref([])
 
@@ -14,6 +15,8 @@ const router = useRouter()
 const taName = ref<string>("");
 
 const courseManager = ref<boolean>(false);
+
+const error = ref<typeof Alert>();
 
 fetch("/api/me").then(res => {
   if (!res.ok) {
@@ -54,10 +57,15 @@ function submitForceEnqueue() {
     if (res.ok) {
       forceEnqueueDialog.value?.hide();
       getQueue();
+    } else {
+      throw new Error("failed to enqueue student");
     }
     return res.json()
   }).then(data => {
     forceEnqueueErrorMessage.value = data["message"]
+  }).catch(e => {
+    error.value?.setError("Failed to enqueue student.")
+    forceEnqueueDialog.value?.hide();
   })
 }
 
@@ -83,6 +91,8 @@ function callStudent(id: number) {
   }).then(data => {
     visitInfo.value = data;
     visitDialog.value?.show();
+  }).catch(e => {
+    error.value?.setError("Failed to dequeue student.");
   })
 }
 
@@ -95,7 +105,11 @@ function clearQueue() {
     if (res.ok) {
       clearQueueDialog.value?.hide();
       getQueue();
+    } else {
+      throw new Error("failed to clear queue")
     }
+  }).then(e => {
+    error.value?.setError("Failed to clear queue.")
   })
 }
 
@@ -120,7 +134,11 @@ function removeStudent() {
       removeStudentReason.value = "";
       removeStudentId = undefined;
       getQueue();
+    } else {
+      throw new Error("failed to remove student from queue")
     }
+  }).catch(e => {
+    error.value?.setError("Failed to remove student from queue.")
   })
 }
 
@@ -147,6 +165,21 @@ function signOut() {
     }
   })
 }
+
+function moveToEnd(id: number) {
+  fetch("/api/move-to-end", {
+    method: "PATCH",
+    body: JSON.stringify({"user_id": id}),
+    headers: {"Content-Type": "application/json"}
+  }).then(res => {
+    if (res.ok) {
+      getQueue()
+    }
+  })
+}
+
+
+
 
 </script>
 
@@ -190,6 +223,7 @@ function signOut() {
 
   <EditInfo is_instructor="true" @name-change="(name) => { taName = name }" :default_name="taName" ref="editInfo"/>
 
+  <Alert ref="error"/>
 
   <div id="instructor-queue">
     <div class="queue-section">
@@ -198,19 +232,23 @@ function signOut() {
     </div>
     <div id="queue-buttons" class="queue-section">
       <div id="buttons-l">
+        <button v-show="courseManager" id="manage-course-button">Manage Course</button>
         <button @click="editInfo?.show()">Edit My Info</button>
-        <button>Clock In</button>
         <button id="signout" @click="signOut">Sign Out</button>
       </div>
       <div id="buttons-r">
-        <button v-show="courseManager" id="manage-course-button">Manage Course</button>
+        <button @click="error?.setError('Not Implemented')" >Clock In</button>
         <button @click="forceEnqueueDialog?.show()" id="enqueue-dialog-button">Enqueue Student</button>
         <button @click="clearQueueDialog?.show()" id="clear-queue-dialog-button" class="danger">Clear Queue</button>
       </div>
     </div>
     <div id="queue-container" class="queue-section">
       <QueueEntry v-for="student in students" :name="student['preferred_name']" :ubit="student['ubit']"
-                  :id="student['id']" @call-student="callStudent" @remove-student="showRemoveStudentDialog"/>
+                  :id="student['id']"
+                  @call-student="callStudent"
+                  @remove-student="showRemoveStudentDialog"
+                  @move-to-end="moveToEnd"
+      />
     </div>
   </div>
 </template>

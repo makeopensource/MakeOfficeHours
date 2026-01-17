@@ -82,7 +82,11 @@ class RelationalDBQueue(IQueue):
     def get_queue(self):
         with self.cursor() as cursor:
             users = cursor.execute(
-                "SELECT users.user_id, preferred_name, ubit, person_num FROM queue INNER JOIN users ON queue.user_id = users.user_id ORDER BY joined"
+                """
+                SELECT users.user_id, preferred_name, ubit, person_num 
+                FROM queue INNER JOIN users ON queue.user_id = users.user_id 
+                ORDER BY priority DESC, joined
+                """
             )
 
             users_l = list()
@@ -126,6 +130,9 @@ class RelationalDBQueue(IQueue):
         now = str(datetime.datetime.now().isoformat(' ', timespec="seconds"))
 
         with self.cursor() as cursor:
-            cursor.execute(
-                "UPDATE queue SET joined = ?, priority = 0 WHERE user_id = ?", (now, student)
-            )
+            res = cursor.execute(
+                "UPDATE queue SET joined = ?, priority = 0 WHERE user_id = ? RETURNING user_id", (now, student)
+            ).fetchone()
+            if res is None:
+                return False
+            return True

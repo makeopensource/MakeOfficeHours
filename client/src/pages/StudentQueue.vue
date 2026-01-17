@@ -4,6 +4,7 @@ import {ref} from "vue";
 import {useRouter} from "vue-router";
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import EditInfo from "@/components/EditInfo.vue";
+import Alert from "@/components/Alert.vue";
 
 const router = useRouter()
 
@@ -67,9 +68,14 @@ function leaveQueue() {
       method: "POST",
       body: JSON.stringify({"reason": selfDequeueReason.value?.value}),
       headers: {"Content-Type": "application/json"}
-    }).then(() => {
+    }).then((res) => {
+      if (!res.ok) {
+        throw new Error("failed to remove from queue")
+      }
       leaveQueueDialog.value?.hide();
       fetchPosition();
+    }).catch(e => {
+      alertBox.value?.setError("Failed to remove from queue. Please tell your SA.")
     })
   }
 }
@@ -82,6 +88,12 @@ function updateReason() {
     method: "PATCH",
     body: JSON.stringify({"reason": queueReason.value?.value}),
     headers: {"Content-Type": "application/json"}
+  }).then(res => {
+    if (res.ok) {
+      alertBox.value?.setMessage("Updated your visit reason. Thank you!")
+    } else {
+      alertBox.value?.setError("Failed to update visit reason. Please notify your SA.")
+    }
   })
 
 }
@@ -95,6 +107,8 @@ function signOut() {
     }
   })
 }
+
+const alertBox = ref<typeof Alert>();
 
 </script>
 
@@ -117,6 +131,8 @@ function signOut() {
   </ConfirmationDialog>
 
   <EditInfo ref="preferredNameUpdate" :default_name="studentName" @name-change="(name) => { studentName = name }"/>
+
+  <Alert ref="alertBox"/>
 
   <div id="queue">
     <div id="info" class="queue-section">
@@ -148,7 +164,7 @@ function signOut() {
     </div>
     <div class="queue-section columns all-centered">
       <button :disabled="!enqueued" @click="leaveQueueDialog?.show()" class="wide-button danger">Exit Queue</button>
-      <button class="wide-button">Sign Out {{ enqueued ? "(will not remove you from queue)" : "" }}</button>
+      <button @click="signOut" class="wide-button">Sign Out {{ enqueued ? "(will not remove you from queue)" : "" }}</button>
     </div>
   </div>
 
