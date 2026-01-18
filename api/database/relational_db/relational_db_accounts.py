@@ -192,7 +192,22 @@ class RelationalDBAccounts(IAccounts, IRoster):
 
     def get_roster(self):
         with self.cursor() as cursor:
-            users = cursor.execute("SELECT ubit from users")
+            users = cursor.execute("""
+                SELECT user_id, preferred_name, last_name, ubit, person_num, course_role FROM users
+                ORDER BY ubit
+               """).fetchall()
+            result = []
+            for user in users:
+                result.append({
+                    "user_id": user[0],
+                    "preferred_name": user[1],
+                    "last_name": user[2],
+                    "ubit": user[3],
+                    "person_num": user[4],
+                    "course_role": user[5]
+                })
+
+            return result
 
 
     def set_preferred_name(self, identifier, name):
@@ -204,6 +219,22 @@ class RelationalDBAccounts(IAccounts, IRoster):
                     WHERE ubit = ? OR person_num = ? OR user_id = ?
                     RETURNING user_id
                 """, (name, identifier, identifier, identifier)).fetchone()
+
+            if user is None:
+                return None
+
+            return user[0]
+
+    def set_name(self, user_id, first_name, last_name):
+        with self.cursor() as cursor:
+            user = cursor.execute(
+                """
+                    UPDATE users SET 
+                    preferred_name = ?, last_name = ?
+                    WHERE user_id = ?
+                    RETURNING user_id
+                """, (first_name, last_name, user_id)
+            ).fetchone()
 
             if user is None:
                 return None

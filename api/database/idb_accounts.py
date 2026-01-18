@@ -49,3 +49,7 @@ class IAccounts(ABC):
     def set_preferred_name(self, identifier, name):
         # set the user's preferred name based on identifier
         raise NotImplementedError()
+
+    @abstractmethod
+    def set_name(self, identifier, first_name, last_name):
+        raise NotImplementedError()

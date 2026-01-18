@@ -1,5 +1,6 @@
 :root {
     --accent-color: #0461cf;
+    --dark-accent-color: #03499e;
     --bg-color: #FFFFFF;
     --danger-color: #EC221F;
 }
@@ -34,7 +35,6 @@ button {
 button:hover {
     cursor: pointer;
     background-color: #B9B9B9;
-    transition: 0.25s background-color;
 }
 
 button.danger {
@@ -55,6 +55,10 @@ button:disabled {
 button.important {
     background-color: var(--accent-color);
     color: white;
+}
+
+button.important:hover {
+    background-color: var(--dark-accent-color);
 }
 
 html {
@@ -199,4 +203,9 @@ input {
 
 textarea {
     font-size: 1rem;
+}
+
+select {
+    font-size: 1rem;
+    padding: 8px;
 }

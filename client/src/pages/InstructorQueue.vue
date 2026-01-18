@@ -105,14 +105,17 @@ function clearQueue() {
   fetch("/api/clear-queue", {
     method: "DELETE"
   }).then(res => {
-    if (res.ok) {
-      clearQueueDialog.value?.hide();
-      getQueue();
-    } else {
-      throw new Error("failed to clear queue")
+    if (!res.ok) {
+      return res.json().then(json => {
+        throw new Error(json["message"])
+      })
     }
-  }).then(e => {
-    error.value?.setError("Failed to clear queue.")
+    error.value?.setMessage("Cleared the queue.")
+    clearQueueDialog.value?.hide();
+    getQueue();
+  }).catch(e => {
+    clearQueueDialog.value?.hide();
+    error.value?.setError(e.message)
   })
 }
 
@@ -235,13 +238,13 @@ function moveToEnd(id: number) {
     </div>
     <div id="queue-buttons" class="queue-section">
       <div id="buttons-l">
-        <button v-show="courseManager" id="manage-course-button">Manage Course</button>
+        <button @click="router.push('/manage')" v-show="courseManager" id="manage-course-button">Manage Course</button>
         <button @click="editInfo?.show()">Edit My Info</button>
         <button id="signout" @click="signOut">Sign Out</button>
       </div>
       <div id="buttons-r">
         <button @click="error?.setError('Not Implemented')" >Clock In</button>
-        <button @click="forceEnqueueDialog?.show()" id="enqueue-dialog-button">Enqueue Student</button>
+        <button @click="forceEnqueueDialog?.show()" id="enqueue-dialog-button" class="important">Enqueue Student</button>
         <button @click="clearQueueDialog?.show()" id="clear-queue-dialog-button" class="danger">Clear Queue</button>
       </div>
     </div>

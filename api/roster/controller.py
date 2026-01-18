@@ -71,7 +71,7 @@ def min_level(min_role):
 
     return decorator
 
-def add_to_roster(ubit, pn, name, role):
+def add_to_roster(ubit, pn, first_name, last_name, role):
     user_id = db.create_account(ubit, pn)
     db.add_to_roster(user_id, role)
-    db.set_preferred_name(user_id, name)
+    db.set_name(user_id, first_name, last_name)

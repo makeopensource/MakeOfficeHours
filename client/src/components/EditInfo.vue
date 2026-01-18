@@ -44,7 +44,7 @@ defineExpose({"show": () => dialog.value?.show(), "hide": () => dialog.value?.hi
     <label for="preferred-name">Preferred Name</label>
     <input id="preferred-name" v-model="entry">
 
-    <button @click="submitNameChange">Change Preferred Name</button>
+    <button @click="submitNameChange" class="important">Change Preferred Name</button>
     <button @click="dialog?.hide()">Close</button>
   </ConfirmationDialog>
 

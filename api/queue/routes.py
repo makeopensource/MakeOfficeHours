@@ -173,6 +173,12 @@ def dequeue():
     user = db.get_authenticated_user(auth_token)
     user_id = user["user_id"]
 
+    in_progress = db.get_in_progress_visits()
+    in_progress = list(filter(lambda v: v["ta_id"] == user_id, in_progress))
+
+    if len(in_progress) != 0:
+        return {"message": "You have a visit in progress."}, 400
+
     student = db.dequeue_specified_student(body["id"])
 
     if student is None:

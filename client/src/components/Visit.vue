@@ -88,7 +88,7 @@ const sendToBack = () => {
       <label for="ta-visit-notes">Visit Notes</label>
       <textarea ref="taNotesBox" v-model="taNotesText" id="ta-visit-notes" placeholder="How did the visit go?"
                 required></textarea>
-      <button @click="() => submitVisit()" id="end-visit">End Visit</button>
+      <button @click="() => submitVisit()" id="end-visit" class="important">End Visit</button>
       <button @click="() => submitVisit(sendToFront)" id="end-visit-return-front">End and Return to Front</button>
       <button @click="() => submitVisit(sendToBack)" id="end-visit-return-back">End and Return to Back</button>
     </div>
