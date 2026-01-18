@@ -78,7 +78,7 @@ const sendToBack = () => {
     <div id="student-info">
       <h2 id="visit-student-name">{{ visit_info["preferred_name"] }}</h2>
       <h3 id="visit-student-email">{{ visit_info["username"] }}@buffalo.edu</h3>
-      <button class="no-grow" disabled>View Autolab Submission</button>
+      <button disabled>View Autolab Submission</button>
       <br/>
       <label for="student-visit-reason">Visit Reason</label>
       <textarea class="visit-reason-textbox" id="student-visit-reason" disabled>{{ visit_info["visit_reason"] !== null ? visit_info["visit_reason"] : "None provided."}}</textarea>

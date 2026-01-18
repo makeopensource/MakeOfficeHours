@@ -54,17 +54,18 @@ function submitForceEnqueue() {
     body: JSON.stringify({"identifier": forceEnqueueEntry.value}),
     headers: {"Content-Type": "application/json"}
   }).then(res => {
-    if (res.ok) {
-      forceEnqueueDialog.value?.hide();
-      getQueue();
-    } else {
-      throw new Error("failed to enqueue student");
+    if (!res.ok) {
+      return res.json().then(json => {
+        throw new Error(json["message"]);
+      })
     }
+    forceEnqueueDialog.value?.hide();
+    getQueue();
     return res.json()
   }).then(data => {
     forceEnqueueErrorMessage.value = data["message"]
   }).catch(e => {
-    error.value?.setError("Failed to enqueue student.")
+    error.value?.setError(e.message)
     forceEnqueueDialog.value?.hide();
   })
 }
@@ -85,14 +86,16 @@ function callStudent(id: number) {
     headers: {"Content-Type": "application/json"}
   }).then(res => {
     if (!res.ok) {
-      throw new Error("failed to dequeue student")
+      return res.json().then(json => {
+        throw new Error(json["message"]);
+      })
     }
     return res.json()
   }).then(data => {
     visitInfo.value = data;
     visitDialog.value?.show();
   }).catch(e => {
-    error.value?.setError("Failed to dequeue student.");
+    error.value?.setError(e.message);
   })
 }
 
