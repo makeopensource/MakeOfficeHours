@@ -1,0 +1,21 @@
+.dev-form {
+    max-width: fit-content;
+    border: 2px solid #D9D9D9;
+    padding: 8px;
+    border-radius: 10px;
+    margin: 16px 8px;
+}
+
+.dev-form > * {
+    margin-bottom: 4px;
+}
+
+
+select, input {
+    padding: 4px;
+}
+
+#forms {
+    margin: 32px;
+}
+

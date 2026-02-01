@@ -1,0 +1,77 @@
+#visit {
+    padding: 64px;
+    margin: auto;
+    flex-direction: row;
+    display: flex;
+}
+
+@media screen and (max-width: 991px) {
+    #visit {
+        flex-direction: column;
+        padding: 32px;
+        width: 80vw;
+        height: 80vh;
+    }
+
+    #student-info {
+        margin-top: 32px;
+    }
+
+    #visit-controls {
+        margin: 8px 0;
+    }
+}
+
+@media screen and (min-width: 992px) {
+    #visit {
+        height: 50%;
+        width: 60%;
+    }
+
+    #student-info {
+        width: 25rem;
+    }
+
+    #student-visit-reason {
+        width: 90%;
+        margin: 16px;
+    }
+
+    #visit-controls {
+        margin: 32px;
+    }
+}
+
+#student-info {
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+}
+
+#student-visit-reason {
+    min-height: 10rem;
+    resize: none;
+    border-radius: 10px;
+    border: 2px solid #D9D9D9;
+    padding: 16px;
+}
+
+#student-info > br {
+    margin-top: 48px;
+}
+
+#visit-controls {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    gap: 8px;
+}
+
+#ta-visit-notes {
+    min-height: 10rem;
+    resize: none;
+    border-radius: 10px;
+    border: 2px solid #D9D9D9;
+    padding: 16px;
+}

@@ -1,0 +1,52 @@
+#queue {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.queue-section {
+    justify-content: center;
+    display: flex;
+    flex-grow: 0;
+}
+
+.queue-section > * {
+    margin: 8px;
+}
+
+.circle.pos {
+    background-color: var(--accent-color);
+    color: white;
+    box-shadow: 0 2px 4px gray;
+}
+
+#user {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#user > * {
+    margin-bottom: 8px;
+}
+
+.wide-button {
+    width: 20rem;
+}
+
+#student-visit-reason {
+    resize: none;
+    height: 8rem;
+    width: 20rem;
+    padding: 16px;
+    border: 2px solid #D9D9D9;
+    border-radius: 10px;
+}
+
+br {
+    margin-top: 16px;
+}
+
+#student-name {
+    text-align: center;
+}
