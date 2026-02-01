@@ -1,27 +1,27 @@
 services:
-  api-development:
+  api:
     build:
       context: ./api/
+    # env-file:
+    #   - api/.env
     environment:
-      API_MODE: "dev"
+      API_MODE: "prod"
       DB: "relational"
       SQLITE_DB_PATH: "/app/data/moh.sqlite"
     volumes:
       - ./api:/app/api
-      - ./client:/app/client
+      # - ./client:/app/client
       - sqlite-db:/app/data/
     ports:
-      - "8000:8000"
-    command: flask --app 'api.server:create_app()' run --debug --host=0.0.0.0 --port=8000
+      - "8002:5000"
+    command: flask --app 'api.server:create_app()' run --debug --host=0.0.0.0 --port=5000
 
-  api-production:
-    extends:
-      service: api-development
-    environment:
-      API_MODE: "prod"
+  client:
+    build:
+      context: ./client/
     ports:
-      - "8000:8000"
-    command: gunicorn 'api.server:create_app()'
+      - "3000:3000"
+    command: npm run dev
 
 volumes:
   sqlite-db:
