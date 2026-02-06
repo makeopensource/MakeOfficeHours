@@ -1,7 +1,6 @@
 <script setup lang="ts">
 
 import {ref} from "vue";
-import {send} from "vite";
 
 const props = defineProps(["visit_info"])
 const emit = defineEmits(["close"])

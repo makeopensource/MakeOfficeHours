@@ -5,8 +5,8 @@ import {ref} from "vue";
 const error = ref<string>("");
 const boxOpacity = ref<number>(1);
 
-let opacityTimer: NodeJS.Timeout | null = null;
-let endTimer: NodeJS.Timeout | null = null;
+let opacityTimer: ReturnType<typeof setTimeout> | null = null;
+let endTimer: ReturnType<typeof setTimeout> | null = null;
 
 const fading = ref<string>("");
 const msgType = ref<string>("");

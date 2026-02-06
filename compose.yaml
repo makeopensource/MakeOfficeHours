@@ -2,9 +2,12 @@ services:
   nginx:
     build:
       context: ./nginx/
+    volumes:
+      - ./front-end:/var/www/app
     ports:
       - "443:443"
       - "8010:80"
+
   api:
     build:
       context: ./api/
@@ -21,9 +24,8 @@ services:
   client:
     build:
       context: ./client/
-    ports:
-      - "3000:3000"
-    command: npm run dev
+    volumes:
+      - ./front-end:/app/dist
 
 volumes:
   sqlite-db:
