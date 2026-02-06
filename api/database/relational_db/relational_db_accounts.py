@@ -131,6 +131,23 @@ class RelationalDBAccounts(IAccounts, IRoster):
 
         return auth
 
+    def _generate_auth_token(self, user_id):
+        auth_token = secrets.token_urlsafe(32)
+        hashed_auth = hashlib.sha256(auth_token.encode()).digest()
+
+        with self.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE auth
+                SET auth_token = ?, expires_at = datetime('now', '+30 days')
+                WHERE user_id = ?
+            """,
+                (hashed_auth, user_id),
+            )
+
+        return auth_token
+
+
     def sign_in(self, username, pw) -> str | None:
         with self.cursor() as cursor:
             hashed = cursor.execute(
@@ -150,21 +167,24 @@ class RelationalDBAccounts(IAccounts, IRoster):
         if not bcrypt.checkpw(pw.encode(), hashed):
             return None
 
-        auth_token = secrets.token_urlsafe(32)
-        hashed_auth = hashlib.sha256(auth_token.encode()).digest()
+        auth_token = self._generate_auth_token(user_id)
+        return auth_token
 
 
+    def sign_in_with_autolab(self, user_id) -> str | None:
         with self.cursor() as cursor:
             cursor.execute(
                 """
-                UPDATE auth
-                SET auth_token = ?, expires_at = datetime('now', '+30 days')
-                WHERE user_id = ?
+                INSERT OR IGNORE 
+                INTO auth (user_id)
+                VALUES (?)
             """,
-                (hashed_auth, user_id),
+                (user_id,)
             )
 
+        auth_token = self._generate_auth_token(user_id)
         return auth_token
+
 
     def sign_out(self, auth_token):
         hashed_auth = hashlib.sha256(auth_token.encode()).digest()

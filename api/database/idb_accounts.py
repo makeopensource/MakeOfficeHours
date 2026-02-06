@@ -41,6 +41,12 @@ class IAccounts(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def sign_in_with_autolab(self, ubit) -> str | None:
+        # generates and returns a valid auth token for the user. Assumes Autolab already authenticated the user
+        # returns None on error
+        raise NotImplementedError()
+
+    @abstractmethod
     def sign_out(self, auth_token):
         # invalidates the specified auth token
         raise NotImplementedError()

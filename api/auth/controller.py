@@ -1,9 +1,6 @@
 from api.database.db import db
 import os
 
-AUTOLAB_SECRET = os.getenv("AUTOLAB_CLIENT_SECRET")
-AUTOLAB_ID = os.getenv("AUTOLAB_CLIENT_ID")
-REDIRECT_URI = os.getenv("AUTOLAB_REDIRECT_URI")
 
 def create_account(username, numeric_identifier, auth_level="student"):
     account_id = db.create_account(username, numeric_identifier)

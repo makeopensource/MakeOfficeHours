@@ -45,7 +45,7 @@ def upload_roster():
         if line == '':
             break
 
-        info = line.split(",")
+        info = line.strip().split(",")
         if len(info) != 5:
             return {"message": "Invalid roster upload (bad data length)"}, 400
         # person number needs to be numeric

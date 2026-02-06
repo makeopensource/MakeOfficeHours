@@ -23,8 +23,8 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
                 CREATE TABLE IF NOT EXISTS users
                 (
                     user_id INTEGER PRIMARY KEY,
-                    preferred_name VARCHAR(64),
-                    last_name VARCHAR(64),
+                    preferred_name VARCHAR(255),
+                    last_name VARCHAR(255),
                     ubit VARCHAR(16) UNIQUE,
                     person_num INTEGER UNIQUE,
                     course_role VARCHAR(16)
@@ -50,6 +50,10 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
                 (
                     user_id INTEGER UNIQUE,
                     auth_token VARCHAR(255),
+                    al_access_token VARCHAR(255),
+                    al_refresh_token VARCHAR(255),
+                    al_state VARCHAR(255),
+                    al_session_id VARCHAR(255),
                     pw VARCHAR(255),
                     expires_at TEXT DEFAULT (datetime('now','+30 days'))
                 );
