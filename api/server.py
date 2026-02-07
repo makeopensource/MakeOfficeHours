@@ -26,7 +26,6 @@ THE_OG_UBIT = os.getenv("THE_OG_UBIT", None)
 THE_OG_PN = os.getenv("THE_OG_PN", None)
 
 og = db.lookup_person_number(THE_OG_PN)
-print(og)
 
 def create_app():
     """Create and return Flask API server

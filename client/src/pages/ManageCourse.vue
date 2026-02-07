@@ -20,6 +20,7 @@ fetch("/api/me").then(res => {
     router.push("/queue")
   }
   me.value = data;
+  getCode();
 })
 
 const users = ref();
@@ -101,9 +102,40 @@ function enrollUser() {
   })
 }
 
+let hardwareDialog = ref<typeof ConfirmationDialog>();
+
+let hardwareCode = ref<string>();
+
+
+
+const getCode = () => {
+  fetch("/api/swipe-authorization").then(res => res.json()).then(json => {
+    hardwareCode.value = json["code"]
+  })
+}
+
+const resetAuth = () => {
+  fetch("/api/reset-swipe-auth", {
+    method: "DELETE"
+  }).then(() => {
+    getCode()
+  })
+
+
+}
+
 </script>
 
 <template>
+
+  <ConfirmationDialog ref="hardwareDialog">
+
+    <label for="auth_code">Authorization Code</label>
+    <input v-model="hardwareCode" id="auth_code" disabled>
+    <button class="danger" @click="resetAuth">Reset Code</button>
+    <button @click="hardwareDialog?.hide()">Close</button>
+
+  </ConfirmationDialog>
 
   <ConfirmationDialog ref="enrollDialog">
     <h2>Enroll User</h2>
@@ -144,6 +176,7 @@ function enrollUser() {
       <button @click="router.push('/queue')">Return to Queue</button>
       <br/>
       <div class="manage-buttons">
+        <button @click="hardwareDialog?.show()">Authorize Swipe</button>
         <button @click="enrollDialog?.show()">Add User to Roster</button>
         <button @click="uploadCSVDialog?.show()">Enroll from CSV</button>
         <button @click="alertBox?.setError('Not implemented')" class="danger">Clear all Enrollments</button>

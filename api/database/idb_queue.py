@@ -37,3 +37,11 @@ class IQueue(ABC):
     @abstractmethod
     def move_to_end(self, student):
         raise NotImplementedError()
+
+    @abstractmethod
+    def get_hw_authorization(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def reset_hw_authorization(self):
+        raise NotImplementedError()

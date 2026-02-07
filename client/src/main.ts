@@ -6,6 +6,8 @@ import {createRouter, createWebHistory} from "vue-router";
 import DevLogin from "@/pages/DevLogin.vue";
 import Queue from "@/pages/Queue.vue";
 import ManageCourse from "@/pages/ManageCourse.vue";
+import Swipe from "@/pages/Swipe.vue";
+import SwipeAuth from "@/pages/SwipeAuth.vue";
 
 const router = createRouter({
     history: createWebHistory(),
@@ -13,7 +15,9 @@ const router = createRouter({
         { path: '/', component: Home},
         { path: '/dev-login', component: DevLogin},
         { path: '/queue', component: Queue},
-        { path: '/manage', component: ManageCourse}
+        { path: '/manage', component: ManageCourse},
+        { path: '/swipe', component: Swipe},
+        { path: '/swipe-auth', component: SwipeAuth}
     ]
 })
 

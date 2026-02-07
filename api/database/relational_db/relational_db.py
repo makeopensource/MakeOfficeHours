@@ -76,6 +76,18 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
                 """
             )
 
+            c.execute(
+                """
+                CREATE TABLE IF NOT EXISTS hardware
+                (
+                    authorization VARCHAR(255),
+                    expires_at TEXT DEFAULT (datetime('now', '+180 days'))
+                );
+                
+                
+                """
+            )
+
     def cursor(self):
         return RelationalDBCursor(self)
 

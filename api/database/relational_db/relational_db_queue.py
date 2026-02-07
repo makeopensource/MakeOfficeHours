@@ -1,7 +1,7 @@
 import datetime
 
 from api.database.idb_queue import IQueue
-
+import secrets
 
 class RelationalDBQueue(IQueue):
 
@@ -136,3 +136,28 @@ class RelationalDBQueue(IQueue):
             if res is None:
                 return False
             return True
+
+    def get_hw_authorization(self):
+        with self.cursor() as cursor:
+            res = cursor.execute(
+                "SELECT authorization FROM hardware WHERE expires_at > CURRENT_TIMESTAMP"
+            ).fetchone()
+
+            if res is None:
+                return res
+
+            return res[0]
+
+    def reset_hw_authorization(self):
+        with self.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM hardware"
+            )
+
+            auth_code = secrets.token_urlsafe(16)
+
+            cursor.execute(
+                "INSERT INTO hardware (authorization) VALUES (?)", (auth_code,)
+            )
+
+            return auth_code

@@ -24,10 +24,13 @@ def enqueue_card_swipe():
     Body:
         {
             "swipe_data": <string>
+            "code": <string>
         }
 
     Returns:
         200 OK - Student was added to the queue
+        400 Bad Request - Bad read
+        401 Forbidden - Bad code
         404 Not Found - No student matching the card swipe was found
         {
             "message": <string>
@@ -36,6 +39,13 @@ def enqueue_card_swipe():
 
     body = request.get_json()
     swipe_data = body["swipe_data"]
+    code = body["code"]
+
+    if code != db.get_hw_authorization():
+        return {"message": "Invalid code"}, 403
+
+    if controller.decode_pn(swipe_data) == "":
+        return {"message": "Bad read"}, 400
 
     if controller.add_to_queue_by_card_swipe(swipe_data):
         return {"message": "Student was added to the queue"}
@@ -223,6 +233,22 @@ def get_queue():
     """
 
     return db.get_queue()
+
+@blueprint.route("/get-queue-size", methods=["GET"])
+def get_queue_size():
+    """
+    Public route to get the size of queue.
+
+
+    Returns:
+        200 OK - {
+            "size": <int>
+        }
+    """
+
+    queue = db.get_queue()
+
+    return {"size": len(queue)}
 
 
 @blueprint.route("/get-my-position", methods=["GET"])
@@ -432,3 +458,20 @@ def move_to_end():
 
     return {"message": "Specified user is not in queue"}, 400
 
+
+@blueprint.route("/swipe-authorization", methods=["GET"])
+@min_level('instructor')
+def get_swipe_auth_code():
+    code = db.get_hw_authorization()
+
+    if code is None:
+        return {"message": "Auth code not set"}, 404
+
+    return {"code": code}
+
+@blueprint.route("/reset-swipe-auth", methods=["DELETE"])
+@min_level('instructor')
+def reset_swipe_auth_code():
+    db.reset_hw_authorization()
+
+    return {"message": "Reset auth code"}

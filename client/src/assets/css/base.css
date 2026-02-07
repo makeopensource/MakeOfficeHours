@@ -130,6 +130,7 @@ section {
 }
 
 #login-buttons {
+    margin-top: 64px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -142,7 +143,7 @@ section {
     width: 360px;
     font-size: 1.2rem;
     border-radius: 20px;
-    box-shadow: 1px 3px 4px gray;
+    box-shadow: 1px 3px 2px lightgray;
     border: 0;
     font-weight: bold;
 }
