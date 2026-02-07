@@ -14,12 +14,6 @@
     margin: 8px;
 }
 
-.circle.pos {
-    background-color: var(--accent-color);
-    color: white;
-    box-shadow: 0 2px 4px gray;
-}
-
 #user {
     display: flex;
     flex-direction: column;
@@ -38,9 +32,11 @@
     resize: none;
     height: 8rem;
     width: 20rem;
+    max-width: 70vw;
     padding: 16px;
     border: 2px solid #D9D9D9;
     border-radius: 10px;
+    margin: 16px;
 }
 
 br {

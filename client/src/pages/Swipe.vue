@@ -2,12 +2,15 @@
 
 import {ref} from "vue";
 import {useRouter} from "vue-router";
+import Header from "@/components/Header.vue";
 
 let inputRef = ref<HTMLInputElement>();
 
 let status = ref<string>("");
 
 let queueLen = ref<number>(0);
+
+const hostname = window.location.hostname;
 
 const router = useRouter()
 
@@ -29,7 +32,7 @@ const swipeInput = () => {
     }).then(res => {
       if (res.ok) {
         refreshQueueLen()
-        status.value = "You're in the queue! Visit cseoh.com to track your position."
+        status.value = `You're in the queue! Visit ${hostname} to track your position.`
         clearStatus();
       } else if (res.status == 400) {
         status.value = "Bad card read, please try again."
@@ -86,27 +89,36 @@ if (localStorage.getItem("auth-code") === null) {
 
 </script>
 
-<template id="welcome">
+<template>
 
-  <h1>Welcome to Office Hours!</h1>
-  <h2>Swipe your UB Card to join the queue.</h2>
-  <input id="swipe" type="text" ref="inputRef" autofocus @keydown.enter="swipeInput" @focusout="inputRef?.focus()">
+  <Header/>
 
-  <div id="queue-len" class="circle">
-    {{ queueLen }}
+  <div id="welcome">
+    <h1>Welcome to Office Hours!</h1>
+    <h2>Swipe your UB Card to join the queue.</h2>
+    <h2>Visit {{ hostname }} for updates!</h2>
+    <input id="swipe" type="text" ref="inputRef" autofocus @keydown.enter="swipeInput" @focusout="inputRef?.focus()">
+
+    <div id="queue-len" class="circle pos">
+      {{ queueLen }}
+    </div>
+    <h2>Queue Size</h2>
+
+
+    <p>{{ status }}</p>
   </div>
-  <h3>Queue Size</h3>
-
-
-  <p>{{ status }}</p>
-
 
 </template>
 
 <style scoped>
 
+.circle {
+  height: 256px;
+  width: 256px;
+}
+
 #welcome {
-  margin: 72px;
+  margin: 32px;
 }
 
 h1, h2, h3, p {
@@ -120,6 +132,15 @@ h1, h2, h3, p {
 
 #queue-len {
   margin: auto;
+  font-size: 128px;
+}
+
+br {
+  margin-top: 32px;
+}
+
+footer {
+  display: none;
 }
 
 </style>
