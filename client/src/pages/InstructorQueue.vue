@@ -36,9 +36,11 @@ function getQueue() {
   })
 }
 
+let pollTimeout = -1
+
 function poll() {
   getQueue();
-  setTimeout(poll, 2000);
+  pollTimeout = setTimeout(poll, 2000);
 }
 
 poll();
@@ -184,6 +186,12 @@ function moveToEnd(id: number) {
   })
 }
 
+// stop timeout when leaving queue so requests don't get spammed
+router.beforeEach((to, from, next) => {
+  clearTimeout(pollTimeout);
+
+  next();
+})
 
 
 

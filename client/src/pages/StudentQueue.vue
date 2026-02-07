@@ -50,12 +50,21 @@ function fetchPosition() {
   })
 }
 
+let pollTimeout = -1;
+
 function poll() {
   fetchPosition();
-  setTimeout(poll, 2000);
+  pollTimeout = setTimeout(poll, 2000);
 }
 
 poll()
+
+// stop timeout when leaving queue so requests don't get spammed
+router.beforeEach((to, from, next) => {
+  clearTimeout(pollTimeout);
+
+  next();
+})
 
 const selfDequeueReason = ref<HTMLTextAreaElement>();
 

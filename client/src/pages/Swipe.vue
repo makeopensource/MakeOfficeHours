@@ -58,6 +58,8 @@ const clearStatus = () => {
   setTimeout(() => { status.value = "" }, 5000)
 }
 
+let pollTimeout = -1;
+
 const refreshQueueLen = () => {
   fetch("/api/get-queue-size").then(res => {
     if (res.ok) {
@@ -65,11 +67,18 @@ const refreshQueueLen = () => {
     }
   }).then(json => {
     queueLen.value = json["size"]
-    setTimeout(refreshQueueLen, 2000)
+    pollTimeout = setTimeout(refreshQueueLen, 2000)
   })
 }
 
 refreshQueueLen()
+
+// stop polling when leaving page
+router.beforeEach((to, from, next) => {
+  clearTimeout(pollTimeout);
+
+  next();
+})
 
 if (localStorage.getItem("auth-code") === null) {
   router.push("/swipe-auth")
