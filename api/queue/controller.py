@@ -46,3 +46,25 @@ def remove_from_queue_without_visit(student, reason):
     db.end_visit(visit, reason)
     return True
 
+def get_tas_visit(ta):
+
+    in_progress = db.get_in_progress_visits()
+    in_progress = list(filter(lambda v: v["ta_id"] == ta, in_progress))
+
+    if len(in_progress) == 0:
+        return None
+
+    visit = in_progress[0]
+    student = db.lookup_identifier(visit["student_id"])
+
+    return {
+        "id": visit["student_id"],
+        "username": student["ubit"],
+        "pn": student["person_num"],
+        "preferred_name": student["preferred_name"],
+        "visitID": visit["visit_id"],
+        "visit_reason": visit["student_visit_reason"]
+    }
+
+
+

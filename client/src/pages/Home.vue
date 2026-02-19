@@ -9,6 +9,12 @@ const router = useRouter()
 
 const autolabLink = ref<HTMLAnchorElement>();
 
+fetch("/api/me").then(res => {
+  if (res.ok) {
+    router.push("/queue")
+  }
+})
+
 </script>
 
 <template>

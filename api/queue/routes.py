@@ -4,7 +4,7 @@ from flask import Blueprint, request
 
 import api.queue.controller as controller
 from api.auth.controller import get_user
-from api.queue.controller import remove_from_queue_without_visit
+from api.queue.controller import remove_from_queue_without_visit, get_tas_visit
 from api.roster.controller import min_level
 from api.database.db import db
 
@@ -121,23 +121,73 @@ def restore_visit():
 
     user_id = user["user_id"]
 
+    return get_tas_visit(user_id)
+
+@blueprint.route("/active-visits", methods=["GET"])
+@min_level('ta')
+def get_active_visits():
     in_progress = db.get_in_progress_visits()
-    in_progress = list(filter(lambda v: v["ta_id"] == user_id, in_progress))
 
-    if len(in_progress) == 0:
-        return {"message": "You have no in-progress visits."}, 404
+    visits = []
 
-    visit = in_progress[0]
-    student = db.lookup_identifier(visit["student_id"])
+    for visit in in_progress:
+        student = db.lookup_identifier(visit["student_id"])
 
-    return {
-        "id": visit["student_id"],
-        "username": student["ubit"],
-        "pn": student["person_num"],
-        "preferred_name": student["preferred_name"],
-        "visitID": visit["visit_id"],
-        "visit_reason": visit["student_visit_reason"]
-    }
+        if visit["ta_id"] is not None:
+            ta = db.lookup_identifier(visit["ta_id"])
+            ta_name = ta["preferred_name"]
+        else:
+            ta_name = None
+
+        visits.append({
+            "student_id": visit["student_id"],
+            "student_username": student["ubit"],
+            "student_name": student["preferred_name"],
+            "visitID": visit["visit_id"],
+            "visit_reason": visit["student_visit_reason"],
+            "ta_id": visit["ta_id"],
+            "ta_name": ta_name
+        })
+
+@blueprint.route("/visits/<id>", methods=["GET"])
+@min_level('instructor')
+def get_visit(visit_id):
+    """
+    Retrieve all information about the specified visit.
+
+    """
+
+    pass
+
+@blueprint.route("/steal-visit/<id>", methods=["PATCH"])
+@min_level('ta')
+def steal_visit(visit_id):
+    """
+    Replace the TA associated with the visit with the TA who sent
+    the request. Returns all information about the visit being stolen.
+
+    Does not work on visits that are not in progress, or if the TA
+    has an active visit.
+
+    """
+
+    pass
+
+@blueprint.route("/abandon-visit", methods=["PATCH"])
+@min_level('ta')
+def abandon_visit():
+    """
+    Abandon the visit associated with the TA who sent the request.
+    Does not end the visit.
+
+    Returns an error if the TA isn't in an active visit. Future retrievals
+    of this visit should return "None" as the TA's ID and name.
+
+
+    """
+    pass
+
+
 
 @blueprint.route("/help-a-student", methods=["POST"])
 @min_level("ta")

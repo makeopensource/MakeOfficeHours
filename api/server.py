@@ -6,7 +6,6 @@ A Flask API server that handles enqueue and dequeuing students from the office h
 import datetime
 import io
 import os
-
 import requests
 from flask import Flask, render_template, request, redirect
 from flask import send_file

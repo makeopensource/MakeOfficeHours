@@ -15,7 +15,7 @@ const dropdownVisible = ref<boolean>(false);
       <div @click='dropdownVisible = !dropdownVisible' class="queue-entry">
       <div class="queue-entry-info">{{ name }} ({{ ubit }})</div>
       <div class="queue-entry-buttons">
-        <button @click="$emit('call-student', id)">Call</button>
+        <button @click="$emit('call-student', id)">Start Visit</button>
         <button @click="$emit('remove-student', id)">Remove</button>
         <button @click="$emit('move-to-end', id)">Move to End</button>
       </div>
