@@ -137,7 +137,7 @@ const resetAuth = () => {
 
   </ConfirmationDialog>
 
-  <ConfirmationDialog ref="enrollDialog">
+  <ConfirmationDialog ref="enrollDialog" @enter="enrollUser">
     <h2>Enroll User</h2>
     <label for="first_name">First Name</label>
     <input id="first_name" type="text" v-model="userToEnroll.first_name">
@@ -160,7 +160,7 @@ const resetAuth = () => {
 
   <Alert ref="alertBox"/>
 
-  <ConfirmationDialog ref="uploadCSVDialog">
+  <ConfirmationDialog ref="uploadCSVDialog" @enter="uploadCSV">
     <h2>Upload Roster</h2>
     <label for="roster_cs3,v">Roster</label>
     <p>Formatted "ubit,pn,first_name,last_name,role"</p>

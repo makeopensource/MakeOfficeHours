@@ -4,7 +4,7 @@ import {ref} from "vue";
 const dialog = ref<HTMLDialogElement>()
 let showing = ref(false)
 
-const emit = defineEmits(["open", "close"])
+const emit = defineEmits(["open", "close", "enter"])
 
 
 const show = () => {
@@ -26,7 +26,7 @@ defineExpose({show: show, hide: hide})
 
 <template>
 
-  <dialog @close="hide" v-show="showing" ref="dialog">
+  <dialog @close="hide" v-show="showing" @keydown.enter="$emit('enter')" ref="dialog">
     <slot></slot>
   </dialog>
 

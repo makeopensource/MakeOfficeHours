@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import QueueEntry from "@/components/QueueEntry.vue";
-import {ref} from "vue";
+import {nextTick, ref} from "vue";
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import Visit from "@/components/Visit.vue";
 import EditInfo from "@/components/EditInfo.vue";
@@ -72,9 +72,11 @@ function submitForceEnqueue() {
   })
 }
 
+const forceEnqueueMessageBox = ref<HTMLInputElement>();
+
 function resetForceEnqueueDialog() {
   forceEnqueueEntry.value = "";
-  forceEnqueueErrorMessage.value = "";
+  forceEnqueueErrorMessage.value = ``;
 }
 
 const visitInfo = ref({})
@@ -201,9 +203,9 @@ router.beforeEach((to, from, next) => {
 
   <Visit ref="visitDialog" :visit_info="visitInfo" @open="getQueue" @close="() => { getQueue(); getInProgressVisit(); } "/>
 
-  <ConfirmationDialog @open="resetForceEnqueueDialog" ref="forceEnqueueDialog">
+  <ConfirmationDialog @open="() => { resetForceEnqueueDialog(); nextTick(() => forceEnqueueMessageBox?.focus())}" @enter="submitForceEnqueue" ref="forceEnqueueDialog">
     <label for="force-enqueue">Student Identifier (UBITName or Person Number)</label><br/>
-    <input v-model="forceEnqueueEntry" type="text" id="force-enqueue" class="flex" name="force-enqueue">
+    <input v-model="forceEnqueueEntry" autofocus ref="forceEnqueueMessageBox" type="text" id="force-enqueue" class="flex" name="force-enqueue">
 
     <div class="input-modal-container">
       <button id="close-enqueue-dialog" @click="forceEnqueueDialog?.hide()" class="no-grow">Cancel</button>

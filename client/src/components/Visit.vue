@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {ref} from "vue";
+import {nextTick, ref} from "vue";
 
 const props = defineProps(["visit_info"])
 const emit = defineEmits(["open", "close"])
@@ -15,6 +15,7 @@ const show = () => {
   dialogRef.value?.showModal();
   showing.value = true;
   emit("open")
+  nextTick(() => {taNotesBox.value?.focus()})
 }
 
 const hide = () => {
@@ -79,9 +80,8 @@ const cancelVisit = () => {
       hide();
     }
   })
-
-
 }
+
 
 
 </script>
@@ -95,7 +95,7 @@ const cancelVisit = () => {
       <button disabled>View Autolab Submission</button>
       <br/>
       <label for="student-visit-reason">Visit Reason</label>
-      <textarea class="visit-reason-textbox" id="student-visit-reason" disabled>{{ visit_info["visit_reason"] !== null ? visit_info["visit_reason"] : "None provided."}}</textarea>
+      <textarea class="visit-reason-textbox" ref="visitNotes" id="student-visit-reason" disabled>{{ visit_info["visit_reason"] !== null ? visit_info["visit_reason"] : "None provided."}}</textarea>
     </div>
 
     <div id="visit-controls">
