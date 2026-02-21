@@ -199,7 +199,7 @@ router.beforeEach((to, from, next) => {
 
 <template>
 
-  <Visit ref="visitDialog" :visit_info="visitInfo" @close="() => { getQueue(); getInProgressVisit(); } "/>
+  <Visit ref="visitDialog" :visit_info="visitInfo" @open="getQueue" @close="() => { getQueue(); getInProgressVisit(); } "/>
 
   <ConfirmationDialog @open="resetForceEnqueueDialog" ref="forceEnqueueDialog">
     <label for="force-enqueue">Student Identifier (UBITName or Person Number)</label><br/>

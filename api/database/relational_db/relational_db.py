@@ -39,7 +39,8 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
                     user_id INTEGER UNIQUE,
                     joined TEXT DEFAULT (datetime('now', 'localtime')),
                     priority INTEGER,
-                    enqueue_reason TEXT
+                    enqueue_reason TEXT,
+                    dequeued BOOLEAN DEFAULT false
                 );
                 """
             )

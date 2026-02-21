@@ -25,11 +25,35 @@ class RelationalDBVisits(IVisits):
         now = str(datetime.datetime.now().isoformat(' ', timespec="seconds"))
 
         with self.cursor() as cursor:
+
+            student = cursor.execute("SELECT (student_id) from visits WHERE visit_id = ?", (visit_id, )).fetchone()
+
+            if student is None:
+                return
+
+            student = student[0]
+
             cursor.execute("""
                 UPDATE visits
                 SET session_end = ?, session_end_reason = ?
                 WHERE visit_id = ? AND session_end is null
             """, (now, reason, visit_id))
+
+        self.remove_student(student)
+
+    def cancel_visit(self, visit_id):
+        with self.cursor() as cursor:
+
+            student = cursor.execute("SELECT (student_id) from visits WHERE visit_id = ?", (visit_id,)).fetchone()
+
+            if student is None:
+                return
+
+            student = student[0]
+
+            cursor.execute("DELETE from visits WHERE visit_id = ?", (visit_id,))
+
+            cursor.execute("UPDATE queue SET dequeued = false WHERE user_id = ?", (student, ))
 
 
     def get_in_progress_visits(self):

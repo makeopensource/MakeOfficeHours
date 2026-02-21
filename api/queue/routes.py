@@ -121,7 +121,27 @@ def restore_visit():
 
     user_id = user["user_id"]
 
-    return get_tas_visit(user_id)
+    visit = get_tas_visit(user_id)
+
+    if visit is None:
+        return {"message": "You do not have an in-progress visit."}, 404
+
+    return visit
+
+@blueprint.route("/cancel-visit", methods=["POST"])
+@min_level('ta')
+def cancel_visit():
+    body = request.get_json()
+
+    visit_id = body.get("visit_id")
+
+    if visit_id is None:
+        return {"message": "Malformed request"}, 400
+
+    db.cancel_visit(visit_id)
+
+    return {"message": "Canceled visit"}, 200
+
 
 @blueprint.route("/active-visits", methods=["GET"])
 @min_level('ta')
