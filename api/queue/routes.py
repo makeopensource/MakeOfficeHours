@@ -4,7 +4,7 @@ from flask import Blueprint, request
 
 import api.queue.controller as controller
 from api.auth.controller import get_user
-from api.queue.controller import remove_from_queue_without_visit, get_tas_visit
+from api.queue.controller import remove_from_queue_without_visit, get_tas_visit, self_add_to_queue, get_students_visit
 from api.roster.controller import min_level
 from api.database.db import db
 
@@ -92,7 +92,7 @@ def enqueue_ta_override():
     return {"message": "No student matching provided identifier"}, 404
 
 @blueprint.route("/restore-visit", methods=["GET"])
-@min_level("ta")
+@min_level("student")
 def restore_visit():
     """
     Returns a visit in the database involving the user that hasn't
@@ -102,7 +102,7 @@ def restore_visit():
 
 
     Returns:
-        200 OK - visit found
+        200 OK - visit found (TA)
         {
             "id": <int>,
             "username": <string>,
@@ -110,6 +110,11 @@ def restore_visit():
             "preferred_name: <string>,
             "visitID": <string>,
             "visit_reason": <string>
+        }
+
+        200 OK - visit found (Student)
+        {
+            "ta_name": <string>
         }
 
         404 Not Found - no such visit exists
@@ -121,7 +126,10 @@ def restore_visit():
 
     user_id = user["user_id"]
 
-    visit = get_tas_visit(user_id)
+    if user["course_role"] == "student":
+        visit = get_students_visit(user_id)
+    else:
+        visit = get_tas_visit(user_id)
 
     if visit is None:
         return {"message": "You do not have an in-progress visit."}, 404
@@ -341,7 +349,8 @@ def get_anon_queue():
         400 Bad Request - You are not in the queue
         {
             "message": <string>,
-            "length": <int>
+            "length": <int>,
+            "active": <boolean> (if the student can re-enqueue themselves)
         }
     """
     if not (auth_token := request.cookies.get("auth_token")):
@@ -360,7 +369,9 @@ def get_anon_queue():
         if entry["id"] == user_id:
             return {"position": i, "length": len(queue)}
 
-    return {"message": "You are not in the queue!", "length": len(queue)}, 400
+    active = controller.is_active(user_id)
+
+    return {"message": "You are not in the queue!", "length": len(queue), "active": active}, 400
 
 
 @blueprint.route("/remove-self-from-queue", methods=["POST"])
@@ -545,3 +556,33 @@ def reset_swipe_auth_code():
     db.reset_hw_authorization()
 
     return {"message": "Reset auth code"}
+
+@blueprint.route("/enqueue", methods=["POST"])
+@min_level('student')
+def self_enqueue():
+
+    if not (auth_token := request.cookies.get("auth_token")):
+        return {"message": "You are not logged in!"}, 401
+
+    user = db.get_authenticated_user(auth_token)
+
+    if not user:
+        return {"message": "You are not logged in!"}, 401
+
+    if not self_add_to_queue(user["user_id"]):
+        return {"message": "You have not swiped in the past two hours!"}, 403
+
+    return {"message": "Added yourself to the queue."}, 200
+
+@blueprint.route("/on-site", methods=["GET"])
+@min_level('ta')
+def get_on_site():
+    return db.get_on_site()
+
+@blueprint.route("/deactivate", methods=["PATCH"])
+@min_level('ta')
+def deactivate():
+    body = request.get_json()
+    db.reset_swipe_time(body["user_id"])
+
+    return {"message": "Deactivated the student."}

@@ -9,6 +9,10 @@
     background-color: #FDD3D0
 }
 
+#queue-banner.on-site {
+    background-color: #ffe49e
+}
+
 .disabled {
     display: none;
 }

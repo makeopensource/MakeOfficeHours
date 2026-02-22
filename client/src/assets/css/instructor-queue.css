@@ -29,6 +29,7 @@
         margin: 0 10%;
     }
 
+
     h1, h2, h3 {
         text-align: center;
     }
@@ -44,8 +45,8 @@
     margin-bottom: 4px;
 }
 
-#queue-container {
-    margin: 32px 16px;
+.queue-container {
+    margin: 16px 16px;
     border: 2px solid #D9D9D9;
     border-bottom: 0;
 }
@@ -59,4 +60,8 @@
     display: flex;
     gap: 4px;
     margin-left: auto;
+}
+
+br {
+    margin-bottom: 16px;
 }
