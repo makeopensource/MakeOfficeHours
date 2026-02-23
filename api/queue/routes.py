@@ -4,7 +4,7 @@ from flask import Blueprint, request
 
 import api.queue.controller as controller
 from api.auth.controller import get_user
-from api.queue.controller import remove_from_queue_without_visit
+from api.queue.controller import remove_from_queue_without_visit, get_tas_visit, self_add_to_queue, get_students_visit
 from api.roster.controller import min_level
 from api.database.db import db
 
@@ -92,7 +92,7 @@ def enqueue_ta_override():
     return {"message": "No student matching provided identifier"}, 404
 
 @blueprint.route("/restore-visit", methods=["GET"])
-@min_level("ta")
+@min_level("student")
 def restore_visit():
     """
     Returns a visit in the database involving the user that hasn't
@@ -102,7 +102,7 @@ def restore_visit():
 
 
     Returns:
-        200 OK - visit found
+        200 OK - visit found (TA)
         {
             "id": <int>,
             "username": <string>,
@@ -110,6 +110,11 @@ def restore_visit():
             "preferred_name: <string>,
             "visitID": <string>,
             "visit_reason": <string>
+        }
+
+        200 OK - visit found (Student)
+        {
+            "ta_name": <string>
         }
 
         404 Not Found - no such visit exists
@@ -121,23 +126,96 @@ def restore_visit():
 
     user_id = user["user_id"]
 
+    if user["course_role"] == "student":
+        visit = get_students_visit(user_id)
+    else:
+        visit = get_tas_visit(user_id)
+
+    if visit is None:
+        return {"message": "You do not have an in-progress visit."}, 404
+
+    return visit
+
+@blueprint.route("/cancel-visit", methods=["POST"])
+@min_level('ta')
+def cancel_visit():
+    body = request.get_json()
+
+    visit_id = body.get("visit_id")
+
+    if visit_id is None:
+        return {"message": "Malformed request"}, 400
+
+    db.cancel_visit(visit_id)
+
+    return {"message": "Canceled visit"}, 200
+
+
+@blueprint.route("/active-visits", methods=["GET"])
+@min_level('ta')
+def get_active_visits():
     in_progress = db.get_in_progress_visits()
-    in_progress = list(filter(lambda v: v["ta_id"] == user_id, in_progress))
 
-    if len(in_progress) == 0:
-        return {"message": "You have no in-progress visits."}, 404
+    visits = []
 
-    visit = in_progress[0]
-    student = db.lookup_identifier(visit["student_id"])
+    for visit in in_progress:
+        student = db.lookup_identifier(visit["student_id"])
 
-    return {
-        "id": visit["student_id"],
-        "username": student["ubit"],
-        "pn": student["person_num"],
-        "preferred_name": student["preferred_name"],
-        "visitID": visit["visit_id"],
-        "visit_reason": visit["student_visit_reason"]
-    }
+        if visit["ta_id"] is not None:
+            ta = db.lookup_identifier(visit["ta_id"])
+            ta_name = ta["preferred_name"]
+        else:
+            ta_name = None
+
+        visits.append({
+            "student_id": visit["student_id"],
+            "student_username": student["ubit"],
+            "student_name": student["preferred_name"],
+            "visitID": visit["visit_id"],
+            "visit_reason": visit["student_visit_reason"],
+            "ta_id": visit["ta_id"],
+            "ta_name": ta_name
+        })
+
+@blueprint.route("/visits/<id>", methods=["GET"])
+@min_level('instructor')
+def get_visit(visit_id):
+    """
+    Retrieve all information about the specified visit.
+
+    """
+
+    pass
+
+@blueprint.route("/steal-visit/<id>", methods=["PATCH"])
+@min_level('ta')
+def steal_visit(visit_id):
+    """
+    Replace the TA associated with the visit with the TA who sent
+    the request. Returns all information about the visit being stolen.
+
+    Does not work on visits that are not in progress, or if the TA
+    has an active visit.
+
+    """
+
+    pass
+
+@blueprint.route("/abandon-visit", methods=["PATCH"])
+@min_level('ta')
+def abandon_visit():
+    """
+    Abandon the visit associated with the TA who sent the request.
+    Does not end the visit.
+
+    Returns an error if the TA isn't in an active visit. Future retrievals
+    of this visit should return "None" as the TA's ID and name.
+
+
+    """
+    pass
+
+
 
 @blueprint.route("/help-a-student", methods=["POST"])
 @min_level("ta")
@@ -271,7 +349,8 @@ def get_anon_queue():
         400 Bad Request - You are not in the queue
         {
             "message": <string>,
-            "length": <int>
+            "length": <int>,
+            "active": <boolean> (if the student can re-enqueue themselves)
         }
     """
     if not (auth_token := request.cookies.get("auth_token")):
@@ -290,7 +369,9 @@ def get_anon_queue():
         if entry["id"] == user_id:
             return {"position": i, "length": len(queue)}
 
-    return {"message": "You are not in the queue!", "length": len(queue)}, 400
+    active = controller.is_active(user_id)
+
+    return {"message": "You are not in the queue!", "length": len(queue), "active": active}, 400
 
 
 @blueprint.route("/remove-self-from-queue", methods=["POST"])
@@ -475,3 +556,33 @@ def reset_swipe_auth_code():
     db.reset_hw_authorization()
 
     return {"message": "Reset auth code"}
+
+@blueprint.route("/enqueue", methods=["POST"])
+@min_level('student')
+def self_enqueue():
+
+    if not (auth_token := request.cookies.get("auth_token")):
+        return {"message": "You are not logged in!"}, 401
+
+    user = db.get_authenticated_user(auth_token)
+
+    if not user:
+        return {"message": "You are not logged in!"}, 401
+
+    if not self_add_to_queue(user["user_id"]):
+        return {"message": "You have not swiped in the past two hours!"}, 403
+
+    return {"message": "Added yourself to the queue."}, 200
+
+@blueprint.route("/on-site", methods=["GET"])
+@min_level('ta')
+def get_on_site():
+    return db.get_on_site()
+
+@blueprint.route("/deactivate", methods=["PATCH"])
+@min_level('ta')
+def deactivate():
+    body = request.get_json()
+    db.reset_swipe_time(body["user_id"])
+
+    return {"message": "Deactivated the student."}

@@ -33,6 +33,18 @@ class IVisits(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def cancel_visit(self, visit_id):
+        """ Destroy this visit from the database if it's still in progress.
+        Un-dequeue this student from the queue if they have been dequeued.
+
+        :param visit_id:
+        :return:
+        """
+
+
+        raise NotImplementedError()
+
+    @abstractmethod
     def get_in_progress_visits(self):
         """ Return all database entries for visits that have
         not ended.

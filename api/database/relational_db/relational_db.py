@@ -6,10 +6,11 @@ from api.database.relational_db.relational_db_cursor import RelationalDBCursor
 from api.database.relational_db.relational_db_queue import RelationalDBQueue
 from api.database.relational_db.relational_db_accounts import RelationalDBAccounts
 from api.database.relational_db.relational_db_ratings import RelationalDBRatings
+from api.database.relational_db.relational_db_sessions import RelationalDBSessions
 from api.database.relational_db.relational_db_visits import RelationalDBVisits
 
 
-class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, RelationalDBRatings, RelationalDBVisits):
+class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, RelationalDBRatings, RelationalDBVisits, RelationalDBSessions):
 
     def __init__(self):
         super().__init__()
@@ -27,7 +28,8 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
                     last_name VARCHAR(255),
                     ubit VARCHAR(16) UNIQUE,
                     person_num INTEGER UNIQUE,
-                    course_role VARCHAR(16)
+                    course_role VARCHAR(16),
+                    last_swipe  TEXT
                 );
                 """
             )
@@ -39,7 +41,8 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
                     user_id INTEGER UNIQUE,
                     joined TEXT DEFAULT (datetime('now', 'localtime')),
                     priority INTEGER,
-                    enqueue_reason TEXT
+                    enqueue_reason TEXT,
+                    dequeued BOOLEAN DEFAULT false
                 );
                 """
             )

@@ -44,7 +44,7 @@ class RelationalDBQueue(IQueue):
                 ORDER BY priority DESC, joined
             """
             ).fetchone()
-            cursor.execute("DELETE FROM queue WHERE user_id = ?", (user[0],))
+            cursor.execute("UPDATE queue SET dequeued = true WHERE user_id = ?", (user[0],))
 
         return {
             "user_id": user[0],
@@ -68,7 +68,7 @@ class RelationalDBQueue(IQueue):
             if user is None:
                 return None
 
-            cursor.execute("DELETE FROM queue WHERE user_id = ?", (user[0],))
+            cursor.execute("UPDATE queue SET dequeued = true WHERE user_id = ?", (user[0],))
 
         return {
             "user_id": user[0],
@@ -85,6 +85,7 @@ class RelationalDBQueue(IQueue):
                 """
                 SELECT users.user_id, preferred_name, ubit, person_num 
                 FROM queue INNER JOIN users ON queue.user_id = users.user_id 
+                WHERE dequeued = false
                 ORDER BY priority DESC, joined
                 """
             )
@@ -106,7 +107,7 @@ class RelationalDBQueue(IQueue):
     def clear_queue(self):
         with self.cursor() as cursor:
             cursor.execute(
-                "DELETE FROM queue"
+                "DELETE FROM queue WHERE dequeued = false"
             )
 
     def remove_student(self, student):
@@ -115,6 +116,8 @@ class RelationalDBQueue(IQueue):
 
             if queue_info is None:
                 return None
+
+        with self.cursor() as cursor:
 
             cursor.execute("DELETE FROM queue WHERE user_id = ?", (student, ))
 

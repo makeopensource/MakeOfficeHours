@@ -9,6 +9,7 @@ import Alert from "@/components/Alert.vue";
 const router = useRouter()
 
 let enqueued = ref(false)
+let onSite = ref(false)
 
 let studentName = ref("")
 let studentPos = ref("N/A")
@@ -40,14 +41,50 @@ function fetchPosition() {
       bannerClass.value = ""
       bannerText.value = "You are in the queue!"
       enqueued.value = true
+      clearTimeout(visitPollTimeout)
+      visitPollTimeout = -1
+      visitDialog.value?.hide()
+    } else if (data["active"]) {
+      studentPos.value = "N/A"
+      bannerClass.value = "on-site"
+      bannerText.value = "You're on-site! Use the button to join the queue."
+      enqueued.value = false
+      onSite.value = true
+      if (visitPollTimeout === -1) {
+        pollForVisit()
+      }
     } else {
       studentPos.value = "N/A"
       bannerClass.value = "bad"
       bannerText.value = "You are not in the queue!"
       enqueued.value = false
+      if (visitPollTimeout === -1) {
+        pollForVisit()
+      }
+      onSite.value = false
     }
 
   })
+}
+
+let visitPollTimeout = -1;
+
+function fetchVisit() {
+  fetch("/api/restore-visit").then(res => {
+    if (res.ok) {
+      return res.json()
+    } else {
+      visitDialog.value?.hide()
+    }
+  }).then(json => {
+    taName.value = json["ta_name"]
+    visitDialog.value?.show()
+  })
+}
+
+function pollForVisit() {
+  fetchVisit();
+  visitPollTimeout = setTimeout(pollForVisit, 2000);
 }
 
 let pollTimeout = -1;
@@ -62,6 +99,7 @@ poll()
 // stop timeout when leaving queue so requests don't get spammed
 router.beforeEach((to, from, next) => {
   clearTimeout(pollTimeout);
+  clearTimeout(visitPollTimeout);
 
   next();
 })
@@ -119,6 +157,20 @@ function signOut() {
 
 const alertBox = ref<typeof Alert>();
 
+const visitDialog = ref<typeof ConfirmationDialog>();
+
+const taName = ref<string>();
+
+function selfEnqueue() {
+  fetch("/api/enqueue", { method: "POST" }).then(res => {
+    if (!res.ok) {
+      alertBox.value?.setError("Failed to enqueue! Are you on site?")
+    } else {
+      fetchPosition()
+    }
+  })
+}
+
 </script>
 
 <template>
@@ -142,6 +194,14 @@ const alertBox = ref<typeof Alert>();
   <EditInfo ref="preferredNameUpdate" :default_name="studentName" @name-change="(name) => { studentName = name }"/>
 
   <Alert ref="alertBox"/>
+
+  <ConfirmationDialog ref="visitDialog" :persistent="true">
+    <h3>You're up!</h3>
+    <div>
+      <strong>{{ taName }}</strong> is helping you.
+    </div>
+
+  </ConfirmationDialog>
 
   <div id="queue">
     <div id="info" class="queue-section">
@@ -172,7 +232,8 @@ const alertBox = ref<typeof Alert>();
       </div>
     </div>
     <div class="queue-section columns all-centered">
-      <button :disabled="!enqueued" @click="leaveQueueDialog?.show()" class="wide-button danger">Exit Queue</button>
+      <button :disabled="!onSite" v-show="!enqueued" @click="selfEnqueue" class="wide-button important">Join Queue {{ !onSite ? " (you are not on-site)" : "" }}</button>
+      <button v-show="enqueued" @click="leaveQueueDialog?.show()" class="wide-button danger">Exit Queue</button>
       <button @click="signOut" class="wide-button">Sign Out {{ enqueued ? "(will not remove you from queue)" : "" }}</button>
     </div>
   </div>

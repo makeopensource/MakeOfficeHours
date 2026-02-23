@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
-import {ref} from "vue";
+import {nextTick, ref} from "vue";
 
 const props = defineProps(["default_name", "is_instructor"]);
 const emit = defineEmits(["name-change"])
@@ -27,6 +27,8 @@ function submitNameChange() {
   })
 }
 
+const nameInput = ref<HTMLInputElement>();
+
 defineExpose({"show": () => dialog.value?.show(), "hide": () => dialog.value?.hide()})
 
 
@@ -34,7 +36,7 @@ defineExpose({"show": () => dialog.value?.show(), "hide": () => dialog.value?.hi
 
 <template>
 
-  <ConfirmationDialog @open="resetEntry" ref="dialog">
+  <ConfirmationDialog @open="() => {resetEntry; nextTick(() => {nameInput?.focus()})}" @enter="submitNameChange" ref="dialog">
     <h3>Edit Info</h3>
     <p v-if="is_instructor">Your preferred name will be visible to students using the site.</p>
     <p v-else>Your preferred name will be your identifier on the queue and will be visible to TAs.</p>
@@ -42,7 +44,7 @@ defineExpose({"show": () => dialog.value?.show(), "hide": () => dialog.value?.hi
     <br/>
 
     <label for="preferred-name">Preferred Name</label>
-    <input id="preferred-name" v-model="entry">
+    <input id="preferred-name" v-model="entry" ref="nameInput">
 
     <button @click="submitNameChange" class="important">Change Preferred Name</button>
     <button @click="dialog?.hide()">Close</button>

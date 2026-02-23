@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import secrets
 
@@ -86,7 +87,7 @@ class RelationalDBAccounts(IAccounts, IRoster):
         with self.cursor() as cursor:
             user = cursor.execute(
                 """
-                SELECT preferred_name, last_name, ubit, person_num, course_role, users.user_id 
+                SELECT preferred_name, last_name, ubit, person_num, course_role, users.user_id, last_swipe 
                 FROM users
                 INNER JOIN auth ON users.user_id = auth.user_id
                 WHERE auth_token = ?
@@ -98,6 +99,20 @@ class RelationalDBAccounts(IAccounts, IRoster):
         if not user:
             return None
 
+        enqueue_time = user[6]
+
+        if enqueue_time is None:
+            on_site = False
+        else:
+            # YYYY-MM-DD HH:MM:SS
+            time_format = "%Y-%m-%d %H:%M:%S"
+
+            now = datetime.datetime.now()
+            enqueue_time = datetime.datetime.strptime(enqueue_time, time_format)
+            seconds = (now - enqueue_time).seconds
+
+            on_site = seconds <= 7200
+
         return {
             "preferred_name": user[0],
             "last_name": user[1],
@@ -105,6 +120,7 @@ class RelationalDBAccounts(IAccounts, IRoster):
             "person_num": user[3],
             "course_role": user[4],
             "user_id": user[5],
+            "on_site": on_site
         }
 
     def sign_up(self, username, pw) -> str | None:

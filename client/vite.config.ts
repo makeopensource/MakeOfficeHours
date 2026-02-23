@@ -7,13 +7,13 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 // https://vite.dev/config/
 export default defineConfig({
     server: {
-        // proxy: {
-        //     '/api': {
-        //         target: 'http://127.0.0.1:8002',
-        //         changeOrigin: true,
-        //         rewrite: (path) => path.replace(/^\/api/, '')
-        //     }
-        // }
+         proxy: {
+             '/api': {
+                 target: 'http://127.0.0.1:5000',
+                 changeOrigin: true,
+                 rewrite: (path) => path.replace(/^\/api/, '')
+             }
+         },
         allowedHosts: ["client", "localhost"],
     },
     plugins: [

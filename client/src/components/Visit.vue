@@ -1,9 +1,9 @@
 <script setup lang="ts">
 
-import {ref} from "vue";
+import {nextTick, ref} from "vue";
 
 const props = defineProps(["visit_info"])
-const emit = defineEmits(["close"])
+const emit = defineEmits(["open", "close"])
 
 const dialogRef = ref<HTMLDialogElement>();
 const showing = ref<boolean>(false);
@@ -14,6 +14,8 @@ const taNotesText = ref("");
 const show = () => {
   dialogRef.value?.showModal();
   showing.value = true;
+  emit("open")
+  nextTick(() => {taNotesBox.value?.focus()})
 }
 
 const hide = () => {
@@ -68,6 +70,19 @@ const sendToBack = () => {
   })
 }
 
+const cancelVisit = () => {
+  fetch("/api/cancel-visit", {
+    method: "POST",
+    body: JSON.stringify({"visit_id": props.visit_info["visitID"]}),
+    headers: {"Content-Type": "application/json"}
+  }).then(res => {
+    if (res.ok) {
+      hide();
+    }
+  })
+}
+
+
 
 </script>
 
@@ -80,7 +95,7 @@ const sendToBack = () => {
       <button disabled>View Autolab Submission</button>
       <br/>
       <label for="student-visit-reason">Visit Reason</label>
-      <textarea class="visit-reason-textbox" id="student-visit-reason" disabled>{{ visit_info["visit_reason"] !== null ? visit_info["visit_reason"] : "None provided."}}</textarea>
+      <textarea class="visit-reason-textbox" ref="visitNotes" id="student-visit-reason" disabled>{{ visit_info["visit_reason"] !== null ? visit_info["visit_reason"] : "None provided."}}</textarea>
     </div>
 
     <div id="visit-controls">
@@ -88,8 +103,8 @@ const sendToBack = () => {
       <textarea ref="taNotesBox" v-model="taNotesText" id="ta-visit-notes" placeholder="How did the visit go?"
                 required></textarea>
       <button @click="() => submitVisit()" id="end-visit" class="important">End Visit</button>
-      <button @click="() => submitVisit(sendToFront)" id="end-visit-return-front">End and Return to Front</button>
-      <button @click="() => submitVisit(sendToBack)" id="end-visit-return-back">End and Return to Back</button>
+      <button @click="() => submitVisit(sendToBack)" id="end-visit-return-front">End and Return to Back</button>
+      <button @click="cancelVisit" id="end-visit-cancel">Cancel Visit</button>
     </div>
 
 
@@ -98,4 +113,5 @@ const sendToBack = () => {
 
 <style scoped>
 @import "../assets/css/visit.css";
+
 </style>

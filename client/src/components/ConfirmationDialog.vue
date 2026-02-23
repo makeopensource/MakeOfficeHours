@@ -1,16 +1,25 @@
 <script setup lang="ts">
-import {ref} from "vue";
+import {nextTick, ref} from "vue";
 
 const dialog = ref<HTMLDialogElement>()
 let showing = ref(false)
 
-const emit = defineEmits(["open", "close"])
+const emit = defineEmits(["open", "close", "enter"])
+
+const props = defineProps({
+  persistent: {
+    default: false
+  }
+})
 
 
 const show = () => {
   showing.value = true
   dialog.value?.showModal()
   emit("open")
+  if (props.persistent) {
+      nextTick(() => { dialog.value?.focus() })
+  }
 }
 
 const hide = () => {
@@ -21,12 +30,19 @@ const hide = () => {
 
 defineExpose({show: show, hide: hide})
 
+function esc(e: Event) {
+  if (props.persistent) {
+    dialog.value?.focus()
+    e.preventDefault()
+  }
+}
+
 
 </script>
 
 <template>
 
-  <dialog @close="hide" v-show="showing" ref="dialog">
+  <dialog @close="hide" v-show="showing" @keydown.esc.stop="esc" @keydown.enter="$emit('enter')" ref="dialog">
     <slot></slot>
   </dialog>
 
@@ -42,6 +58,10 @@ dialog {
   flex-direction: column;
   gap: 8px;
   display: flex;
+}
+
+dialog:focus {
+  outline: 0
 }
 
 @media screen and (max-width: 992px) {

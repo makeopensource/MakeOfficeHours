@@ -34,7 +34,6 @@
 
     #student-visit-reason {
         width: 90%;
-        margin: 16px;
     }
 
     #visit-controls {
@@ -57,7 +56,7 @@
 }
 
 #student-info > br {
-    margin-top: 48px;
+    margin-top: 16px;
 }
 
 #visit-controls {

@@ -1,14 +1,16 @@
 <script setup lang="ts">
 
 import QueueEntry from "@/components/QueueEntry.vue";
-import {ref} from "vue";
+import {nextTick, ref} from "vue";
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 import Visit from "@/components/Visit.vue";
 import EditInfo from "@/components/EditInfo.vue";
 import {useRouter} from "vue-router";
 import Alert from "@/components/Alert.vue";
+import OnSiteEntry from "@/components/OnSiteEntry.vue";
 
 const students = ref([])
+const onSite = ref([])
 
 const router = useRouter()
 
@@ -34,6 +36,13 @@ function getQueue() {
   }).then(data => {
     students.value = data
   })
+
+  fetch("/api/on-site").then(res => {
+    return res.json()
+  }).then(data => {
+    onSite.value = data
+  })
+
 }
 
 let pollTimeout = -1
@@ -72,9 +81,29 @@ function submitForceEnqueue() {
   })
 }
 
+function enqueueStudent(student: number) {
+  console.log("Student: ", student)
+  fetch("/api/enqueue-ta-override", {
+    method: "POST",
+    body: JSON.stringify({"identifier": student}),
+    headers: {"Content-Type": "application/json"}
+  }).then(res => {
+    if (!res.ok) {
+      return res.json().then(json => {
+        throw new Error(json["message"])
+      })
+    }
+    getQueue();
+  }).catch(e => {
+    error.value?.setError(e.message);
+  })
+}
+
+const forceEnqueueMessageBox = ref<HTMLInputElement>();
+
 function resetForceEnqueueDialog() {
   forceEnqueueEntry.value = "";
-  forceEnqueueErrorMessage.value = "";
+  forceEnqueueErrorMessage.value = ``;
 }
 
 const visitInfo = ref({})
@@ -150,6 +179,32 @@ function removeStudent() {
   })
 }
 
+const deactivateStudentDialog = ref<typeof ConfirmationDialog>();
+let deactivateStudentId: number | undefined = undefined;
+
+function showDeactivateStudentDialog(id: number) {
+  deactivateStudentId = id;
+  deactivateStudentDialog.value?.show()
+}
+
+function deactivateStudent() {
+  fetch("/api/deactivate", {
+    method: "PATCH",
+    body: JSON.stringify({"user_id": deactivateStudentId}),
+    headers: {"Content-Type": "application/json"}
+  }).then(res => {
+    if (res.ok) {
+      deactivateStudentDialog.value?.hide();
+      deactivateStudentId = undefined;
+      getQueue();
+    } else {
+      throw new Error("failed to deactivate student")
+    }
+  }).catch(e => {
+    error.value?.setError("Failed to deactivate student")
+  })
+}
+
 const editInfo = ref<typeof EditInfo>();
 
 function getInProgressVisit() {
@@ -199,11 +254,11 @@ router.beforeEach((to, from, next) => {
 
 <template>
 
-  <Visit ref="visitDialog" :visit_info="visitInfo" @close="() => { getQueue(); getInProgressVisit(); } "/>
+  <Visit ref="visitDialog" :visit_info="visitInfo" @open="getQueue" @close="() => { getQueue(); getInProgressVisit(); } "/>
 
-  <ConfirmationDialog @open="resetForceEnqueueDialog" ref="forceEnqueueDialog">
+  <ConfirmationDialog @open="() => { resetForceEnqueueDialog(); nextTick(() => forceEnqueueMessageBox?.focus())}" @enter="submitForceEnqueue" ref="forceEnqueueDialog">
     <label for="force-enqueue">Student Identifier (UBITName or Person Number)</label><br/>
-    <input v-model="forceEnqueueEntry" type="text" id="force-enqueue" class="flex" name="force-enqueue">
+    <input v-model="forceEnqueueEntry" autofocus ref="forceEnqueueMessageBox" type="text" id="force-enqueue" class="flex" name="force-enqueue">
 
     <div class="input-modal-container">
       <button id="close-enqueue-dialog" @click="forceEnqueueDialog?.hide()" class="no-grow">Cancel</button>
@@ -235,6 +290,18 @@ router.beforeEach((to, from, next) => {
       </div>
   </ConfirmationDialog>
 
+  <ConfirmationDialog ref="deactivateStudentDialog">
+    <p>
+      <strong>Are you sure?</strong>
+    </p>
+    <p>This student will not be able to rejoin the queue on their own until they swipe.</p>
+    <div class="input-modal-container">
+      <button @click="deactivateStudentDialog?.hide()">Keep this student on-site.</button>
+      <button @click="deactivateStudent" class="danger">Deactivate this student.</button>
+    </div>
+
+  </ConfirmationDialog>
+
   <EditInfo is_instructor="true" @name-change="(name) => { taName = name }" :default_name="taName" ref="editInfo"/>
 
   <Alert ref="error"/>
@@ -256,14 +323,29 @@ router.beforeEach((to, from, next) => {
         <button @click="clearQueueDialog?.show()" id="clear-queue-dialog-button" class="danger">Clear Queue</button>
       </div>
     </div>
-    <div id="queue-container" class="queue-section">
-      <QueueEntry v-for="student in students" :name="student['preferred_name']" :ubit="student['ubit']"
-                  :id="student['id']"
-                  @call-student="callStudent"
-                  @remove-student="showRemoveStudentDialog"
-                  @move-to-end="moveToEnd"
-      />
+    <br/>
+    <div v-if="students.length > 0">
+      <h2>Queue</h2>
+      <div class="queue-container queue-section">
+        <QueueEntry v-for="student in students" :name="student['preferred_name']" :ubit="student['ubit']"
+                    :id="student['id']"
+                    @call-student="callStudent"
+                    @remove-student="showRemoveStudentDialog"
+                    @move-to-end="moveToEnd"
+        />
+      </div>
     </div>
+    <div v-if="onSite.length > 0">
+      <h2>On Site</h2>
+      <div class="queue-container queue-section">
+        <OnSiteEntry v-for="student in onSite" :name="student['preferred_name']" :ubit="student['ubit']"
+                    :id="student['id']"
+                    @enqueue-student="enqueueStudent"
+                    @remove-student="showDeactivateStudentDialog"
+        />
+      </div>
+    </div>
+
   </div>
 </template>
 

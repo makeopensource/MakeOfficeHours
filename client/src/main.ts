@@ -9,6 +9,7 @@ import ManageCourse from "@/pages/ManageCourse.vue";
 import Swipe from "@/pages/Swipe.vue";
 import SwipeAuth from "@/pages/SwipeAuth.vue";
 import AppLayout from "@/layouts/AppLayout.vue";
+import NotFound from "@/pages/NotFound.vue";
 
 const router = createRouter({
     history: createWebHistory(),
@@ -18,7 +19,8 @@ const router = createRouter({
         { path: '/queue', component: AppLayout, children: [{path: '/queue', component: Queue}]},
         { path: '/manage', component: AppLayout, children: [{path: '/manage', component: ManageCourse}]},
         { path: '/swipe', component: Swipe},
-        { path: '/swipe-auth', component: SwipeAuth}
+        { path: '/swipe-auth', component: SwipeAuth},
+        { path: '/:pathMatch(.*)*', component: AppLayout, children: [{path: '/:pathMatch(.*)*', component: NotFound}]}
     ]
 })
 
