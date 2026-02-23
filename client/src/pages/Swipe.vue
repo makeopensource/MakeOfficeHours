@@ -70,11 +70,15 @@ const refreshQueueLen = () => {
     }
   }).then(json => {
     queueLen.value = json["size"]
-    pollTimeout = setTimeout(refreshQueueLen, 2000)
   })
 }
 
-refreshQueueLen()
+const pollQueueLen = () => {
+  refreshQueueLen()
+  pollTimeout = setTimeout(pollQueueLen, 2000)
+}
+
+pollQueueLen()
 
 // stop polling when leaving page
 router.beforeEach((to, from, next) => {
