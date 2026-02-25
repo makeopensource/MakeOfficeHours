@@ -8,8 +8,11 @@ from api.database.db import db
 
 blueprint = Blueprint("roster", __name__)
 
-@min_level('instructor')
+# IMPORTANT: @blueprint.route must always be outermost decorator,
+# any other decorators such as, auth decorators (min_level, exact_level) must go below it
+
 @blueprint.route("/upload-roster", methods=["POST"])
+@min_level('instructor')
 def upload_roster():
     """
         Role: instructor or admin
@@ -72,8 +75,8 @@ def upload_roster():
 
 # TODO: get roster
 
-@min_level('instructor')
 @blueprint.route("/get-roster", methods=["GET"])
+@min_level('instructor')
 def get_roster():
     """
         Role: instructor or admin
@@ -102,8 +105,8 @@ def get_roster():
 
 
 
-@min_level('student')
 @blueprint.route("/update-name", methods=["PATCH"])
+@min_level('student')
 def update_preferred_name():
     user = get_user(request.cookies)
 
@@ -120,8 +123,8 @@ def update_preferred_name():
     return {"message": "Updated preferred name."}
 
 
-@min_level('instructor')
 @blueprint.route("/enroll", methods=["POST"])
+@min_level('instructor')
 def enroll_user():
     """
     Enroll a single user. Won't enroll admins.
@@ -164,9 +167,9 @@ def enroll_user():
     return {"message": "Successfully enrolled user",
             "id": user_id}
 
-@min_level('instructor')
 @blueprint.route("/visits/<user_id>", methods=["GET"])
 @blueprint.route("/visits", methods=["GET"], defaults={"user_id": None})
+@min_level('instructor')
 def get_visits(user_id):
     """
     Get a list of visits. If a user_id is specified, only include
