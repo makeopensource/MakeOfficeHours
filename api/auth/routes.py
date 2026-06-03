@@ -136,9 +136,3 @@ def signup():
         "auth_token", auth_token, max_age=int(2.592e6), httponly=True, secure=True
     )
     return res
-
-
-
-# TODO: update preferred name
-
-# TODO: account has UBIT (For AL lookups) and pn (For card swipes)

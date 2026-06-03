@@ -5,11 +5,13 @@ import {ref} from "vue";
 import TableEntry from "@/components/TableEntry.vue";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import Alert from "@/components/common/Alert.vue";
-import ManageTable from "@/components/ManageTable.vue";
+import Table from "@/components/Table.vue";
+import Visit from "@/components/instructor/Visit.vue";
+import VisitTable from "@/components/instructor/VisitTable.vue";
 
 const router = useRouter()
 
-const me = ref<Object>();
+const me = ref<any>();
 
 fetch("/api/me").then(res => {
   if (!res.ok) {
@@ -17,14 +19,14 @@ fetch("/api/me").then(res => {
   }
   return res.json();
 }).then(data => {
-  if (data["course_role"] !== "instructor" && data["course_role"] !== "admin") {
+  if (data["course_role"] === "student") {
     router.push("/queue")
   }
   me.value = data;
   getCode();
 })
 
-const users = ref();
+const users = ref<Array<Array<any>>>([]);
 
 const getRoster = () => fetch("/api/get-roster").then(res => {
   if (!res.ok) {
@@ -32,7 +34,14 @@ const getRoster = () => fetch("/api/get-roster").then(res => {
   }
   return res.json();
 }).then(json => {
-  users.value = json["roster"]
+  users.value = []
+  const roster: Array<any> = json["roster"]
+
+  roster.sort((a, b) => { return a["ubit"].localeCompare(b["ubit"]) })
+
+  roster.forEach((user) => {
+    users.value.push([user["user_id"], user["ubit"], user["preferred_name"], user["last_name"], user["person_num"], user["course_role"]])
+  })
 });
 
 getRoster()
@@ -125,9 +134,26 @@ const resetAuth = () => {
 
 }
 
+const visitTable = ref<typeof VisitTable>();
+const visitRef = ref<typeof Visit>();
+
+const visitInfo = ref({});
+
+function showOldVisit(visit: Array<any>) {
+  visitInfo.value = {
+    "preferred_name": visit[4],
+    "username": visit[3],
+    "visit_reason": visit[7],
+    "visit_result": visit[8]
+  }
+  visitRef.value?.show()
+}
+
 </script>
 
 <template>
+
+  <Visit ref="visitRef" :visit_info="visitInfo" :read_only="true"/>
 
   <ConfirmationDialog ref="hardwareDialog">
 
@@ -170,6 +196,7 @@ const resetAuth = () => {
     <button @click="uploadCSVDialog?.hide()">Close</button>
   </ConfirmationDialog>
 
+  <VisitTable ref="visitTable" @show-visit="showOldVisit" />
 
 
   <div id="manage-course">
@@ -182,7 +209,15 @@ const resetAuth = () => {
         <button @click="uploadCSVDialog?.show()">Enroll from CSV</button>
         <button @click="alertBox?.setError('Not implemented')" class="danger">Clear all Enrollments</button>
       </div>
-      <ManageTable :headings="['Role', 'Preferred Name', 'Person Number', 'Role', 'User ID', 'User ID', 'Actions']" :table_data="users"/>
+    <Table :headings="['User ID', 'Username', 'Preferred Name', 'Last Name', 'Person Number', 'Role', 'Actions']">
+
+      <TableEntry v-for="user in users" :data="user">
+        <td id="actions">
+              <button v-if="me['course_role'] !== 'ta' || me['user_id'] == user[0]" @click="visitTable?.show(user[0])">Visits</button>
+              <button v-if="me['user_id'] != user[0]" class="danger">Remove</button>
+        </td>
+      </TableEntry>
+    </Table>
 
   </div>
 
@@ -191,6 +226,13 @@ const resetAuth = () => {
 
 <style scoped>
 
+#actions {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    border: none;
+    padding: 4px;
+}
 
 #manage-course {
   margin: 32px 8%;

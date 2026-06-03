@@ -178,16 +178,6 @@ def get_active_visits():
         })
     return visits
 
-@blueprint.route("/visits/<id>", methods=["GET"])
-@min_level('instructor')
-def get_visit(visit_id):
-    """
-    Retrieve all information about the specified visit.
-
-    """
-
-    pass
-
 @blueprint.route("/steal-visit/<id>", methods=["PATCH"])
 @min_level('ta')
 def steal_visit(visit_id):

@@ -131,6 +131,12 @@ const queueReason = ref<HTMLTextAreaElement>();
 
 function updateReason() {
 
+  if (queueReason.value?.value === "") {
+    alertBox.value?.setMessage("Visit reason cannot be empty.");
+    return;
+  }
+
+
   fetch("/api/update-reason", {
     method: "PATCH",
     body: JSON.stringify({"reason": queueReason.value?.value}),

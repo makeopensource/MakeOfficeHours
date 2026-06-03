@@ -8,4 +8,4 @@ from api.server import create_app
 
 app = create_app()
 app.debug = True
-app.run()
+app.run(port=5050)

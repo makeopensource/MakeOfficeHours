@@ -16,7 +16,6 @@ from api.roster.controller import min_level, get_power_level
 from api.utils.debug import debug_access_only
 import api.auth.routes as auth_routes
 import api.queue.routes as queue_routes
-import api.ratings.routes as ratings_routes
 import api.roster.routes as roster_routes
 import api.utils.debug_routes as debug_routes
 
@@ -40,7 +39,7 @@ def create_app():
             db.add_to_roster(og_id, "admin")
 
 
-    app = Flask(__name__, template_folder="../client/templates", static_folder="../client/static")
+    app = Flask(__name__)
 
     app.config.from_object(config.Config())
 
@@ -48,7 +47,6 @@ def create_app():
 
     app.register_blueprint(auth_routes.blueprint, url_prefix=URL_PREFIX)
     app.register_blueprint(queue_routes.blueprint, url_prefix=URL_PREFIX)
-    app.register_blueprint(ratings_routes.blueprint, url_prefix=URL_PREFIX)
     app.register_blueprint(roster_routes.blueprint, url_prefix=URL_PREFIX)
     app.register_blueprint(debug_routes.blueprint, url_prefix=URL_PREFIX)
 

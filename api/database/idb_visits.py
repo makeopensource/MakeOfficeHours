@@ -53,3 +53,14 @@ class IVisits(ABC):
         :return:
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def get_visits(self, user_id=None):
+        """ Return all database entries for visits that have
+        ended.
+
+        :param user_id: Optional user_id
+        :return: All visits from the database
+        """
+
+        raise NotImplementedError()

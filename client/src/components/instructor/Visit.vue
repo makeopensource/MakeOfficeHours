@@ -2,7 +2,7 @@
 
 import {nextTick, ref} from "vue";
 
-const props = defineProps(["visit_info"])
+const props = defineProps(["visit_info", "read_only"])
 const emit = defineEmits(["open", "close"])
 
 const dialogRef = ref<HTMLDialogElement>();
@@ -92,19 +92,23 @@ const cancelVisit = () => {
     <div id="student-info">
       <h2 id="visit-student-name">{{ visit_info["preferred_name"] }}</h2>
       <h3 id="visit-student-email">{{ visit_info["username"] }}@buffalo.edu</h3>
-      <button disabled>View Autolab Submission</button>
       <br/>
       <label for="student-visit-reason">Visit Reason</label>
       <textarea class="visit-reason-textbox" ref="visitNotes" id="student-visit-reason" disabled>{{ visit_info["visit_reason"] !== null ? visit_info["visit_reason"] : "None provided."}}</textarea>
     </div>
 
-    <div id="visit-controls">
+    <div id="visit-controls" v-if="!read_only">
       <label for="ta-visit-notes">Visit Notes</label>
       <textarea ref="taNotesBox" v-model="taNotesText" id="ta-visit-notes" placeholder="How did the visit go?"
                 required></textarea>
       <button @click="() => submitVisit()" id="end-visit" class="important">End Visit</button>
       <button @click="() => submitVisit(sendToBack)" id="end-visit-return-front">End and Return to Back</button>
       <button @click="cancelVisit" id="end-visit-cancel">Cancel Visit</button>
+    </div>
+    <div id="visit-controls" v-else>
+      <label for="ta-visit-notes">Visit Notes</label>
+      <textarea ref="taNotesBox" id="ta-visit-notes" disabled :value="visit_info['visit_result'] !== null ? visit_info['visit_result'] : 'None provided.'"></textarea>
+      <button @click="hide()" id="end-visit-cancel">Close</button>
     </div>
 
 

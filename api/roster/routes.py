@@ -3,7 +3,7 @@
 from flask import Blueprint, request
 
 from api.auth.controller import get_user
-from api.roster.controller import min_level, add_to_roster
+from api.roster.controller import min_level, add_to_roster, get_power_level
 from api.database.db import db
 
 blueprint = Blueprint("roster", __name__)
@@ -31,7 +31,6 @@ def upload_roster():
             - 400 if roster is missing or invalid format
     """
 
-    print(request.files)
     if not request.files or request.files.get("roster") is None:
         return {"message": "Invalid roster upload (missing file)"}, 400
 
@@ -76,10 +75,10 @@ def upload_roster():
 # TODO: get roster
 
 @blueprint.route("/get-roster", methods=["GET"])
-@min_level('instructor')
+@min_level('ta')
 def get_roster():
     """
-        Role: instructor or admin
+        Role: ta, instructor, or admin
 
         Returns:
             401 if unauthorized
@@ -169,7 +168,7 @@ def enroll_user():
 
 @blueprint.route("/visits/<user_id>", methods=["GET"])
 @blueprint.route("/visits", methods=["GET"], defaults={"user_id": None})
-@min_level('instructor')
+@min_level('ta')
 def get_visits(user_id):
     """
     Get a list of visits. If a user_id is specified, only include
@@ -199,14 +198,13 @@ def get_visits(user_id):
     :return:
     """
 
-    pass
+    user = get_user(request.cookies)
 
+    if get_power_level(user["course_role"]) > 1 or (user_id is not None and get_power_level(user["course_role"]) > 0 and int(user_id) == int(user["user_id"])):
+        return {"visits": db.get_visits(user_id)}
+    else:
+        return {"message": "You are not permitted to view this resource"}, 403
 
-# TODO: add to roster - to add an individual to the roster
 
 # TODO: Remove from roster
-
-# TODO: Whenever someone is added to the roster, check if they have an account and create one for them if not
-
-# TODO: handle roles here (Will make it easier to move to multiple courses in the future)
 

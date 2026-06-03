@@ -1,0 +1,23 @@
+services:
+  api:
+    build:
+      context: ./api/
+    env_file:
+      - .env-testing
+    volumes:
+      - ./api:/app/api
+      - sqlite-db:/app/data/
+    expose:
+      - "5050"
+    command: flask --app 'api.server:create_app()' run --debug --host=0.0.0.0 --port=5050
+
+  client:
+    build:
+      context: ./client/
+    env_file:
+      - api/.env
+    command: npm run testing
+    ports:
+      - "3000:3000"
+volumes:
+  sqlite-db:

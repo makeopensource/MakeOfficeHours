@@ -75,5 +75,42 @@ class RelationalDBVisits(IVisits):
             })
         return visits
 
+    def get_visits(self, user_id=None):
+        with self.cursor() as cursor:
+            if user_id is None:
+                result = cursor.execute("""
+                    SELECT visits.*,
+                           students.preferred_name as student_name,
+                           students.last_name      as student_surname,
+                           students.ubit           as student_ubit,
+                           tas.preferred_name      as ta_name,
+                           tas.last_name           as ta_surname,
+                           tas.ubit                as ta_ubit
+                    FROM visits
+                             INNER JOIN users as students ON students.user_id = visits.student_id
+                             INNER JOIN users as tas ON tas.user_id = visits.ta_id
+                    """).fetchall()
+            else:
+                result = cursor.execute("""
+                    SELECT visits.*,
+                           students.preferred_name as student_name,
+                           students.last_name      as student_surname,
+                           students.ubit           as student_ubit,
+                           tas.preferred_name      as ta_name,
+                           tas.last_name           as ta_surname,
+                           tas.ubit                as ta_ubit
+                    FROM visits
+                     INNER JOIN users as students ON students.user_id = visits.student_id
+                     INNER JOIN users as tas ON tas.user_id = visits.ta_id
+                    WHERE student_id = ? OR ta_id = ?
+                """, (user_id, user_id)).fetchall()
+
+            visits = []
+
+            for res in result:
+                visits.append(dict(res))
+
+            return visits
+
 
 

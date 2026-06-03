@@ -265,7 +265,7 @@ const endVisitTAName = ref<string>("");
 function endOtherTAsVisit(id: number) {
   fetch("/api/end-visit", {
     method: "POST",
-    body: JSON.stringify({"id": id, "reason": `[Visit canceled by ${taName}]`}),
+    body: JSON.stringify({"id": id, "reason": `[Visit canceled by ${taName.value}]`}),
     headers: {"Content-Type": "application/json"}
   }).then(res => {
     if (res.ok) {
@@ -352,7 +352,7 @@ function endOtherTAsVisit(id: number) {
     </div>
     <div id="queue-buttons" class="queue-section">
       <div id="buttons-l">
-        <button @click="router.push('/manage')" v-show="courseManager" id="manage-course-button">Manage Course</button>
+        <button @click="router.push('/manage')" id="manage-course-button">Manage Course</button>
         <button @click="editInfo?.show()">Edit My Info</button>
         <button id="signout" @click="signOut">Sign Out</button>
       </div>

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 
 import TableEntry from "@/components/TableEntry.vue";
+import {ref} from "vue";
 
 const props = defineProps(["headings", "table_data"]);
+
+
 
 </script>
 
@@ -15,10 +18,7 @@ const props = defineProps(["headings", "table_data"]);
             </tr>
           </thead>
           <tbody>
-            <TableEntry v-for="data in table_data"
-                              :data="data">
-              <slot></slot>
-            </TableEntry>
+            <slot></slot>
           </tbody>
         </table>
       </div>
@@ -32,7 +32,6 @@ th {
 
 #enrollment-container {
   justify-content: center;
-  overflow-x: scroll;
 }
 
 #enrollment-table, tr, th, td {
@@ -41,7 +40,8 @@ th {
 }
 
 #enrollment-table {
-  width: 100%;
+  min-width: 75%;
+  margin: auto;
   font-size: 1rem;
 }
 
