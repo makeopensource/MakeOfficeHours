@@ -1,7 +1,10 @@
+"""Definition of the class containing session implementations"""
+
 from api.database.idb_sessions import ISessions
 
 
 class RelationalDBSessions(ISessions):
+    """Implementations for the sessions component for the relational DB"""
 
     def update_swipe_time(self, user):
         with self.cursor() as cursor:
@@ -51,7 +54,7 @@ class RelationalDBSessions(ISessions):
                   AND queue.user_id IS NULL
                 """
             )
-            users_l = list()
+            users_l = []
             for user in users:
                 users_l.append(
                     {

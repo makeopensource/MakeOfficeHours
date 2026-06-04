@@ -1,15 +1,17 @@
+"""Accounts and roster methods for SQLite implementation"""
+
 import datetime
-import hashlib
 import secrets
+import hashlib
+
+import bcrypt
 
 from api.database.idb_accounts import IAccounts
-import bcrypt
-import hashlib
-
 from api.database.idb_roster import IRoster
 
 
 class RelationalDBAccounts(IAccounts, IRoster):
+    """Implementations for the accounts and roster components."""
 
     def create_account(self, ubit, pn):
 
@@ -185,7 +187,7 @@ class RelationalDBAccounts(IAccounts, IRoster):
         auth_token = self._generate_auth_token(user_id)
         return auth_token
 
-    def sign_in_with_autolab(self, user_id) -> str | None:
+    def sign_in_with_autolab(self, ubit) -> str | None:
         with self.cursor() as cursor:
             cursor.execute(
                 """
@@ -193,10 +195,10 @@ class RelationalDBAccounts(IAccounts, IRoster):
                 INTO auth (user_id)
                 VALUES (?)
             """,
-                (user_id,),
+                (ubit,),
             )
 
-        auth_token = self._generate_auth_token(user_id)
+        auth_token = self._generate_auth_token(ubit)
         return auth_token
 
     def sign_out(self, auth_token):

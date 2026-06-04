@@ -1,12 +1,12 @@
+"""Visits component of the relational DB"""
+
 import datetime
 
 from api.database.idb_visits import IVisits
 
 
 class RelationalDBVisits(IVisits):
-
-    def __init__(self):
-        super().__init__()
+    """Implementations for the visits component"""
 
     def create_visit(self, student, ta, enqueue_time, visit_reason) -> int:
         with self.cursor() as cursor:
@@ -45,7 +45,7 @@ class RelationalDBVisits(IVisits):
                 (now, reason, visit_id),
             )
 
-        self.remove_student(student)
+            cursor.execute("DELETE FROM queue WHERE user_id = ?", (student,))
 
     def cancel_visit(self, visit_id):
         with self.cursor() as cursor:

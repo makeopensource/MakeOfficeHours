@@ -19,7 +19,8 @@ blueprint = Blueprint("auth", __name__)
 @blueprint.route("/authorize", methods=["GET"])
 def login_with_autolab():
     """
-    Called when the user clicks login with Autolab. Starts the process on talking to Autolab to get an Oauth access token
+    Called when the user clicks login with Autolab. Starts the process
+    on talking to Autolab to get an Oauth access token
     """
     return redirect(get_authorization_url(), code=302)
 
@@ -27,15 +28,16 @@ def login_with_autolab():
 @blueprint.route("/callback", methods=["GET"])
 def getting_code_from_autolab():
     """
-    Next step in the OAuth proccess. We're getting an auth code from Autolab and need to cash it in for an access token and refresh token
+    Next step in the OAuth proccess. We're getting an auth code from Autolab
+    and need to cash it in for an access token and refresh token
     """
     print(request.args)
     code = request.args.get("code")
-    state = request.args.get("state")
+    # state = request.args.get("state")
     # TODO: check cookie to match state to session
-    session = "not_implemented"
+    # session = "not_implemented"
 
-    auth_token = handle_code_after_redirect(code, state, session)
+    auth_token = handle_code_after_redirect(code)
 
     if not auth_token:
         res = make_response(

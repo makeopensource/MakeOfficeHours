@@ -9,12 +9,9 @@ from api.database.idb_sessions import ISessions
 
 
 class DBInterface(IQueue, IAccounts, IRoster, ISessions, ABC):
-
-    # All database implements must extend this class
-
-    def __init__(self):
-        super().__init__()
+    """The combined database interface.
+    All database implements must extend this class"""
 
     @abstractmethod
     def connect(self):
-        pass
+        """Connect to the database. May not do anything based on implementation."""

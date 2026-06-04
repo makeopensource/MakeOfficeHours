@@ -58,11 +58,10 @@ def upload_roster():
             return {"message": "Invalid roster upload (non-numeric PN)"}, 400
         pn = int(info[1])
         # role has to be valid and not above user's authority
-        if info[4] not in {"student", "ta", "instructor"}:
+        if info[4] not in {"student", "ta", "instructor"} or get_power_level(
+            info[4]
+        ) >= get_power_level(user["course_role"]):
             return {"message": "Invalid roster upload (bad role)"}, 400
-
-        if get_power_level(info[4]) >= get_power_level(user["course_role"]):
-            return {"message": "You cannot add users as powerful as yourself."}, 400
 
         users.append(
             {
@@ -222,8 +221,8 @@ def get_visits(user_id):
         and int(user_id) == int(user["user_id"])
     ):
         return {"visits": db.get_visits(user_id)}
-    else:
-        return {"message": "You are not permitted to view this resource"}, 403
+
+    return {"message": "You are not permitted to view this resource"}, 403
 
 
 # TODO: Remove from roster

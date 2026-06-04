@@ -1,7 +1,10 @@
 from api.database.db_interface import DBInterface
 
 
-class MockDB(DBInterface):
+class MockDB(DBInterface):  # pylint: disable=too-many-public-methods
+
+    def dequeue_specified_student(self, student_id):
+        pass
 
     def enqueue_student_front(self, student):
         pass

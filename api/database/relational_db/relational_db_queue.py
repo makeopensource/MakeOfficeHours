@@ -1,10 +1,13 @@
+"""Queue component for the relational DB"""
+
 import datetime
+import secrets
 
 from api.database.idb_queue import IQueue
-import secrets
 
 
 class RelationalDBQueue(IQueue):
+    """Implementations of the database queue methods."""
 
     def enqueue_student(self, student):
         with self.cursor() as cursor:
@@ -96,7 +99,7 @@ class RelationalDBQueue(IQueue):
                 """
             )
 
-            users_l = list()
+            users_l = []
 
             for user in users:
                 users_l.append(
@@ -124,7 +127,6 @@ class RelationalDBQueue(IQueue):
                 return None
 
         with self.cursor() as cursor:
-
             cursor.execute("DELETE FROM queue WHERE user_id = ?", (student,))
 
             return {"user_id": queue_info[0], "joined": queue_info[1]}

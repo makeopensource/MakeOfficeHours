@@ -6,6 +6,9 @@ from api.database.testing_db.testing_db_accounts import TestingDBAccounts
 
 class TestingDB(DBInterface, TestingDBQueue, TestingDBAccounts):
 
+    def dequeue_specified_student(self, student_id):
+        pass
+
     def enqueue_student_front(self, student):
         pass
 

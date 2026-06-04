@@ -1,4 +1,5 @@
-"""Defines the database based on the db environment variable. Outside the database folder, this is how the database should be accessed."""
+"""Defines the database based on the DB environment variable.
+Outside the database folder, this is how the database should be accessed."""
 
 import os
 
@@ -8,6 +9,7 @@ from api.database.mock_db.mock_db import MockDB
 
 
 def create_db():
+    """Create the database based on the DB environment variable"""
     db_type = os.getenv("DB")
     match db_type:
         case "relational":

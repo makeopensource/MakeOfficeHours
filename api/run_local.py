@@ -1,10 +1,11 @@
-# Runs the app locally without Gunicorn. To be used for dev and testing
+"""Runs the app locally without Gunicorn. To be used for dev and testing"""
 
 from dotenv import load_dotenv
 
+from api.server import create_app
+
 load_dotenv()
 
-from api.server import create_app
 
 app = create_app()
 app.debug = True

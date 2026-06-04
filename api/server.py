@@ -12,11 +12,11 @@ from flask import Flask, request
 
 from api.config import config
 from api.database.db import db
+from api.utils import debug_routes
 from api.roster.controller import min_level
 import api.auth.routes as auth_routes
 import api.queue.routes as queue_routes
 import api.roster.routes as roster_routes
-import api.utils.debug_routes as debug_routes
 
 URL_PREFIX = os.getenv("API_URL_PREFIX", "/")
 THE_OG_UBIT = os.getenv("THE_OG_UBIT", None)
@@ -32,8 +32,7 @@ def create_app():
     """
 
     if THE_OG_UBIT and THE_OG_PN:
-        og = db.lookup_person_number(THE_OG_PN)
-        if not og:
+        if not db.lookup_person_number(THE_OG_PN):
             # create the OG account
             og_id = db.create_account(THE_OG_UBIT, THE_OG_PN)
             db.add_to_roster(og_id, "admin")

@@ -1,8 +1,9 @@
 """Roster related functions and permission-checking decorators for the API"""
 
-from api.database.db import db
 from functools import wraps
 from flask import request, current_app
+
+from api.database.db import db
 
 
 def get_power_level(role):

@@ -4,16 +4,26 @@ from abc import ABC, abstractmethod
 
 
 class IRoster(ABC):
-
-    def __init__(self):
-        super().__init__()
+    """Definitions for the roster component of the database interface"""
 
     @abstractmethod
     def add_to_roster(self, user_id, role):
+        """Set the user with id user_id to have the role
+        specified by role.
+
+        :param user_id: The user_id of the user
+        :param role: The desired role.
+        :return:
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def get_roster(self):
+        """Retrieve the entire roster and their
+        relevant information from the database.
+
+        :return: The roster as a list of dicts.
+        """
         raise NotImplementedError()
 
     # @abstractmethod

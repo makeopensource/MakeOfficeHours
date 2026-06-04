@@ -2,7 +2,6 @@
 
 import os
 import json
-import secrets
 from urllib.parse import urlencode
 
 import requests
@@ -27,7 +26,6 @@ def get_authorization_url():
     for name, value in params.items():
         autolab_url += name + "=" + value + "&"
     autolab_url = autolab_url[:-1]
-    print(autolab_url)
     return autolab_url
 
 
@@ -35,7 +33,15 @@ def handle_code_after_redirect(code):
     """Cashes in the code for a token and signs the user in"""
     token = cash_in_code_for_token(code)
 
-    [users_email, _] = user_info(token)
+    if token is None:
+        return None
+
+    result = user_info(token)
+
+    if not result:
+        return None
+
+    [users_email, _] = result
 
     ubit = users_email.split("@")[0]
     user_profile = db.lookup_identifier(ubit)
@@ -62,8 +68,10 @@ def cash_in_code_for_token(code):
             "redirect_uri": REDIRECT_URI,
         }
     )
-
-    response = requests.post(token_url, headers=headers, data=data)
+    try:
+        response = requests.post(token_url, headers=headers, data=data, timeout=5.0)
+    except requests.Timeout:
+        return None
     the_good_stuff = json.loads(response.content.decode())
     access_token = the_good_stuff.get("access_token")
     # refresh_token = the_good_stuff.get("refresh_token")
@@ -96,13 +104,14 @@ def user_info(access_token):
     """Hits the API's user endpoint and extracts the user's information"""
     user_url = "https://autolab.cse.buffalo.edu/api/v1/user"
     headers = {"Authorization": "Bearer " + access_token}
-    response = requests.get(user_url, headers=headers)
-    print(response)
+    try:
+        response = requests.get(user_url, headers=headers, timeout=5.0)
+    except requests.Timeout:
+        return None
     user_data = json.loads(response.content.decode())
     email = user_data.get("email")
     first_name = user_data.get("first_name")
     last_name = user_data.get("last_name")
-    # users_collection.update_one({"token": token}, {"$set": user_data})
     return [email, first_name + " " + last_name]
 
 

@@ -17,14 +17,15 @@ class RelationalDB(
     RelationalDBQueue,
     RelationalDBVisits,
     RelationalDBSessions,
-):
+):  # pylint: disable=too-many-ancestors
+    """Implementation for the SQLite version of the database interface."""
 
     def __init__(self):
         super().__init__()
         self.filename = os.getenv("SQLITE_DB_PATH", "./moh.sqlite")
-        self.initialize()
+        self._initialize()
 
-    def initialize(self):
+    def _initialize(self):
         with self.cursor() as c:
             c.execute(
                 """
@@ -99,6 +100,7 @@ class RelationalDB(
             )
 
     def cursor(self):
+        """Creates new cursor. Use with statements to ensure connections are cleaned up."""
         return RelationalDBCursor(self)
 
     def connect(self):

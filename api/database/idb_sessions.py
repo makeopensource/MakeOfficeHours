@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 
 
 class ISessions(ABC):
+    """Definitions for the user sessions component of the database interface."""
 
     @abstractmethod
     def update_swipe_time(self, user):

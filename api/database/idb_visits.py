@@ -4,9 +4,7 @@ from abc import ABC, abstractmethod
 
 
 class IVisits(ABC):
-
-    def __init__(self):
-        super().__init__()
+    """Definitions for the visits component of the database interface"""
 
     @abstractmethod
     def create_visit(self, student, ta, enqueue_time, visit_reason) -> int:
@@ -58,8 +56,10 @@ class IVisits(ABC):
 
     @abstractmethod
     def get_visits(self, user_id=None):
-        """Return all database entries for visits that have
-        ended.
+        """Return all database entries for visits.
+
+        If user_id is set, get all visits that contain
+        this user, either as a student or as a TA.
 
         :param user_id: Optional user_id
         :return: All visits from the database
