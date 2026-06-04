@@ -120,7 +120,7 @@ class RelationalDBAccounts(IAccounts, IRoster):
             "person_num": user[3],
             "course_role": user[4],
             "user_id": user[5],
-            "on_site": on_site
+            "on_site": on_site,
         }
 
     def sign_up(self, username, pw) -> str | None:
@@ -163,7 +163,6 @@ class RelationalDBAccounts(IAccounts, IRoster):
 
         return auth_token
 
-
     def sign_in(self, username, pw) -> str | None:
         with self.cursor() as cursor:
             hashed = cursor.execute(
@@ -186,7 +185,6 @@ class RelationalDBAccounts(IAccounts, IRoster):
         auth_token = self._generate_auth_token(user_id)
         return auth_token
 
-
     def sign_in_with_autolab(self, user_id) -> str | None:
         with self.cursor() as cursor:
             cursor.execute(
@@ -195,12 +193,11 @@ class RelationalDBAccounts(IAccounts, IRoster):
                 INTO auth (user_id)
                 VALUES (?)
             """,
-                (user_id,)
+                (user_id,),
             )
 
         auth_token = self._generate_auth_token(user_id)
         return auth_token
-
 
     def sign_out(self, auth_token):
         hashed_auth = hashlib.sha256(auth_token.encode()).digest()
@@ -228,23 +225,26 @@ class RelationalDBAccounts(IAccounts, IRoster):
 
     def get_roster(self):
         with self.cursor() as cursor:
-            users = cursor.execute("""
+            users = cursor.execute(
+                """
                 SELECT user_id, preferred_name, last_name, ubit, person_num, course_role FROM users
                 ORDER BY ubit
-               """).fetchall()
+               """
+            ).fetchall()
             result = []
             for user in users:
-                result.append({
-                    "user_id": user[0],
-                    "preferred_name": user[1],
-                    "last_name": user[2],
-                    "ubit": user[3],
-                    "person_num": user[4],
-                    "course_role": user[5]
-                })
+                result.append(
+                    {
+                        "user_id": user[0],
+                        "preferred_name": user[1],
+                        "last_name": user[2],
+                        "ubit": user[3],
+                        "person_num": user[4],
+                        "course_role": user[5],
+                    }
+                )
 
             return result
-
 
     def set_preferred_name(self, identifier, name):
         with self.cursor() as cursor:
@@ -254,7 +254,9 @@ class RelationalDBAccounts(IAccounts, IRoster):
                     UPDATE users SET preferred_name = ?
                     WHERE ubit = ? OR person_num = ? OR user_id = ?
                     RETURNING user_id
-                """, (name, identifier, identifier, identifier)).fetchone()
+                """,
+                (name, identifier, identifier, identifier),
+            ).fetchone()
 
             if user is None:
                 return None
@@ -269,7 +271,8 @@ class RelationalDBAccounts(IAccounts, IRoster):
                     preferred_name = ?, last_name = ?
                     WHERE user_id = ?
                     RETURNING user_id
-                """, (first_name, last_name, user_id)
+                """,
+                (first_name, last_name, user_id),
             ).fetchone()
 
             if user is None:

@@ -1,4 +1,5 @@
-from api.database.db import db
+"""Routes for debugging. These should only be accessible from debug mode using the @debug_access_only decorator."""
+
 from flask import request, Blueprint
 from api.auth.controller import create_account
 from api.utils.debug import debug_access_only

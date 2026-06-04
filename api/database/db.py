@@ -1,3 +1,5 @@
+"""Defines the database based on the db environment variable. Outside the database folder, this is how the database should be accessed."""
+
 import os
 
 from api.database.relational_db.relational_db import RelationalDB

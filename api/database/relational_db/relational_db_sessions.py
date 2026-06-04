@@ -5,26 +5,35 @@ class RelationalDBSessions(ISessions):
 
     def update_swipe_time(self, user):
         with self.cursor() as cursor:
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE users
                 SET last_swipe = datetime('now', 'localtime')
                 WHERE user_id = ?
-            """, (user,))
+            """,
+                (user,),
+            )
 
     def reset_swipe_time(self, user):
         with self.cursor() as cursor:
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE users
                 SET last_swipe = NULL
                 WHERE user_id = ?
-            """, (user, ))
+            """,
+                (user,),
+            )
 
     def get_swipe_time(self, user):
         with self.cursor() as cursor:
-            time = cursor.execute("""
+            time = cursor.execute(
+                """
                 SELECT last_swipe FROM users 
                 WHERE last_swipe > datetime('now', 'localtime', '-2 hours') AND user_id = ?
-            """, (user,)).fetchone()
+            """,
+                (user,),
+            ).fetchone()
 
         if time is None:
             return None
@@ -56,6 +65,8 @@ class RelationalDBSessions(ISessions):
 
     def clear_on_site(self):
         with self.cursor as cursor:
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE users SET last_swipe = NULL
-            """)
+            """
+            )

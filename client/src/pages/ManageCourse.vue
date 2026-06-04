@@ -181,8 +181,8 @@ function showOldVisit(visit: Array<any>) {
     <label for="course_role">Role</label>
     <select id="course_role" v-model="userToEnroll.course_role">
       <option value="student">Student</option>
-      <option value="ta">TA</option>
-      <option value="instructor">Instructor</option>
+      <option value="ta" v-if="manager">TA</option>
+      <option value="instructor" v-if="manager">Instructor</option>
     </select>
     <br/>
     <button @click="enrollUser" class="important">Submit</button>
@@ -200,26 +200,26 @@ function showOldVisit(visit: Array<any>) {
     <button @click="uploadCSVDialog?.hide()">Close</button>
   </ConfirmationDialog>
 
-  <VisitTable ref="visitTable" @show-visit="showOldVisit" />
+  <VisitTable id="visit-tbl" ref="visitTable" @show-visit="showOldVisit" />
 
 
   <div id="manage-course">
       <h2>Manage Course</h2>
-      <button @click="router.push('/queue')">Return to Queue</button>
+      <button id="return-btn" @click="router.push('/queue')">Return to Queue</button>
       <br/>
       <div class="manage-buttons">
         <button v-if="manager" @click='visitTable?.show()'>View All Visits</button>
         <button @click="hardwareDialog?.show()">Authorize Swipe</button>
         <button @click="enrollDialog?.show()">Add User to Roster</button>
         <button @click="uploadCSVDialog?.show()">Enroll from CSV</button>
-        <button @click="alertBox?.setError('Not implemented')" class="danger">Clear all Enrollments</button>
+        <button @click="alertBox?.setError('Not implemented')" class="danger">Remove all Students</button>
       </div>
-    <Table :headings="['User ID', 'Username', 'Preferred Name', 'Last Name', 'Person Number', 'Role', 'Actions']">
+    <Table id="users-tbl" :headings="['User ID', 'Username', 'Preferred Name', 'Last Name', 'Person Number', 'Role', 'Actions']">
 
       <TableEntry v-for="user in users" :data="user">
         <td id="actions">
               <button v-if="me['course_role'] !== 'ta' || me['user_id'] == user[0]" @click="visitTable?.show(user[0])">Visits</button>
-              <button v-if="me['user_id'] != user[0]" class="danger">Remove</button>
+              <button v-if="me['user_id'] != user[0] && (user[5] == 'student' || (me['course_role'] != 'ta' && user[5] != 'admin'))" class="danger">Remove</button>
         </td>
       </TableEntry>
     </Table>
@@ -230,6 +230,27 @@ function showOldVisit(visit: Array<any>) {
 </template>
 
 <style scoped>
+
+@media screen and (max-width: 991px) {
+
+  h2 {
+    text-align: center;
+  }
+
+  .manage-buttons {
+    flex-direction: column;
+  }
+
+  #return-btn {
+    margin: auto;
+    display: flex;
+  }
+
+  #users-tbl {
+    overflow-x: scroll;
+  }
+}
+
 
 #actions {
     display: flex;

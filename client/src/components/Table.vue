@@ -1,17 +1,12 @@
 <script setup lang="ts">
 
-import TableEntry from "@/components/TableEntry.vue";
-import {ref} from "vue";
-
-const props = defineProps(["headings", "table_data"]);
-
-
+defineProps(["headings"]);
 
 </script>
 
 <template>
-  <div id="enrollment-container">
-        <table id="enrollment-table">
+  <div class="tbl-container">
+        <table class="tbl-table">
           <thead>
             <tr>
               <th v-for="heading in headings">{{ heading }}</th>
@@ -30,27 +25,19 @@ th {
   padding: 8px;
 }
 
-#enrollment-container {
+.tbl-container {
   justify-content: center;
 }
 
-#enrollment-table, tr, th, td {
+.tbl-table, tr, th, td {
   border: 2px solid #D9D9D9;
   border-collapse: collapse;
 }
 
-#enrollment-table {
-  min-width: 75%;
+.tbl-table {
+  min-width: 85%;
   margin: auto;
   font-size: 1rem;
 }
-
-#actions {
-    display: flex;
-    gap: 4px;
-    margin: 4px;
-    justify-content: center;
-}
-
 
 </style>

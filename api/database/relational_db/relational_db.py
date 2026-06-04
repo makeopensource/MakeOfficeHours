@@ -1,3 +1,5 @@
+"""An implementation of the database interface using SQLite."""
+
 import os
 
 from api.database.db_interface import DBInterface
@@ -5,12 +7,17 @@ from api.database.relational_db.relational_db_cursor import RelationalDBCursor
 
 from api.database.relational_db.relational_db_queue import RelationalDBQueue
 from api.database.relational_db.relational_db_accounts import RelationalDBAccounts
-from api.database.relational_db.relational_db_ratings import RelationalDBRatings
 from api.database.relational_db.relational_db_sessions import RelationalDBSessions
 from api.database.relational_db.relational_db_visits import RelationalDBVisits
 
 
-class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, RelationalDBRatings, RelationalDBVisits, RelationalDBSessions):
+class RelationalDB(
+    DBInterface,
+    RelationalDBAccounts,
+    RelationalDBQueue,
+    RelationalDBVisits,
+    RelationalDBSessions,
+):
 
     def __init__(self):
         super().__init__()
@@ -96,4 +103,3 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
 
     def connect(self):
         pass
-

@@ -1,3 +1,5 @@
+"""The queue component of the database interface"""
+
 from abc import ABC, abstractmethod
 
 

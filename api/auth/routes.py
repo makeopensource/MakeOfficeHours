@@ -15,6 +15,7 @@ blueprint = Blueprint("auth", __name__)
 
 #### Autolab Paths
 
+
 @blueprint.route("/authorize", methods=["GET"])
 def login_with_autolab():
     """
@@ -37,7 +38,10 @@ def getting_code_from_autolab():
     auth_token = handle_code_after_redirect(code, state, session)
 
     if not auth_token:
-        res = make_response("You are not enrolled in this class. If you should be, email Paul. It's his fault", 401)
+        res = make_response(
+            "You are not enrolled in this class. If you should be, email Paul. It's his fault",
+            401,
+        )
         return res
 
     res = make_response(redirect("/queue"))
@@ -48,6 +52,7 @@ def getting_code_from_autolab():
 
 
 ### Universal Paths (Used regardless of auth provider)
+
 
 @blueprint.route("/signout", methods=["POST"])
 def signout():
@@ -75,6 +80,7 @@ def signout():
 
 
 ### Password auth paths
+
 
 @blueprint.route("/login", methods=["POST"])
 @debug_access_only

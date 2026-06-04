@@ -1,4 +1,7 @@
+"""The visits component of the database interface"""
+
 from abc import ABC, abstractmethod
+
 
 class IVisits(ABC):
 
@@ -34,19 +37,18 @@ class IVisits(ABC):
 
     @abstractmethod
     def cancel_visit(self, visit_id):
-        """ Destroy this visit from the database if it's still in progress.
+        """Destroy this visit from the database if it's still in progress.
         Un-dequeue this student from the queue if they have been dequeued.
 
         :param visit_id:
         :return:
         """
 
-
         raise NotImplementedError()
 
     @abstractmethod
     def get_in_progress_visits(self):
-        """ Return all database entries for visits that have
+        """Return all database entries for visits that have
         not ended.
 
 
@@ -56,7 +58,7 @@ class IVisits(ABC):
 
     @abstractmethod
     def get_visits(self, user_id=None):
-        """ Return all database entries for visits that have
+        """Return all database entries for visits that have
         ended.
 
         :param user_id: Optional user_id

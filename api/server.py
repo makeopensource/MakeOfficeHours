@@ -4,16 +4,15 @@ A Flask API server that handles enqueue and dequeuing students from the office h
 """
 
 import datetime
-import io
+
 import os
-import requests
-from flask import Flask, render_template, request, redirect
-from flask import send_file
+
+from flask import Flask, request
+
 
 from api.config import config
 from api.database.db import db
-from api.roster.controller import min_level, get_power_level
-from api.utils.debug import debug_access_only
+from api.roster.controller import min_level
 import api.auth.routes as auth_routes
 import api.queue.routes as queue_routes
 import api.roster.routes as roster_routes
@@ -24,6 +23,7 @@ THE_OG_UBIT = os.getenv("THE_OG_UBIT", None)
 THE_OG_PN = os.getenv("THE_OG_PN", None)
 
 og = db.lookup_person_number(THE_OG_PN)
+
 
 def create_app():
     """Create and return Flask API server
@@ -38,7 +38,6 @@ def create_app():
             og_id = db.create_account(THE_OG_UBIT, THE_OG_PN)
             db.add_to_roster(og_id, "admin")
 
-
     app = Flask(__name__)
 
     app.config.from_object(config.Config())
@@ -51,7 +50,7 @@ def create_app():
     app.register_blueprint(debug_routes.blueprint, url_prefix=URL_PREFIX)
 
     @app.route(URL_PREFIX + "/user/<user_id>", methods=["GET"])
-    @min_level('ta')
+    @min_level("ta")
     def get_user_info(user_id):
         user = db.lookup_identifier(user_id)
         return user

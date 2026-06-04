@@ -1,10 +1,8 @@
 <script setup lang="ts">
 
-import {nextTick, ref, watch} from "vue";
-import StudentQueue from "@/pages/StudentQueue.vue";
+import {ref, watch} from "vue";
 import Table from "@/components/Table.vue";
 import TableEntry from "@/components/TableEntry.vue";
-import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 
 const props = defineProps(["id"])
 const emit = defineEmits(["open", "close", "show-visit"])
@@ -125,14 +123,14 @@ async function getName() {
 
 <template>
 
-  <dialog @close="$emit('close')" v-show="showing" ref="dialogRef" id="visit" class="modal">
+  <dialog @close="$emit('close')" v-show="showing" ref="dialogRef" id="visit-tbl-dialog" class="modal">
 
     <h2>{{ visitor }}Visits</h2>
 
     <div id="inputs">
       <div id="input-l">
         <input type="checkbox" id="filter-blank" v-model="hideWeird" @change="filterWeirds">
-        <label for="filter-blank">Hide Self-Removals and Incomplete Visits</label>
+        <label for="filter-blank">Hide Removals and Incomplete Visits</label>
       </div>
       <div id="buttons">
         <button @click="weirdTest" v-if="visits.length > 0">Export</button>
@@ -144,7 +142,7 @@ async function getName() {
     <div v-if="visits.length === 0" class="ominous-text">But nobody came.<br/></div>
     <div v-if="visits.length === 0" class="ominous-text">(No visits for this user)</div>
 
-    <Table v-if="visits.length > 0" :headings="headings" :table_data="visits">
+    <Table id="visits-tbl" v-if="visits.length > 0" :headings="headings" :table_data="visits">
       <TableEntry v-for="visit in visits" :data="visit.slice(0, 7)">
         <td><button @click="emit('show-visit', visit)" class="view-btn">View</button></td>
       </TableEntry>
@@ -154,8 +152,16 @@ async function getName() {
 
 <style scoped>
 
+#visit-tbl-dialog {
+  max-width: 80vw;
+}
+
 .ominous-text {
   margin-bottom: 12px;
+}
+
+#visits-tbl {
+  overflow-x: scroll
 }
 
 #inputs {

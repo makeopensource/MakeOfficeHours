@@ -1,6 +1,9 @@
+"""Roster related functions and permission-checking decorators for the API"""
+
 from api.database.db import db
 from functools import wraps
 from flask import request, current_app
+
 
 def get_power_level(role):
     match role:
@@ -9,10 +12,11 @@ def get_power_level(role):
         case "ta":
             return 1
         case "instructor":
-            return  5
+            return 5
         case "admin":
             return 10
     return -1
+
 
 def exact_level(role):
     def decorator(f):
@@ -70,6 +74,7 @@ def min_level(min_role):
         return check_permission
 
     return decorator
+
 
 def add_to_roster(ubit, pn, first_name, last_name, role):
     user_id = db.create_account(ubit, pn)

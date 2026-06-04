@@ -1,3 +1,5 @@
+"""Queue management functions"""
+
 import datetime
 
 from api.database.db import db
@@ -36,9 +38,11 @@ def add_to_queue(user_account):
     user_id = user_account["user_id"]
     db.enqueue_student(user_id)
 
+
 def add_to_front_of_queue(user_account):
     user_id = user_account["user_id"]
     db.enqueue_student_front(user_id)
+
 
 def remove_from_queue_without_visit(student, reason):
     queue_info = db.remove_student(student)
@@ -50,11 +54,13 @@ def remove_from_queue_without_visit(student, reason):
     db.end_visit(visit, reason)
     return True
 
+
 def self_add_to_queue(student):
     if is_active(student):
         db.enqueue_student(student)
         return True
     return False
+
 
 def is_active(student):
     # YYYY-MM-DD HH:MM:SS
@@ -75,6 +81,7 @@ def is_active(student):
 
     return True
 
+
 def get_students_visit(student):
     in_progress = db.get_in_progress_visits()
     in_progress = list(filter(lambda v: v["student_id"] == student, in_progress))
@@ -82,13 +89,10 @@ def get_students_visit(student):
     if len(in_progress) == 0:
         return None
 
-
     visit = in_progress[0]
     ta = db.lookup_identifier(visit["ta_id"])
 
-    return {
-        "ta_name": ta["preferred_name"]
-    }
+    return {"ta_name": ta["preferred_name"]}
 
 
 def get_tas_visit(ta):
@@ -108,8 +112,5 @@ def get_tas_visit(ta):
         "pn": student["person_num"],
         "preferred_name": student["preferred_name"],
         "visitID": visit["visit_id"],
-        "visit_reason": visit["student_visit_reason"]
+        "visit_reason": visit["student_visit_reason"],
     }
-
-
-

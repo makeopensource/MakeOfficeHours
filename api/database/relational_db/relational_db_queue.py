@@ -3,6 +3,7 @@ import datetime
 from api.database.idb_queue import IQueue
 import secrets
 
+
 class RelationalDBQueue(IQueue):
 
     def enqueue_student(self, student):
@@ -44,14 +45,16 @@ class RelationalDBQueue(IQueue):
                 ORDER BY priority DESC, joined
             """
             ).fetchone()
-            cursor.execute("UPDATE queue SET dequeued = true WHERE user_id = ?", (user[0],))
+            cursor.execute(
+                "UPDATE queue SET dequeued = true WHERE user_id = ?", (user[0],)
+            )
 
         return {
             "user_id": user[0],
             "preferred_name": user[1],
             "ubit": user[2],
             "person_num": str(user[3]),
-            "enqueue_time": user[4]
+            "enqueue_time": user[4],
         }
 
     def dequeue_specified_student(self, student_id):
@@ -62,13 +65,16 @@ class RelationalDBQueue(IQueue):
                 FROM queue 
                 INNER JOIN users ON queue.user_id = users.user_id 
                 WHERE users.user_id = ?
-            """, (student_id,)
+            """,
+                (student_id,),
             ).fetchone()
 
             if user is None:
                 return None
 
-            cursor.execute("UPDATE queue SET dequeued = true WHERE user_id = ?", (user[0],))
+            cursor.execute(
+                "UPDATE queue SET dequeued = true WHERE user_id = ?", (user[0],)
+            )
 
         return {
             "user_id": user[0],
@@ -76,7 +82,7 @@ class RelationalDBQueue(IQueue):
             "ubit": user[2],
             "person_num": str(user[3]),
             "enqueue_time": user[4],
-            "enqueue_reason": user[5]
+            "enqueue_reason": user[5],
         }
 
     def get_queue(self):
@@ -106,35 +112,37 @@ class RelationalDBQueue(IQueue):
 
     def clear_queue(self):
         with self.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM queue WHERE dequeued = false"
-            )
+            cursor.execute("DELETE FROM queue WHERE dequeued = false")
 
     def remove_student(self, student):
         with self.cursor() as cursor:
-            queue_info = cursor.execute("SELECT * FROM queue WHERE user_id = ?", (student, )).fetchone()
+            queue_info = cursor.execute(
+                "SELECT * FROM queue WHERE user_id = ?", (student,)
+            ).fetchone()
 
             if queue_info is None:
                 return None
 
         with self.cursor() as cursor:
 
-            cursor.execute("DELETE FROM queue WHERE user_id = ?", (student, ))
+            cursor.execute("DELETE FROM queue WHERE user_id = ?", (student,))
 
             return {"user_id": queue_info[0], "joined": queue_info[1]}
 
     def set_reason(self, student, reason):
         with self.cursor() as cursor:
             cursor.execute(
-                "UPDATE queue SET enqueue_reason = ? WHERE user_id = ?", (reason, student)
+                "UPDATE queue SET enqueue_reason = ? WHERE user_id = ?",
+                (reason, student),
             )
 
     def move_to_end(self, student):
-        now = str(datetime.datetime.now().isoformat(' ', timespec="seconds"))
+        now = str(datetime.datetime.now().isoformat(" ", timespec="seconds"))
 
         with self.cursor() as cursor:
             res = cursor.execute(
-                "UPDATE queue SET joined = ?, priority = 0 WHERE user_id = ? RETURNING user_id", (now, student)
+                "UPDATE queue SET joined = ?, priority = 0 WHERE user_id = ? RETURNING user_id",
+                (now, student),
             ).fetchone()
             if res is None:
                 return False
@@ -153,9 +161,7 @@ class RelationalDBQueue(IQueue):
 
     def reset_hw_authorization(self):
         with self.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM hardware"
-            )
+            cursor.execute("DELETE FROM hardware")
 
             auth_code = secrets.token_urlsafe(16)
 
