@@ -82,7 +82,7 @@ const cancelVisit = () => {
   })
 }
 
-
+const closeBtn = ref();
 
 </script>
 
@@ -108,7 +108,7 @@ const cancelVisit = () => {
     <div id="visit-controls" v-else>
       <label for="ta-visit-notes">Visit Notes</label>
       <textarea ref="taNotesBox" id="ta-visit-notes" disabled :value="visit_info['visit_result'] !== null ? visit_info['visit_result'] : 'None provided.'"></textarea>
-      <button @click="hide()" id="end-visit-cancel">Close</button>
+      <button @click="hide()" id="end-visit-cancel" ref="closeBtn">Close</button>
     </div>
 
 

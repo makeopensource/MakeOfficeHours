@@ -87,8 +87,8 @@ class RelationalDBVisits(IVisits):
                            tas.last_name           as ta_surname,
                            tas.ubit                as ta_ubit
                     FROM visits
-                             INNER JOIN users as students ON students.user_id = visits.student_id
-                             INNER JOIN users as tas ON tas.user_id = visits.ta_id
+                             LEFT JOIN users as students ON students.user_id = visits.student_id
+                             LEFT JOIN users as tas ON tas.user_id = visits.ta_id
                     """).fetchall()
             else:
                 result = cursor.execute("""
@@ -100,8 +100,9 @@ class RelationalDBVisits(IVisits):
                            tas.last_name           as ta_surname,
                            tas.ubit                as ta_ubit
                     FROM visits
-                     INNER JOIN users as students ON students.user_id = visits.student_id
-                     INNER JOIN users as tas ON tas.user_id = visits.ta_id
+                     
+                     LEFT JOIN users as students ON students.user_id = visits.student_id
+                     LEFT JOIN users as tas ON tas.user_id = visits.ta_id
                     WHERE student_id = ? OR ta_id = ?
                 """, (user_id, user_id)).fetchall()
 

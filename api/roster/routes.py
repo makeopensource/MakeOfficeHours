@@ -12,10 +12,10 @@ blueprint = Blueprint("roster", __name__)
 # any other decorators such as, auth decorators (min_level, exact_level) must go below it
 
 @blueprint.route("/upload-roster", methods=["POST"])
-@min_level('instructor')
+@min_level('ta')
 def upload_roster():
     """
-        Role: instructor or admin
+        Role: TA or higher
 
         Populate the database with the uploaded roster.
         Doesn't create log-ins for the users.
@@ -30,6 +30,8 @@ def upload_roster():
             - 401 if unauthorized
             - 400 if roster is missing or invalid format
     """
+
+    user = get_user(request.cookies)
 
     if not request.files or request.files.get("roster") is None:
         return {"message": "Invalid roster upload (missing file)"}, 400
@@ -54,9 +56,12 @@ def upload_roster():
         if not info[1].isnumeric():
             return {"message": "Invalid roster upload (non-numeric PN)"}, 400
         pn = int(info[1])
-        # role has to be valid and not above instructor's authority
-        if info[4] not in {"student", "ta", "instructor"}:
+        # role has to be valid and not above user's authority
+        if info[4] not in {"student", "ta", "instructor"} :
             return {"message": "Invalid roster upload (bad role)"}, 400
+
+        if get_power_level(info[4]) >= get_power_level(user["course_role"]):
+            return {"message": "You cannot add users as powerful as yourself."}, 400
 
         users.append({
             "ubit": info[0],
@@ -123,10 +128,10 @@ def update_preferred_name():
 
 
 @blueprint.route("/enroll", methods=["POST"])
-@min_level('instructor')
+@min_level('ta')
 def enroll_user():
     """
-    Enroll a single user. Won't enroll admins.
+    Enroll a single user. Won't enroll admins. TAs can only enroll students.
 
 
     Body:
@@ -145,6 +150,8 @@ def enroll_user():
     """
     data = request.get_json()
 
+    user = get_user(request.cookies)
+
     required_fields = ["ubit", "pn",
                        "preferred_name", "last_name",
                        "role"]
@@ -157,6 +164,9 @@ def enroll_user():
 
     if data["role"] not in legal_roles:
         return {"message": "Malformed request"}, 400
+
+    if get_power_level(data["role"]) >= get_power_level(user["course_role"]):
+        return {"message": "You cannot enroll a user at this level."}, 403
 
 
     user_id = db.create_account(data["ubit"], data["pn"])

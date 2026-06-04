@@ -77,8 +77,10 @@ function fetchVisit() {
       visitDialog.value?.hide()
     }
   }).then(json => {
-    taName.value = json["ta_name"]
-    visitDialog.value?.show()
+    if (json) {
+      taName.value = json["ta_name"]
+      visitDialog.value?.show()
+    }
   })
 }
 
@@ -165,7 +167,7 @@ const alertBox = ref<typeof Alert>();
 
 const visitDialog = ref<typeof ConfirmationDialog>();
 
-const taName = ref<string>();
+const taName = ref<string>("");
 
 function selfEnqueue() {
   fetch("/api/enqueue", { method: "POST" }).then(res => {

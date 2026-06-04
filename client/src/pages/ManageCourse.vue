@@ -11,7 +11,8 @@ import VisitTable from "@/components/instructor/VisitTable.vue";
 
 const router = useRouter()
 
-const me = ref<any>();
+const me = ref<any>({});
+const manager = ref<boolean>(false);
 
 fetch("/api/me").then(res => {
   if (!res.ok) {
@@ -21,6 +22,9 @@ fetch("/api/me").then(res => {
 }).then(data => {
   if (data["course_role"] === "student") {
     router.push("/queue")
+  }
+  if (data["course_role"] !== "ta") {
+    manager.value = true;
   }
   me.value = data;
   getCode();
@@ -204,6 +208,7 @@ function showOldVisit(visit: Array<any>) {
       <button @click="router.push('/queue')">Return to Queue</button>
       <br/>
       <div class="manage-buttons">
+        <button v-if="manager" @click='visitTable?.show()'>View All Visits</button>
         <button @click="hardwareDialog?.show()">Authorize Swipe</button>
         <button @click="enrollDialog?.show()">Add User to Roster</button>
         <button @click="uploadCSVDialog?.show()">Enroll from CSV</button>
