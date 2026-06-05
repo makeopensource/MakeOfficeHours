@@ -22,7 +22,15 @@ class IRoster(ABC):
         """Retrieve the entire roster and their
         relevant information from the database.
 
-        :return: The roster as a list of dicts.
+        :return: The roster as a list of dicts like:
+                    {
+                        "user_id",
+                        "preferred_name",
+                        "last_name",
+                        "ubit",
+                        "person_num",
+                        "course_role",
+                    }
         """
         raise NotImplementedError()
 

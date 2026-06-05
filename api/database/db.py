@@ -5,7 +5,6 @@ import os
 
 from api.database.relational_db.relational_db import RelationalDB
 from api.database.testing_db.testing_db import TestingDB
-from api.database.mock_db.mock_db import MockDB
 
 
 def create_db():
@@ -16,8 +15,6 @@ def create_db():
             return RelationalDB()
         case "testing":
             return TestingDB()
-        case "mock":
-            return MockDB()
         case None:
             raise EnvironmentError('environment variable "DB" not set')
         case _:
