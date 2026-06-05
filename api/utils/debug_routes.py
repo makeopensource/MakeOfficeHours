@@ -10,6 +10,21 @@ blueprint = Blueprint("debug", __name__)
 @blueprint.route("/force-enroll", methods=["POST"])
 @debug_access_only
 def force_enroll():
+    """
+    Forcefully enroll a user. Debug only.
+
+    Params (as form data):
+        - ubit: the desired ubit
+        - pn:   the desired person number
+        - role: the desired role, from {'student', 'ta', 'instructor', 'admin'}
+
+    :return: 400, if malformed
+             200, if successful:
+                {
+                    "message": <success message>,
+                    "id": <generated user id>
+                }
+    """
     body = request.form
     ubit = body.get("ubit")
     pn = body.get("pn")

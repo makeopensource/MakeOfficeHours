@@ -4,7 +4,7 @@ import os
 def decode_pn(raw):
     try:
         return raw.split("/^")[1][14:22]
-    except Exception:
+    except IndexError:
         return ""
 
 

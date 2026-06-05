@@ -1,5 +1,6 @@
 """The complete database interface. Split into multiple classes for readability."""
 
+# pylint: disable=duplicate-code
 from abc import ABC, abstractmethod
 
 from api.database.idb_queue import IQueue

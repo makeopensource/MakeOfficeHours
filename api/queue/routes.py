@@ -2,13 +2,14 @@
 
 from flask import Blueprint, request
 
-import api.queue.controller as controller
 from api.auth.controller import get_user
 from api.queue.controller import (
     remove_from_queue_without_visit,
-    get_tas_visit,
     self_add_to_queue,
-    get_students_visit,
+    decode_pn,
+    add_to_queue_by_card_swipe,
+    add_to_queue_by_ta_override,
+    is_active,
 )
 from api.roster.controller import min_level
 from api.database.db import db
@@ -37,9 +38,6 @@ def enqueue_card_swipe():
         400 Bad Request - Bad read
         401 Forbidden - Bad code
         404 Not Found - No student matching the card swipe was found
-        {
-            "message": <string>
-        }
     """
 
     body = request.get_json()
@@ -49,10 +47,10 @@ def enqueue_card_swipe():
     if code != db.get_hw_authorization():
         return {"message": "Invalid code"}, 403
 
-    if controller.decode_pn(swipe_data) == "":
+    if decode_pn(swipe_data) == "":
         return {"message": "Bad read"}, 400
 
-    if controller.add_to_queue_by_card_swipe(swipe_data):
+    if add_to_queue_by_card_swipe(swipe_data):
         return {"message": "Student was added to the queue"}
 
     return {"message": "No student matching the card swipe was found"}, 404
@@ -66,11 +64,11 @@ def enqueue_ta_override():
 
     Force enqueue a student.
 
-    Resolving the id will be done in the order: UBIT -> pn -> id (Although, these _should_ all be unique so the order
-    shouldn't matter)
+    Resolving the id will be done in the order: UBIT -> pn -> id
 
     Args:
-        body.identifier: A unique identifier for the student This can either be their UBIT, pn, or the id of their account
+        body.identifier: A unique identifier for the student This can either be their UBIT, pn,
+        or the id of their account
 
     Body:
         {
@@ -81,141 +79,15 @@ def enqueue_ta_override():
         200 OK - Student was added to the queue
         403 Unauthorized - Requester does not have TA permissions
         404 Not Found - No student matching provided identifier
-        {
-            "message": <string>,
-        }
-
-    Use case: A student didn't bring their card to OH so they can't swipe in. The TA can force add them to the queue
     """
 
     body = request.get_json()
     identifier = body["identifier"]
 
-    if controller.add_to_queue_by_ta_override(identifier):
+    if add_to_queue_by_ta_override(identifier):
         return {"message": "Student was added to the queue"}
 
     return {"message": "No student matching provided identifier"}, 404
-
-
-@blueprint.route("/restore-visit", methods=["GET"])
-@min_level("student")
-def restore_visit():
-    """
-    Returns a visit in the database involving the user that hasn't
-    ended yet, if such a visit exists.
-
-    i.e. if a TA refreshes the queue before ending the visit
-
-
-    Returns:
-        200 OK - visit found (TA)
-        {
-            "id": <int>,
-            "username": <string>,
-            "pn": <string>,
-            "preferred_name: <string>,
-            "visitID": <string>,
-            "visit_reason": <string>
-        }
-
-        200 OK - visit found (Student)
-        {
-            "ta_name": <string>
-        }
-
-        404 Not Found - no such visit exists
-    """
-    user = get_user(request.cookies)
-
-    if user is None:
-        return {"message": "You are not authenticated!"}, 403
-
-    user_id = user["user_id"]
-
-    if user["course_role"] == "student":
-        visit = get_students_visit(user_id)
-    else:
-        visit = get_tas_visit(user_id)
-
-    if visit is None:
-        return {"message": "You do not have an in-progress visit."}, 404
-
-    return visit
-
-
-@blueprint.route("/cancel-visit", methods=["POST"])
-@min_level("ta")
-def cancel_visit():
-    body = request.get_json()
-
-    visit_id = body.get("visit_id")
-
-    if visit_id is None:
-        return {"message": "Malformed request"}, 400
-
-    db.cancel_visit(visit_id)
-
-    return {"message": "Canceled visit"}, 200
-
-
-@blueprint.route("/active-visits", methods=["GET"])
-@min_level("ta")
-def get_active_visits():
-    in_progress = db.get_in_progress_visits()
-
-    visits = []
-
-    for visit in in_progress:
-        student = db.lookup_identifier(visit["student_id"])
-
-        if visit["ta_id"] is not None:
-            ta = db.lookup_identifier(visit["ta_id"])
-            ta_name = ta["preferred_name"]
-        else:
-            ta_name = None
-
-        visits.append(
-            {
-                "student_id": visit["student_id"],
-                "student_username": student["ubit"],
-                "student_name": student["preferred_name"],
-                "visitID": visit["visit_id"],
-                "visit_reason": visit["student_visit_reason"],
-                "ta_id": visit["ta_id"],
-                "ta_name": ta_name,
-            }
-        )
-    return visits
-
-
-@blueprint.route("/steal-visit/<id>", methods=["PATCH"])
-@min_level("ta")
-def steal_visit(visit_id):
-    """
-    Replace the TA associated with the visit with the TA who sent
-    the request. Returns all information about the visit being stolen.
-
-    Does not work on visits that are not in progress, or if the TA
-    has an active visit.
-
-    """
-
-    pass
-
-
-@blueprint.route("/abandon-visit", methods=["PATCH"])
-@min_level("ta")
-def abandon_visit():
-    """
-    Abandon the visit associated with the TA who sent the request.
-    Does not end the visit.
-
-    Returns an error if the TA isn't in an active visit. Future retrievals
-    of this visit should return "None" as the TA's ID and name.
-
-
-    """
-    pass
 
 
 @blueprint.route("/help-a-student", methods=["POST"])
@@ -224,17 +96,13 @@ def dequeue():
     """
     role: TA
 
-    Remove the specified student from the queue and create a Visit in the DB
-
-    Not allowed if TA is already in a visit
+    Remove the specified student from the queue and create a Visit in the DB. Not allowed if TA is already in a visit
 
     Args:
         body.id: The ID of the account to dequeue
 
     Body:
-        {
-            "id": <string>
-        }
+        "id": <string>
 
     Returns:
         200 OK - Student was dequeued
@@ -249,9 +117,6 @@ def dequeue():
 
         400 Bad Request - The queue is empty or user is not in the queue
         403 Unauthorized - Requester does not have TA permissions
-        {
-            "message": <string>
-        }
     """
 
     body = request.get_json()
@@ -306,11 +171,7 @@ def get_queue():
             },
             ...
         ]
-
-        403 Unauthorized - Requester does not have TA permissions
-        {
-            "message": <string>
-        }
+        403 Forbidden - Requester does not have TA permissions
     """
 
     return db.get_queue()
@@ -349,7 +210,6 @@ def get_anon_queue():
             "position": <int>,
             "length": <int>
         }
-
         400 Bad Request - You are not in the queue
         {
             "message": <string>,
@@ -373,7 +233,7 @@ def get_anon_queue():
         if entry["id"] == user_id:
             return {"position": i, "length": len(queue)}
 
-    active = controller.is_active(user_id)
+    active = is_active(user_id)
 
     return {
         "message": "You are not in the queue!",
@@ -394,16 +254,12 @@ def remove_self():
         body.reason: a text reason for removing the user from the queue
 
     Body:
-        {
-            "reason": <string>
-        }
+        "reason": <string>
+
 
     Returns:
         200 OK - You were removed from the queue and a visit was created
         400 Bad Request - You were not in the queue
-        {
-            "message": <string>
-        }
     """
 
     if not (auth_token := request.cookies.get("auth_token")):
@@ -419,8 +275,8 @@ def remove_self():
 
     if remove_from_queue_without_visit(user_id, f"[SELF-REMOVE]: {body["reason"]}"):
         return {"message": "Removed self from queue."}
-    else:
-        return {"message": "You are not in the queue!"}, 400
+
+    return {"message": "You are not in the queue!"}, 400
 
 
 @blueprint.route("/remove-from-queue", methods=["POST"])
@@ -436,18 +292,13 @@ def remove():
         body.user_id: user ID of the student being removed
 
     Body:
-        {
-            "reason": <string>,
-            "user_id": <integer>
-        }
+        "reason": <string>,
+        "user_id": <integer>
 
     Returns:
         200 OK - Student was removed from the queue and a visit was created
         400 Bad Request - Student with user_id was not in the queue
         403 Unauthorized - Requester does not have TA permissions
-        {
-            "message": <string>
-        }
     """
 
     body = request.get_json()
@@ -466,6 +317,12 @@ def remove():
 @blueprint.route("/clear-queue", methods=["DELETE"])
 @min_level("ta")
 def clear_queue():
+    """Removes all students from the queue
+
+    Must be TA or higher
+
+    :return: 200 with success message on success
+    """
     db.clear_queue()
     return {"message": "Successfully cleared the queue."}
 
@@ -476,49 +333,38 @@ def enqueue_override_front():
     """Exact same behavior as /enqueue-ta-override, except it sends the student to the front.
 
     Args:
-        body.identifier: A unique identifier for the student This can either be their UBIT, pn, or the id of their account
+        body.identifier: A unique identifier for the student This can either be their UBIT, pn,
+        or the id of their account
 
     Body:
-        {
-            "identifier": <string>
-        }
+        "identifier": <string>
 
     Returns:
         200 OK - Student was added to the queue
         403 Unauthorized - Requester does not have TA permissions
         404 Not Found - No student matching provided identifier
-        {
-            "message": <string>,
-        }
     """
     body = request.get_json()
     identifier = body["identifier"]
 
-    if controller.add_to_queue_by_ta_override(identifier, True):
+    if add_to_queue_by_ta_override(identifier, True):
         return {"message": "Student was added to the front of the queue"}
 
     return {"message": "No student matching provided identifier"}, 404
 
 
-@blueprint.route("/end-visit", methods=["POST"])
-@min_level("ta")
-def end_visit():
-    body = request.get_json()
-
-    visit = body.get("id")
-    reason = body.get("reason")
-
-    if visit is None or reason is None:
-        return {"message": "Malformed request"}, 400
-
-    db.end_visit(visit, reason)
-
-    return {"message": "Ended the visit"}
-
-
 @blueprint.route("/update-reason", methods=["PATCH"])
 @min_level("student")
 def update_reason():
+    """Update the student's reason for visiting office hours.
+
+    Params:
+        "reason": the student specified reason
+
+    :return: 200 on success,
+             401 if not authenticated,
+             400 if visit is missing
+    """
     body = request.get_json()
 
     user = get_user(request.cookies)
@@ -539,6 +385,14 @@ def update_reason():
 @blueprint.route("/move-to-end", methods=["PATCH"])
 @min_level("ta")
 def move_to_end():
+    """Move the specified user to the end of the queue.
+
+    Params:
+        "user_id": the id of the student to move
+
+    :return: 200 on success,
+             400 if the user doesn't exist or isn't in the queue.
+    """
     body = request.get_json()
 
     if (user_id := body.get("user_id")) is None:
@@ -551,8 +405,14 @@ def move_to_end():
 
 
 @blueprint.route("/swipe-authorization", methods=["GET"])
-@min_level("instructor")
+@min_level("ta")
 def get_swipe_auth_code():
+    """Get the swipe authorization code.
+
+    Must be TA or higher.
+
+    :return: 200 with the authorization code as: {"code": <code>}
+    """
     code = db.get_hw_authorization()
 
     if code is None:
@@ -564,6 +424,10 @@ def get_swipe_auth_code():
 @blueprint.route("/reset-swipe-auth", methods=["DELETE"])
 @min_level("instructor")
 def reset_swipe_auth_code():
+    """Reset the current authorization code.
+
+    :return: 200 with the newly generated code as: {"code": <code>}
+    """
     db.reset_hw_authorization()
 
     return {"message": "Reset auth code"}
@@ -572,6 +436,13 @@ def reset_swipe_auth_code():
 @blueprint.route("/enqueue", methods=["POST"])
 @min_level("student")
 def self_enqueue():
+    """Attempt to self-enqueue the student who hit this endpoint.
+    Fail if the student hasn't enqueued within the past two hours.
+
+    :return: 200 on success,
+             401 if the user isn't authenticated,
+             403 if the user hasn't swiped within the past two hours
+    """
 
     if not (auth_token := request.cookies.get("auth_token")):
         return {"message": "You are not logged in!"}, 401
@@ -590,12 +461,34 @@ def self_enqueue():
 @blueprint.route("/on-site", methods=["GET"])
 @min_level("ta")
 def get_on_site():
+    """Return a list of students who are on-site.
+
+    :return: 200 on success:
+                [
+                    {
+                        "id": <int>,
+                        "username": <string>,
+                        "pn": <string>,
+                        "preferred_name: <string>
+                    },
+                    ...
+                ]
+    """
     return db.get_on_site()
 
 
 @blueprint.route("/deactivate", methods=["PATCH"])
 @min_level("ta")
 def deactivate():
+    """Deactivate the specified student. Regardless of when they
+    last refreshed, they should not be able to re-add themselves to
+    the queue.
+
+    Params:
+        "user_id": the id of the student to deactivate.
+
+    :return: 200 on success
+    """
     body = request.get_json()
     db.reset_swipe_time(body["user_id"])
 

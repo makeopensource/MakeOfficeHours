@@ -6,8 +6,8 @@ from flask import request, current_app
 from api.database.db import db
 
 
-"""Returns the numerical power level of each role"""
 def get_power_level(role):
+    """Returns the numerical power level of each role"""
     match role:
         case "student":
             return 0
@@ -19,8 +19,11 @@ def get_power_level(role):
             return 10
     return -1
 
-"""Ensures that only the role specified has access to a feature. It is very important that these decorators are below @blueprint.route, as they are otherwise ignored."""
+
 def exact_level(role):
+    """Ensures that only the role specified has access to a feature. It is very important that these
+    decorators are below @blueprint.route, as they are otherwise ignored."""
+
     def decorator(f):
         @wraps(f)
         def check_permission(*args, **kwargs):
@@ -46,8 +49,11 @@ def exact_level(role):
 
     return decorator
 
-"""Allows for specified level and above to access features. It is very important that these decorators are below @blueprint.route, as they are otherwise ignored."""
+
 def min_level(min_role):
+    """Allows for specified level and above to access features. It is very important that these decorators are
+    below @blueprint.route, as they are otherwise ignored."""
+
     def decorator(f):
         @wraps(f)
         def check_permission(*args, **kwargs):
@@ -77,8 +83,10 @@ def min_level(min_role):
 
     return decorator
 
-"""Adds a student to the roster with the following information: UBIT, person number, first name, last name, role"""
+
 def add_to_roster(ubit, pn, first_name, last_name, role):
+    """Adds a student to the roster with the following information: UBIT,
+    person number, first name, last name, role"""
     user_id = db.create_account(ubit, pn)
     db.add_to_roster(user_id, role)
     db.set_name(user_id, first_name, last_name)

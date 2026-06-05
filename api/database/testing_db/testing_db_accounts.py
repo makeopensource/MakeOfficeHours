@@ -16,16 +16,10 @@ class TestingDBAccounts(IAccounts, IRoster):
         users.append({"ubit": ubit, "person_num": pn})
 
     def lookup_person_number(self, person_number) -> dict[str, str]:
-        for user in users:
-            if user["person_num"] == person_number:
-                return user
-        return {}
+        return utils.lookup_person_number(person_number)
 
     def lookup_identifier(self, identifier) -> dict[str, str]:
-        for i, user in enumerate(users):
-            if identifier in {user["person_num"], user["ubit"], i}:
-                return user
-        return {}
+        return utils.lookup_identifier(identifier)
 
     def get_authenticated_user(self, auth_token) -> dict[str, str]:
         for user in users:

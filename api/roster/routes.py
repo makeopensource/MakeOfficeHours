@@ -120,6 +120,13 @@ def get_roster():
 @blueprint.route("/update-name", methods=["PATCH"])
 @min_level("student")
 def update_preferred_name():
+    """
+    Update the user's preferred name.
+
+    :return: 200, on success
+             400, if malformed
+             401, if user isn't authenticated
+    """
     user = get_user(request.cookies)
 
     if user is None:
@@ -179,50 +186,6 @@ def enroll_user():
     db.set_name(user_id, data["preferred_name"], data["last_name"])
 
     return {"message": "Successfully enrolled user", "id": user_id}
-
-
-@blueprint.route("/visits/<user_id>", methods=["GET"])
-@blueprint.route("/visits", methods=["GET"], defaults={"user_id": None})
-@min_level("ta")
-def get_visits(user_id):
-    """
-    Get a list of visits. If a user_id is specified, only include
-    visits where the specified user is involved (either as the student
-    or TA).
-
-    Params:
-        - user_id: <id of user involved in visit>
-
-    Returns:
-        200 on success:
-            {
-                "visits": [
-                    {
-                        "visit_id": <id of visit>,
-                        "ta_id": <ta's user ID>,
-                        "ta_name": <ta's first and last name>
-                        "student_id": <student's user ID>,
-                        "student_name": <student's first and last name>
-                        "start_time": <visit start time>
-                        "end_time": <visit end time>
-                    }
-                ]
-            }
-
-
-    :return:
-    """
-
-    user = get_user(request.cookies)
-
-    if get_power_level(user["course_role"]) > 1 or (
-        user_id is not None
-        and get_power_level(user["course_role"]) > 0
-        and int(user_id) == int(user["user_id"])
-    ):
-        return {"visits": db.get_visits(user_id)}
-
-    return {"message": "You are not permitted to view this resource"}, 403
 
 
 # TODO: Remove from roster

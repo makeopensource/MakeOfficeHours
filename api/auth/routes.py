@@ -1,10 +1,6 @@
 """Authentication Blueprint for MOH"""
 
 import json
-import os
-import urllib.parse
-
-import requests
 
 from flask import Blueprint, request, make_response, redirect
 from api.database.db import db

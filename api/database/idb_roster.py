@@ -1,5 +1,6 @@
 """The roster component of the database interface"""
 
+# pylint: disable=duplicate-code
 from abc import ABC, abstractmethod
 
 

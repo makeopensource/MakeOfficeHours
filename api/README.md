@@ -27,22 +27,14 @@ current functionality is not sufficient, it should be added to the database inte
 
 ### [/queue](./queue):
 
-Routes and functions related to the queue. This includes all endpoints relevant to enqueuing/dequeuing students as well
-as in-progress visits.
+Routes and functions related to the queue. This includes all endpoints relevant to enqueuing/dequeuing students.
 
 Visits are created whenever a student is dequeued. Until one of the endpoints are hit that end a visit, TAs are
 prevented from dequeuing and students are prevented from enqueuing.
 
-Endpoints related to visits that are not in-progress can be found in [/roster](./roster), mainly to be retrieved for
-review.
-
 ### [/roster](./roster):
 
-Routes and functions related to course management, mainly enrollments and visit records.
-
-Visit records are sensitive information and should not be freely accessible to TAs. However, TAs can currently see
-visits that they were
-personally involved with for their own review.
+Routes and functions related to course management, mainly enrollments.
 
 TAs can manage the roster but to ensure sensitive information is kept secret, they can only add students who only have
 access to the queue endpoints. This is to ensure course instructors don't need to be concerned with the day-to-day
@@ -52,6 +44,14 @@ can just add them without having to go through the professor.)
 The [controller](./roster/controller.py) defines two decorators that are used pretty extensively through the project
 for permission checking: `@exact_level` and `@min_level`. It is **very** important that these decorators are below 
 `@blueprint.route`, as they are otherwise ignored.
+
+### [/visits](./visits):
+
+Routes and functions related to visits.
+
+Visit records are sensitive information and should not be freely accessible to TAs. However, TAs can currently see
+visits that they were
+personally involved with for their own review.
 
 ### [/student_data_lookups](./student_data_lookups):
 
@@ -97,9 +97,6 @@ You can run the Pylint on the api folder by doing the following
 ```bash
 pylint $(git ls-files '*.py')
 ```
-
-This hasn't been adhered to for most of development, but it's best
-that you ensure your code is neat and organized.
 
 ## Formatter
 

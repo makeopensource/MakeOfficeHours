@@ -17,6 +17,7 @@ from api.roster.controller import min_level
 import api.auth.routes as auth_routes
 import api.queue.routes as queue_routes
 import api.roster.routes as roster_routes
+import api.visits.routes as visits_routes
 
 URL_PREFIX = os.getenv("API_URL_PREFIX", "/")
 THE_OG_UBIT = os.getenv("THE_OG_UBIT", None)
@@ -47,6 +48,7 @@ def create_app():
     app.register_blueprint(queue_routes.blueprint, url_prefix=URL_PREFIX)
     app.register_blueprint(roster_routes.blueprint, url_prefix=URL_PREFIX)
     app.register_blueprint(debug_routes.blueprint, url_prefix=URL_PREFIX)
+    app.register_blueprint(visits_routes.blueprint, url_prefix=URL_PREFIX)
 
     @app.route(URL_PREFIX + "/user/<user_id>", methods=["GET"])
     @min_level("ta")
