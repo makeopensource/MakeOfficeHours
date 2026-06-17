@@ -145,10 +145,10 @@ const visitInfo = ref({});
 
 function showOldVisit(visit: Array<any>) {
   visitInfo.value = {
-    "preferred_name": visit[4],
+    "preferred_name": `${visit[4]} ${visit[5]}`,
     "username": visit[3],
-    "visit_reason": visit[7],
-    "visit_result": visit[8]
+    "visit_reason": visit[9],
+    "visit_result": visit[10]
   }
   visitRef.value?.show()
 }

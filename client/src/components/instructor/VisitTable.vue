@@ -22,7 +22,7 @@ const show = (user: number) => {
   emit("open")
 
   if (user === undefined) {
-    visitor.value = ""
+    visitor.value = undefined
   }
   id.value = user;
   getVisits();
@@ -38,7 +38,7 @@ defineExpose({show: show, hide: hide})
 
 const visits = ref<Array<Array<any>>>([]);
 
-const headings = ['Enqueue Time', 'Visit Start Time', 'Visit End Time', 'Student Username', 'Student Name', 'TA Username', 'TA Name', '']
+const headings = ['Enqueue Time', 'Visit Start Time', 'Visit End Time', 'Student Username', 'Student First Name', 'Student Last Name', 'TA Username', 'TA First Name', 'TA Last Name', '']
 
 const getVisits = () => fetch(`/api/visits${id.value !== undefined ? `/${id.value}` : ''}`).then(res => {
   return res.json();
@@ -61,9 +61,11 @@ const getVisits = () => fetch(`/api/visits${id.value !== undefined ? `/${id.valu
             visit["session_start"],
             visit["session_end"],
             visit["student_ubit"],
-            `${visit["student_name"]} ${visit["student_surname"]}`,
-            `${visit["ta_ubit"] != null ? `${visit["ta_ubit"]}` : '-'}`,
-            `${visit['ta_ubit'] != null ? `${visit["ta_name"]} ${visit["ta_surname"]}` : '-'}`,
+            visit["student_name"],
+            visit["student_surname"],
+            visit["ta_ubit"],
+            visit["ta_name"],
+            visit["ta_surname"],
             visit["student_visit_reason"],
             visit["session_end_reason"]
         ]
@@ -96,15 +98,7 @@ function filterWeirds() {
   }
 }
 
-function weirdTest() {
-  const ar2: Array<any> = [...visits.value]
-
-  ar2.sort((a, b) => { return a[0].localeCompare(b[0]) })
-
-  visits.value = ar2;
-}
-
-const visitor = ref<string>("ASD!");
+const visitor: {[key: string]: any} = ref<object>();
 
 watch(id, getName)
 
@@ -113,10 +107,29 @@ async function getName() {
     fetch(`/api/user/${id.value}`).then(res => {
       return res.json()
     }).then(json => {
-      visitor.value = `${json["preferred_name"]}'s `
+      visitor.value = json
     })
+  } else {
+    visitor.value = undefined
   }
-  return ""
+}
+
+function exportVisits() {
+  let csv = "Enqueue Time,Visit Start Time,Visit End Time,Student Username,Student First Name,Student Last Name,TA Username,TA First Name,TA Last Name,Student Visit Reason,TA Visit Notes\n";
+  for (let visit of visits.value) {
+    let info = ""
+    for (let i = 0; i < visit.length - 1; i++) {
+      info += visit[i] != null ? `${visit[i]},` : ','
+    }
+    info += visit[visit.length-1] != null ? `${visit[visit.length-1]}\n` : '\n'
+    csv += info
+  }
+  const link = document.createElement("a")
+  const file = new Blob([csv], {type: "text/csv"})
+  link.href = URL.createObjectURL(file)
+  link.download = "visits" + `${id.value !== undefined ? `-${visitor.value["ubit"]}` : ''}` + ".csv"
+  link.click()
+  URL.revokeObjectURL(link.href)
 }
 
 </script>
@@ -125,7 +138,7 @@ async function getName() {
 
   <dialog @close="$emit('close')" v-show="showing" ref="dialogRef" id="visit-tbl-dialog" class="modal">
 
-    <h2>{{ visitor }}Visits</h2>
+    <h2>{{ visitor != undefined ? `${visitor["preferred_name"]}'s ` : '' }}Visits</h2>
 
     <div id="inputs">
       <div id="input-l">
@@ -133,7 +146,7 @@ async function getName() {
         <label for="filter-blank">Hide Removals and Incomplete Visits</label>
       </div>
       <div id="buttons">
-        <button @click="weirdTest" v-if="visits.length > 0">Export</button>
+        <button @click="exportVisits" v-if="visits.length > 0">Export to CSV</button>
         <button @click="hide">Close</button>
       </div>
     </div>
@@ -143,7 +156,7 @@ async function getName() {
     <div v-if="visits.length === 0" class="ominous-text">(No visits for this user)</div>
 
     <Table id="visits-tbl" v-if="visits.length > 0" :headings="headings" :table_data="visits">
-      <TableEntry v-for="visit in visits" :data="visit.slice(0, 7)">
+      <TableEntry v-for="visit in visits" :data="visit.slice(0, 9)">
         <td><button @click="emit('show-visit', visit)" class="view-btn">View</button></td>
       </TableEntry>
     </Table>
