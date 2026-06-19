@@ -135,4 +135,4 @@ class RelationalDBVisits(IVisits):
                 res["archived"] = bool(res["archived"])
                 visits.append(res)
 
-            return visits
+        return visits

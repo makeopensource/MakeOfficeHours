@@ -219,6 +219,38 @@ def delete_user(user_id):
 
     return {"message": "Successfully removed user"}
 
+@blueprint.route("/user/<user_id>/role", methods=["PATCH"])
+@min_level("ta")
+def update_role(user_id):
+    """Update the specified user's role. Can only promote people to your level.
+
+    Body:   {
+                "role": <the desired role>
+            }
+
+    :return: 200 on success
+    """
+
+    user = db.lookup_identifier(user_id)
+    caller = get_user(request.cookies)
+    role = request.json["role"]
+
+    if user is None:
+        return {"message": "User not found."}, 401
+
+    if role not in {"student", "ta", "instructor"}:
+        return {"message": "Invalid role."}, 400
+
+    if get_power_level(caller["course_role"]) < get_power_level(user["course_role"]):
+        return {"message": "You are not permitted to change this user's role."}, 401
+
+    if get_power_level(caller["course_role"]) < get_power_level(role):
+        return {"message": "You are not permitted to set this user to this role."}, 401
+
+    db.add_to_roster(user_id, role)
+
+    return {"message": "Updated role."}
+
 
 @blueprint.route("/clear-enrollments", methods=["DELETE"])
 @min_level("instructor")

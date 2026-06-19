@@ -176,6 +176,32 @@ function clearStudents() {
   })
 }
 
+function updateRole(user: string, role: string) {
+  fetch(`/api/user/${user}/role`, {
+    method: "PATCH",
+    body: JSON.stringify({"role": role}),
+    headers: {"Content-Type": "application/json"}
+  }).then(res => {
+    if (!res.ok) {
+      res.json().then((json) => {
+        alertBox.value?.setError(`Failed to change role: ${json["message"]}`)
+        getRoster()
+      })
+
+    }
+  })
+}
+
+function rolePrettyName(role: string) {
+  switch (role) {
+    case "student": return "Student"
+    case "ta": return "TA"
+    case "instructor": return "Instructor"
+    case "admin": return "Admin"
+    default: return "IDK"
+  }
+}
+
 </script>
 
 <template>
@@ -248,7 +274,16 @@ function clearStudents() {
       </div>
     <Table id="users-tbl" :headings="['User ID', 'Username', 'Preferred Name', 'Last Name', 'Person Number', 'Role', 'Actions']">
 
-      <TableEntry v-for="user in users" :data="user">
+      <TableEntry v-for="user in users" :data="user.slice(0, 5)">
+        <td>
+          <select v-if="user[0] != me['user_id']" v-model="user[5]" @change="() => updateRole(user[0], user[5])">
+            <option value="student" v-if="user[5] != 'admin'">Student</option>
+            <option value="ta" v-if="user[5] != 'admin'">TA</option>
+            <option value="instructor" v-if="user[5] != 'admin'">Instructor</option>
+            <option value="admin" v-if="user[5] == 'admin'">Admin</option>
+          </select>
+          <span v-else>{{rolePrettyName(user[5])}}</span>
+        </td>
         <td id="actions">
               <button v-if="me['course_role'] !== 'ta' || me['user_id'] == user[0]" @click="visitTable?.show(user[0])">Visits</button>
               <button @click="() => deleteUser(user[0])" v-if="me['user_id'] != user[0] && (user[5] == 'student' || (me['course_role'] != 'ta' && user[5] != 'admin'))" class="danger">Remove</button>
@@ -283,13 +318,21 @@ function clearStudents() {
   }
 }
 
-
 #actions {
-    display: flex;
-    gap: 4px;
-    justify-content: center;
-    border: none;
-    padding: 4px;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  border: none;
+  padding: 4px;
+}
+
+tr, th, td {
+    border: 2px solid #D9D9D9;
+    border-collapse: collapse;
+  }
+
+td {
+  padding: 8px;
 }
 
 #manage-course {

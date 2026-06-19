@@ -297,7 +297,7 @@ class RelationalDBAccounts(IAccounts, IRoster):
             if user is None:
                 return None
 
-            return user[0]
+        return user[0]
 
     def clear_students(self):
         with self.cursor() as cursor:
