@@ -22,8 +22,10 @@ class RelationalDB(
 
     def __init__(self):
         super().__init__()
+        self.db_version = 0
         self.filename = os.getenv("SQLITE_DB_PATH", "./moh.sqlite")
         self._initialize()
+        self._migrate()
 
     def _initialize(self):
         with self.cursor() as c:
@@ -105,3 +107,16 @@ class RelationalDB(
 
     def connect(self):
         pass
+
+    def _migrate(self):
+        with self.cursor() as c:
+            self.db_version = c.execute("PRAGMA user_version").fetchone()[0]
+            for script in os.listdir("./api/database/relational_db/migrations"):
+                if int(script.split("_")[0]) > self.db_version:
+                    with open(
+                        f"./api/database/relational_db/migrations/{script}",
+                        "r",
+                        encoding="utf-8",
+                    ) as sc_file:
+                        c.executescript(sc_file.read())
+            self.db_version = c.execute("PRAGMA user_version").fetchone()[0]

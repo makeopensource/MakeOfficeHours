@@ -188,4 +188,51 @@ def enroll_user():
     return {"message": "Successfully enrolled user", "id": user_id}
 
 
-# TODO: Remove from roster
+@blueprint.route("/user/<user_id>", methods=["DELETE"])
+def delete_user(user_id):
+    """Deletes the specified user.
+
+    :return: 200 on success
+             401 if removing this user isn't permitted
+             404 if user doesn't exist
+    """
+    caller = get_user(request.cookies)
+    user = db.lookup_identifier(user_id)
+    if get_power_level(caller["course_role"]) <= get_power_level(user["course_role"]):
+        return {"message": "You cannot remove this user."}, 401
+
+    for visit in filter(
+        lambda v: int(v["student_id"]) == int(user_id)
+        or int(v["ta_id"]) == int(user_id),
+        db.get_in_progress_visits(),
+    ):
+        db.end_visit(
+            visit["visit_id"],
+            "[Visit ended due to a participant's account being deleted.]",
+        )
+
+    db.remove_student(user_id)
+    db.reset_swipe_time(user_id)
+
+    if db.delete_user(user_id) is None:
+        return {"message": "User not found."}, 404
+
+    return {"message": "Successfully removed user"}
+
+
+@blueprint.route("/clear-enrollments", methods=["DELETE"])
+@min_level("instructor")
+def clear_enrollments():
+    """Clear all student enrollments. This soft-deletes their accounts,
+    clears the queue, etc.
+
+    :return: 200 on success
+    """
+    for visit in db.get_in_progress_visits():
+        db.end_visit(visit["visit_id"], "[Visit ended due to course reset.]")
+
+    db.clear_queue()
+    db.clear_on_site()
+    db.clear_students()
+
+    return {"message": "Removed all students from the course."}

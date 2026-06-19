@@ -99,7 +99,9 @@ class RelationalDBVisits(IVisits):
                            students.ubit           as student_ubit,
                            tas.preferred_name      as ta_name,
                            tas.last_name           as ta_surname,
-                           tas.ubit                as ta_ubit
+                           tas.ubit                as ta_ubit,
+                           ((tas.user_id is not null and (tas.deleted or students.deleted))
+                               or (tas.user_id is null and students.deleted)) as archived
                     FROM visits
                              LEFT JOIN users as students ON students.user_id = visits.student_id
                              LEFT JOIN users as tas ON tas.user_id = visits.ta_id
@@ -114,7 +116,9 @@ class RelationalDBVisits(IVisits):
                            students.ubit           as student_ubit,
                            tas.preferred_name      as ta_name,
                            tas.last_name           as ta_surname,
-                           tas.ubit                as ta_ubit
+                           tas.ubit                as ta_ubit,
+                           ((tas.user_id is not null and (tas.deleted or students.deleted))
+                           or (tas.user_id is null and students.deleted)) as archived
                     FROM visits
                      
                      LEFT JOIN users as students ON students.user_id = visits.student_id
@@ -127,6 +131,8 @@ class RelationalDBVisits(IVisits):
             visits = []
 
             for res in result:
-                visits.append(dict(res))
+                res = dict(res)
+                res["archived"] = bool(res["archived"])
+                visits.append(res)
 
             return visits

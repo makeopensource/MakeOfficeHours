@@ -153,11 +153,43 @@ function showOldVisit(visit: Array<any>) {
   visitRef.value?.show()
 }
 
+function deleteUser(user: string) {
+  fetch(`/api/user/${user}`, { method: "DELETE"}).then(res => {
+      if (!res.ok) {
+        alertBox.value?.setError("Failed to remove user")
+      } else {
+        getRoster()
+      }
+    }
+  )
+}
+
+const clearDialog = ref<typeof ConfirmationDialog>();
+
+function clearStudents() {
+  fetch("/api/clear-enrollments", { method: "DELETE"} ).then(res => {
+    if (!res.ok) {
+      alertBox.value?.setError("Failed to clear roster.")
+    } else {
+      getRoster();
+    }
+  })
+}
+
 </script>
 
 <template>
 
   <Visit ref="visitRef" :visit_info="visitInfo" :read_only="true"/>
+
+  <ConfirmationDialog ref="clearDialog">
+    <p>
+      This will delete all students from the course. Reversing this action will be difficult.
+    </p>
+    <button class="danger" @click="clearStudents">Delete the students!</button>
+    <button @click="clearDialog?.hide()">Close</button>
+
+  </ConfirmationDialog>
 
   <ConfirmationDialog ref="hardwareDialog">
 
@@ -212,14 +244,14 @@ function showOldVisit(visit: Array<any>) {
         <button @click="hardwareDialog?.show()">Authorize Swipe</button>
         <button @click="enrollDialog?.show()">Add User to Roster</button>
         <button @click="uploadCSVDialog?.show()">Enroll from CSV</button>
-        <button @click="alertBox?.setError('Not implemented')" class="danger">Remove all Students</button>
+        <button v-if="manager" @click="clearDialog?.show()" class="danger">Remove all Students</button>
       </div>
     <Table id="users-tbl" :headings="['User ID', 'Username', 'Preferred Name', 'Last Name', 'Person Number', 'Role', 'Actions']">
 
       <TableEntry v-for="user in users" :data="user">
         <td id="actions">
               <button v-if="me['course_role'] !== 'ta' || me['user_id'] == user[0]" @click="visitTable?.show(user[0])">Visits</button>
-              <button v-if="me['user_id'] != user[0] && (user[5] == 'student' || (me['course_role'] != 'ta' && user[5] != 'admin'))" class="danger">Remove</button>
+              <button @click="() => deleteUser(user[0])" v-if="me['user_id'] != user[0] && (user[5] == 'student' || (me['course_role'] != 'ta' && user[5] != 'admin'))" class="danger">Remove</button>
         </td>
       </TableEntry>
     </Table>

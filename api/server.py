@@ -54,6 +54,10 @@ def create_app():
     @min_level("ta")
     def get_user_info(user_id):
         user = db.lookup_identifier(user_id)
+
+        if user is None:
+            return {"message": "User not found"}, 404
+
         return user
 
     @app.route(URL_PREFIX + "/me", methods=["GET"])

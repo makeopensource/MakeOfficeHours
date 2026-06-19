@@ -12,6 +12,9 @@ import api.database.testing_db.testing_db_utils as utils
 class TestingDBAccounts(IAccounts, IRoster):
     """Implementations for the accounts and roster methods"""
 
+    def clear_students(self):
+        pass
+
     def create_account(self, ubit, pn):
         users.append({"ubit": ubit, "person_num": pn})
 
@@ -73,3 +76,6 @@ class TestingDBAccounts(IAccounts, IRoster):
 
     def get_roster(self):
         return users
+
+    def delete_user(self, user_id):
+        pass

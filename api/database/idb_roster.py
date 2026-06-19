@@ -35,6 +35,11 @@ class IRoster(ABC):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def clear_students(self):
+        """Marks all students as deleted."""
+        raise NotImplementedError
+
     # @abstractmethod
     # def get_matched_student(self, query) -> list:
     #     """

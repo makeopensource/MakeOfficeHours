@@ -94,3 +94,14 @@ class IAccounts(ABC):
         """
 
         raise NotImplementedError()
+
+    @abstractmethod
+    def delete_user(self, user_id):
+        """Deletes the specified user. They must not be returned
+        in other functions after this, except in historical visit
+        records. These records must have some indication that
+        the visit is "archived."
+
+        :param user_id: The user id of the user to delete
+        """
+        raise NotImplementedError()

@@ -178,6 +178,7 @@ def get_visits(user_id):
                         "student_name": <student's first and last name>
                         "start_time": <visit start time>
                         "end_time": <visit end time>
+                        "archived": <if any of the users were deleted>
                     }
                 ]
             }

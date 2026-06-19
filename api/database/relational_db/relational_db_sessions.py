@@ -67,7 +67,7 @@ class RelationalDBSessions(ISessions):
         return users_l
 
     def clear_on_site(self):
-        with self.cursor as cursor:
+        with self.cursor() as cursor:
             cursor.execute(
                 """
                 UPDATE users SET last_swipe = NULL

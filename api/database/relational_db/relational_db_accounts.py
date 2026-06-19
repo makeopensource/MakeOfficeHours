@@ -19,7 +19,7 @@ class RelationalDBAccounts(IAccounts, IRoster):
 
             user_id = cursor.execute(
                 """
-                SELECT user_id FROM users WHERE ubit=? or person_num=?
+                SELECT user_id FROM users WHERE (ubit=? or person_num=?) AND deleted = false
             """,
                 (ubit, pn),
             ).fetchone()
@@ -45,7 +45,7 @@ class RelationalDBAccounts(IAccounts, IRoster):
             user = cursor.execute(
                 """
                 SELECT preferred_name, last_name, ubit, person_num, course_role, user_id from users
-                WHERE person_num = ?
+                WHERE person_num = ? AND deleted = false
             """,
                 (person_number,),
             ).fetchone()
@@ -67,7 +67,7 @@ class RelationalDBAccounts(IAccounts, IRoster):
             user = cursor.execute(
                 """
                 SELECT preferred_name, last_name, ubit, person_num, course_role, user_id from users
-                WHERE ubit = ? OR person_num = ? OR user_id = ?
+                WHERE (ubit = ? OR person_num = ? OR user_id = ?) AND deleted = false
             """,
                 (identifier, identifier, identifier),
             ).fetchone()
@@ -92,7 +92,7 @@ class RelationalDBAccounts(IAccounts, IRoster):
                 SELECT preferred_name, last_name, ubit, person_num, course_role, users.user_id, last_swipe 
                 FROM users
                 INNER JOIN auth ON users.user_id = auth.user_id
-                WHERE auth_token = ?
+                WHERE auth_token = ? AND deleted = false
                 AND expires_at > CURRENT_TIMESTAMP
             """,
                 (hashed_token,),
@@ -230,6 +230,7 @@ class RelationalDBAccounts(IAccounts, IRoster):
             users = cursor.execute(
                 """
                 SELECT user_id, preferred_name, last_name, ubit, person_num, course_role FROM users
+                WHERE deleted = false
                 ORDER BY ubit
                """
             ).fetchall()
@@ -281,3 +282,27 @@ class RelationalDBAccounts(IAccounts, IRoster):
                 return None
 
             return user[0]
+
+    def delete_user(self, user_id):
+        with self.cursor() as cursor:
+            user = cursor.execute(
+                """
+                    UPDATE users SET deleted = true
+                    WHERE user_id = ?
+                    RETURNING user_id
+                """,
+                (user_id,),
+            ).fetchone()
+
+            if user is None:
+                return None
+
+            return user[0]
+
+    def clear_students(self):
+        with self.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE users SET deleted = true WHERE course_role = 'student'
+            """
+            )
