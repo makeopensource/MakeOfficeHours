@@ -1,6 +1,6 @@
 """Visits Blueprint for MOH"""
 
-from flask import Blueprint, request
+from flask import Blueprint, request, g
 
 from api.auth.controller import get_user
 from api.database.db import db
@@ -43,9 +43,9 @@ def restore_visit():
     user_id = user["user_id"]
 
     if user["course_role"] == "student":
-        visit = get_students_visit(user_id)
+        visit = get_students_visit(user_id, g.course_id)
     else:
-        visit = get_tas_visit(user_id)
+        visit = get_tas_visit(user_id, g.course_id)
 
     if visit is None:
         return {"message": "You do not have an in-progress visit."}, 404
@@ -100,7 +100,7 @@ def get_active_visits():
                 },...
             ]
     """
-    in_progress = db.get_in_progress_visits()
+    in_progress = db.get_in_progress_visits(g.course_id)
 
     visits = []
 
@@ -187,13 +187,17 @@ def get_visits(user_id):
     :return:
     """
 
-    user = get_user(request.cookies)
+    user = g.user
 
-    if get_power_level(user["course_role"]) > 1 or (
-        user_id is not None
-        and get_power_level(user["course_role"]) > 0
-        and int(user_id) == int(user["user_id"])
+    if (
+        user["site_role"] == "admin"
+        or get_power_level(user["course_role"]) > 1
+        or (
+            user_id is not None
+            and get_power_level(user["course_role"]) > 0
+            and int(user_id) == int(user["user_id"])
+        )
     ):
-        return {"visits": db.get_visits(user_id)}
+        return {"visits": db.get_visits(g.course_id, user_id)}
 
     return {"message": "You are not permitted to view this resource"}, 403

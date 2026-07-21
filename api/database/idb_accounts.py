@@ -13,20 +13,19 @@ class IAccounts(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def lookup_person_number(self, person_number) -> dict[str, str]:
+    def lookup_person_number(self, person_number, course=None) -> dict[str, str]:
         """Returns the database entry for the user with the specified person number."""
         raise NotImplementedError()
 
     @abstractmethod
-    def lookup_identifier(self, identifier) -> dict[str, str]:
-        #
+    def lookup_identifier(self, identifier, course=None) -> dict[str, str]:
         """Returns the database entry for the user with the specified identifier.
         resolves UBIT -> person number -> unique id
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def get_authenticated_user(self, auth_token) -> dict[str, str]:
+    def get_authenticated_user(self, auth_token, course=None) -> dict[str, str]:
         """Returns the database entry for the user with the specified auth token."""
         raise NotImplementedError()
 
@@ -83,7 +82,7 @@ class IAccounts(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def set_name(self, user_id, first_name, last_name):
+    def set_initial_name(self, user_id, first_name, last_name):
         """Sets the user's full name based on identifier
 
         :param user_id: the user's id
@@ -105,3 +104,12 @@ class IAccounts(ABC):
         :param user_id: The user id of the user to delete
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def get_enrollments(self, user_id):
+        """Return all the courses the specified user is a member
+        of, alongside the role.
+
+        :param user_id: the user id to query
+        :return:
+        """

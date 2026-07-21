@@ -8,7 +8,7 @@ class IQueue(ABC):
     """Definitions for the database's queue interface"""
 
     @abstractmethod
-    def enqueue_student(self, student):
+    def enqueue_student(self, student, course):
         """Add the specified student to the end of the queue.
 
         :param student: Identifier for the student to add
@@ -16,7 +16,7 @@ class IQueue(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def enqueue_student_front(self, student):
+    def enqueue_student_front(self, student, course):
         """Add the specified student to the front of the queue.
 
         :param student: Identifier for the student to add
@@ -24,7 +24,7 @@ class IQueue(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def dequeue_student(self):
+    def dequeue_student(self, course):
         """Remove the student at the front of the queue
         from the queue.
 
@@ -44,7 +44,7 @@ class IQueue(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_queue(self):
+    def get_queue(self, course):
         """Retrieve the queue.
 
         :return: The queue as a list of dicts matching
@@ -58,7 +58,7 @@ class IQueue(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def remove_student(self, student):
+    def remove_student(self, student, course):
         """Remove the specified student from the queue
 
         :param student: The student's user id
@@ -72,7 +72,7 @@ class IQueue(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def dequeue_specified_student(self, student_id):
+    def dequeue_specified_student(self, student_id, course):
         """Remove the specified student from the queue
 
         :param student_id: The user ID of the student to dequeue
@@ -81,12 +81,12 @@ class IQueue(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def clear_queue(self):
+    def clear_queue(self, course):
         """Removes all students from the queue."""
         raise NotImplementedError()
 
     @abstractmethod
-    def set_reason(self, student, reason):
+    def set_reason(self, student, reason, course):
         """Marks the student's reason for joining the queue
 
         :param student: the student whose reason to change
@@ -95,7 +95,7 @@ class IQueue(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def move_to_end(self, student):
+    def move_to_end(self, student, course):
         """Move the specified student to the end of the queue
 
         :param student: ID of the student to move
@@ -104,7 +104,7 @@ class IQueue(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_hw_authorization(self):
+    def get_hw_authorization(self, course):
         """Retrieves the authorization code for the card swipe
 
         :return: the authorization code
@@ -112,7 +112,7 @@ class IQueue(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def reset_hw_authorization(self):
+    def reset_hw_authorization(self, course):
         """Resets the hardware authorization code
         and generates a new, random one,
 

@@ -2,9 +2,10 @@
 
 import json
 
-from flask import Blueprint, request, make_response, redirect
+from flask import Blueprint, request, make_response, redirect, g
 from api.database.db import db
 from api.auth.autolab_oauth import get_authorization_url, handle_code_after_redirect
+from api.roster.controller import min_level
 from api.utils.debug import debug_access_only
 
 blueprint = Blueprint("auth", __name__)
@@ -140,3 +141,28 @@ def signup():
         "auth_token", auth_token, max_age=int(2.592e6), httponly=True, secure=True
     )
     return res
+
+
+@blueprint.route("/update-name", methods=["PATCH"])
+@min_level("student")
+def update_preferred_name():
+    """
+    Update the user's preferred name.
+
+    :return: 200, on success
+             400, if malformed
+             401, if user isn't authenticated
+    """
+    user = g.user
+
+    if user is None:
+        return {"message": "You are not authenticated!"}, 401
+
+    body = request.get_json()
+
+    if (name := body.get("name")) is None:
+        return {"message": "Malformed request."}, 400
+
+    db.set_preferred_name(user["ubit"], name)
+
+    return {"message": "Updated preferred name."}

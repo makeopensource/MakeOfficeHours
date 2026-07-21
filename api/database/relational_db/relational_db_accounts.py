@@ -7,11 +7,69 @@ import hashlib
 import bcrypt
 
 from api.database.idb_accounts import IAccounts
+from api.database.idb_courses import ICourses
 from api.database.idb_roster import IRoster
 
 
-class RelationalDBAccounts(IAccounts, IRoster):
+class RelationalDBAccounts(IAccounts, IRoster, ICourses):
     """Implementations for the accounts and roster components."""
+
+    def get_courses(self) -> list[dict[str, str]]:
+        with self.cursor() as cursor:
+            courses = cursor.execute(
+                """
+                SELECT course_id, course_name, course_sem, course_url FROM courses 
+            """
+            ).fetchall()
+
+            courses_l = []
+
+            for course in courses:
+                courses_l.append(dict(course))
+
+        return courses_l
+
+    def get_enrollments(self, user_id):
+        with self.cursor() as cursor:
+            courses = cursor.execute(
+                """
+                SELECT c.course_id, course_name, course_sem, course_url, course_role FROM courses as c 
+                INNER JOIN enrollments as e 
+                ON c.course_id = e.course_id
+                WHERE e.user_id = ?
+            """,
+                (user_id,),
+            ).fetchall()
+
+            courses_l = []
+            for course in courses:
+                courses_l.append(dict(course))
+
+        return courses_l
+
+    def create_course(self, name, semester, url) -> int:
+        with self.cursor() as cursor:
+            prev = cursor.execute(
+                "SELECT * FROM courses WHERE course_url = ? OR course_id = ?",
+                (url, url),
+            ).fetchone()
+            if prev is not None:
+                return -1
+
+            course = cursor.execute(
+                "INSERT INTO courses (course_name, course_sem, course_url) VALUES (?, ?, ?) RETURNING *",
+                (name, semester, url),
+            ).fetchone()
+
+            return course["course_id"]
+
+    def get_course(self, identifier) -> dict[str, str]:
+        with self.cursor() as cursor:
+            result = cursor.execute(
+                "SELECT * FROM courses WHERE course_id = ? OR course_url = ?",
+                (identifier, identifier),
+            ).fetchone()
+            return dict(result) if result is not None else None
 
     def create_account(self, ubit, pn):
 
@@ -19,7 +77,7 @@ class RelationalDBAccounts(IAccounts, IRoster):
 
             user_id = cursor.execute(
                 """
-                SELECT user_id FROM users WHERE (ubit=? or person_num=?) AND deleted = false
+                SELECT user_id FROM users WHERE (ubit=? or person_num=?)
             """,
                 (ubit, pn),
             ).fetchone()
@@ -27,8 +85,8 @@ class RelationalDBAccounts(IAccounts, IRoster):
             if user_id is None:
                 user_id = cursor.execute(
                     """
-                    INSERT into users (ubit, person_num, course_role) VALUES (
-                        ?, ?, "student"
+                    INSERT into users (ubit, person_num, site_role) VALUES (
+                        ?, ?, 'user'
                     )
                     RETURNING user_id; 
                 """,
@@ -39,60 +97,85 @@ class RelationalDBAccounts(IAccounts, IRoster):
 
         return user_id
 
-    def lookup_person_number(self, person_number):
+    def _get_course_role(self, user_id, course):
+
+        if course is None:
+            return None
+
+        course = self.get_course(course)
+
+        with self.cursor() as cursor:
+            role = cursor.execute(
+                "SELECT course_role FROM enrollments WHERE user_id = ? AND course_id = ?",
+                (
+                    user_id,
+                    course["course_id"],
+                ),
+            ).fetchone()
+        if role is not None:
+            return role["course_role"]
+        return None
+
+    def lookup_person_number(self, person_number, course=None):
 
         with self.cursor() as cursor:
             user = cursor.execute(
                 """
-                SELECT preferred_name, last_name, ubit, person_num, course_role, user_id from users
-                WHERE person_num = ? AND deleted = false
+                SELECT preferred_name, last_name, ubit, person_num, site_role, user_id from users
+
+                WHERE person_num = ?
             """,
                 (person_number,),
             ).fetchone()
+            if user is None:
+                return None
 
-        if user is None:
-            return None
+        course_role = self._get_course_role(user["user_id"], course)
 
         return {
             "preferred_name": user[0],
             "last_name": user[1],
             "ubit": user[2],
             "person_num": user[3],
-            "course_role": user[4],
+            "site_role": user[4],
             "user_id": user[5],
+            "course_role": course_role,
         }
 
-    def lookup_identifier(self, identifier):
+    def lookup_identifier(self, identifier, course=None):
         with self.cursor() as cursor:
             user = cursor.execute(
                 """
-                SELECT preferred_name, last_name, ubit, person_num, course_role, user_id from users
-                WHERE (ubit = ? OR person_num = ? OR user_id = ?) AND deleted = false
+                SELECT preferred_name, last_name, ubit, person_num, site_role, user_id from users
+                WHERE (ubit = ? OR person_num = ? OR user_id = ?)
             """,
                 (identifier, identifier, identifier),
             ).fetchone()
 
-        if user is None:
-            return None
+            if not user:
+                return None
 
-        return {
-            "preferred_name": user[0],
-            "last_name": user[1],
-            "ubit": user[2],
-            "person_num": user[3],
-            "course_role": user[4],
-            "user_id": user[5],
-        }
+            course_role = self._get_course_role(user["user_id"], course)
 
-    def get_authenticated_user(self, auth_token):
+            return {
+                "preferred_name": user["preferred_name"],
+                "last_name": user["last_name"],
+                "ubit": user["ubit"],
+                "person_num": user["person_num"],
+                "site_role": user["site_role"],
+                "user_id": user["user_id"],
+                "course_role": course_role,
+            }
+
+    def get_authenticated_user(self, auth_token, course=None):
         hashed_token = hashlib.sha256(auth_token.encode()).digest()
         with self.cursor() as cursor:
             user = cursor.execute(
                 """
-                SELECT preferred_name, last_name, ubit, person_num, course_role, users.user_id, last_swipe 
+                SELECT preferred_name, last_name, ubit, person_num, site_role, users.user_id 
                 FROM users
                 INNER JOIN auth ON users.user_id = auth.user_id
-                WHERE auth_token = ? AND deleted = false
+                WHERE auth_token = ? 
                 AND expires_at > CURRENT_TIMESTAMP
             """,
                 (hashed_token,),
@@ -101,7 +184,8 @@ class RelationalDBAccounts(IAccounts, IRoster):
         if not user:
             return None
 
-        enqueue_time = user[6]
+        # TODO: fix this
+        enqueue_time = None
 
         if enqueue_time is None:
             on_site = False
@@ -120,9 +204,10 @@ class RelationalDBAccounts(IAccounts, IRoster):
             "last_name": user[1],
             "ubit": user[2],
             "person_num": user[3],
-            "course_role": user[4],
+            "site_role": user[4],
             "user_id": user[5],
             "on_site": on_site,
+            "course_role": self._get_course_role(user["user_id"], course),
         }
 
     def sign_up(self, username, pw) -> str | None:
@@ -213,26 +298,26 @@ class RelationalDBAccounts(IAccounts, IRoster):
                 (hashed_auth,),
             )
 
-    def add_to_roster(self, user_id, role):
+    def add_to_roster(self, user_id, role, course):
 
         with self.cursor() as cursor:
             cursor.execute(
                 """
-                UPDATE users
-                SET course_role = ?
-                WHERE user_id = ?
+                INSERT INTO enrollments (course_id, user_id, course_role) VALUES (?, ?, ?)
                 """,
-                (role, user_id),
+                (course, user_id, role),
             )
 
-    def get_roster(self):
+    def get_roster(self, course):
         with self.cursor() as cursor:
             users = cursor.execute(
                 """
-                SELECT user_id, preferred_name, last_name, ubit, person_num, course_role FROM users
-                WHERE deleted = false
+                SELECT users.user_id, preferred_name, last_name, ubit, person_num, site_role, e.course_role FROM users
+                INNER JOIN enrollments as e ON e.user_id = users.user_id
+                WHERE course_id = ?
                 ORDER BY ubit
-               """
+               """,
+                (course,),
             ).fetchall()
             result = []
             for user in users:
@@ -243,7 +328,8 @@ class RelationalDBAccounts(IAccounts, IRoster):
                         "last_name": user[2],
                         "ubit": user[3],
                         "person_num": user[4],
-                        "course_role": user[5],
+                        "site_role": user[5],
+                        "course_role": user[6],
                     }
                 )
 
@@ -266,13 +352,13 @@ class RelationalDBAccounts(IAccounts, IRoster):
 
             return user[0]
 
-    def set_name(self, user_id, first_name, last_name):
+    def set_initial_name(self, user_id, first_name, last_name):
         with self.cursor() as cursor:
             user = cursor.execute(
                 """
                     UPDATE users SET 
                     preferred_name = ?, last_name = ?
-                    WHERE user_id = ?
+                    WHERE user_id = ? AND preferred_name IS NULL
                     RETURNING user_id
                 """,
                 (first_name, last_name, user_id),
@@ -282,6 +368,22 @@ class RelationalDBAccounts(IAccounts, IRoster):
                 return None
 
             return user[0]
+
+    def remove_from_roster(self, user_id, course):
+        with self.cursor() as cursor:
+            user = cursor.execute(
+                """
+                    DELETE FROM enrollments
+                    WHERE user_id = ? AND course_id = ?
+                    RETURNING user_id
+                """,
+                (user_id, course),
+            ).fetchone()
+
+            if user is None:
+                return None
+
+        return user["user_id"]
 
     def delete_user(self, user_id):
         with self.cursor() as cursor:
@@ -299,10 +401,11 @@ class RelationalDBAccounts(IAccounts, IRoster):
 
         return user[0]
 
-    def clear_students(self):
+    def clear_students(self, course):
         with self.cursor() as cursor:
             cursor.execute(
                 """
-                UPDATE users SET deleted = true WHERE course_role = 'student'
-            """
+                DELETE FROM enrollments WHERE course_role = 'student' AND course_id = ?
+            """,
+                (course,),
             )

@@ -1,10 +1,13 @@
 <script setup lang="ts">
 
 import {ref} from "vue";
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 
 
 const router = useRouter()
+const route = useRoute()
+
+const course = route.params.course
 
 let code = ref<string>("");
 
@@ -13,7 +16,7 @@ let status = ref<string>("");
 let setCode = () => {
   localStorage.setItem("auth-code", code.value)
   status.value = "Done!"
-  router.push("/swipe")
+  router.push(`/${course}/swipe`)
 }
 
 </script>

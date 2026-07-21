@@ -5,7 +5,7 @@ import {nextTick, ref} from "vue";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import Visit from "@/components/instructor/Visit.vue";
 import EditInfo from "@/components/common/EditInfo.vue";
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import Alert from "@/components/common/Alert.vue";
 import OnSiteEntry from "@/components/instructor/OnSiteEntry.vue";
 import ActiveEntry from "@/components/instructor/ActiveEntry.vue";
@@ -15,10 +15,11 @@ const onSite = ref([])
 const inVisit = ref([])
 
 const router = useRouter()
+const route = useRoute()
+
+const course = route.params.course
 
 const taName = ref<string>("");
-
-const courseManager = ref<boolean>(false);
 
 const error = ref<typeof Alert>();
 
@@ -29,23 +30,22 @@ fetch("/api/me").then(res => {
   return res.json()
 }).then(data => {
   taName.value = data["preferred_name"]
-  courseManager.value = data["course_role"] == 'instructor' || data["course_role"] == 'admin'
 })
 
 function getQueue() {
-  fetch("/api/get-queue").then(res => {
+  fetch(`/api/course/${route.params.course}/get-queue`).then(res => {
     return res.json()
   }).then(data => {
     students.value = data
   })
 
-  fetch("/api/on-site").then(res => {
+  fetch(`/api/course/${route.params.course}/on-site`).then(res => {
     return res.json()
   }).then(data => {
     onSite.value = data
   })
 
-  fetch("/api/active-visits").then(res => {
+  fetch(`/api/course/${route.params.course}/active-visits`).then(res => {
     return res.json();
   }).then(data => {
     inVisit.value = data;
@@ -70,7 +70,7 @@ const forceEnqueueErrorMessage = ref('');
 
 
 function submitForceEnqueue() {
-  fetch("/api/enqueue-ta-override", {
+  fetch(`/api/course/${route.params.course}/enqueue-ta-override`, {
     method: "POST",
     body: JSON.stringify({"identifier": forceEnqueueEntry.value}),
     headers: {"Content-Type": "application/json"}
@@ -93,7 +93,7 @@ function submitForceEnqueue() {
 
 function enqueueStudent(student: number) {
   console.log("Student: ", student)
-  fetch("/api/enqueue-ta-override", {
+  fetch(`/api/course/${route.params.course}/enqueue-ta-override`, {
     method: "POST",
     body: JSON.stringify({"identifier": student}),
     headers: {"Content-Type": "application/json"}
@@ -121,7 +121,7 @@ const visitDialog = ref<typeof Visit>();
 
 function callStudent(id: number) {
 
-  fetch("/api/help-a-student", {
+  fetch(`/api/course/${route.params.course}/help-a-student`, {
     method: "POST",
     body: JSON.stringify({"id": id}),
     headers: {"Content-Type": "application/json"}
@@ -218,7 +218,7 @@ function deactivateStudent() {
 const editInfo = ref<typeof EditInfo>();
 
 function getInProgressVisit() {
-  fetch("/api/restore-visit").then(res => {
+  fetch(`/api/course/${route.params.course}/restore-visit`).then(res => {
     if (!res.ok) {
       throw new Error("No in-progress visit found.")
     }
@@ -352,7 +352,7 @@ function endOtherTAsVisit(id: number) {
     </div>
     <div id="queue-buttons" class="queue-section">
       <div id="buttons-l">
-        <button @click="router.push('/manage')" id="manage-course-button">Manage Course</button>
+        <button @click="router.push(`/${course}/manage`)" id="manage-course-button">Manage Course</button>
         <button @click="editInfo?.show()">Edit My Info</button>
         <button id="signout" @click="signOut">Sign Out</button>
       </div>

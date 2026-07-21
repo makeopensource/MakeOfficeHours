@@ -1,6 +1,6 @@
 """Roster Blueprint for MOH"""
 
-from flask import Blueprint, request
+from flask import Blueprint, request, g
 
 from api.auth.controller import get_user
 from api.roster.controller import min_level, add_to_roster, get_power_level
@@ -32,7 +32,7 @@ def upload_roster():
         - 400 if roster is missing or invalid format
     """
 
-    user = get_user(request.cookies)
+    user = g.user
 
     if not request.files or request.files.get("roster") is None:
         return {"message": "Invalid roster upload (missing file)"}, 400
@@ -80,6 +80,7 @@ def upload_roster():
             user["first_name"],
             user["last_name"],
             user["role"],
+            g.course_id,
         )
 
     return {"message": "Successfully uploaded roster"}, 200
@@ -112,34 +113,9 @@ def get_roster():
 
 
     """
-    roster = db.get_roster()
+    roster = db.get_roster(g.course_id)
 
     return {"roster": roster}
-
-
-@blueprint.route("/update-name", methods=["PATCH"])
-@min_level("student")
-def update_preferred_name():
-    """
-    Update the user's preferred name.
-
-    :return: 200, on success
-             400, if malformed
-             401, if user isn't authenticated
-    """
-    user = get_user(request.cookies)
-
-    if user is None:
-        return {"message": "You are not authenticated!"}, 401
-
-    body = request.get_json()
-
-    if (name := body.get("name")) is None:
-        return {"message": "Malformed request."}, 400
-
-    db.set_preferred_name(user["ubit"], name)
-
-    return {"message": "Updated preferred name."}
 
 
 @blueprint.route("/enroll", methods=["POST"])
@@ -165,7 +141,7 @@ def enroll_user():
     """
     data = request.get_json()
 
-    user = get_user(request.cookies)
+    user = g.user
 
     required_fields = ["ubit", "pn", "preferred_name", "last_name", "role"]
 
@@ -182,15 +158,15 @@ def enroll_user():
         return {"message": "You cannot enroll a user at this level."}, 403
 
     user_id = db.create_account(data["ubit"], data["pn"])
-    db.add_to_roster(user_id, data["role"])
-    db.set_name(user_id, data["preferred_name"], data["last_name"])
+    db.add_to_roster(user_id, data["role"], g.course_id)
+    db.set_initial_name(user_id, data["preferred_name"], data["last_name"])
 
     return {"message": "Successfully enrolled user", "id": user_id}
 
 
 @blueprint.route("/user/<user_id>", methods=["DELETE"])
 def delete_user(user_id):
-    """Deletes the specified user.
+    """Unenrolls the specified user.
 
     :return: 200 on success
              401 if removing this user isn't permitted
@@ -208,16 +184,17 @@ def delete_user(user_id):
     ):
         db.end_visit(
             visit["visit_id"],
-            "[Visit ended due to a participant's account being deleted.]",
+            "[Visit ended due to a participant's account being unenrolled.]",
         )
 
-    db.remove_student(user_id)
-    db.reset_swipe_time(user_id)
+    db.remove_student(user_id, g.course_id)
+    db.reset_swipe_time(user_id, g.course_id)
 
-    if db.delete_user(user_id) is None:
+    if db.remove_from_roster(user_id) is None:
         return {"message": "User not found."}, 404
 
-    return {"message": "Successfully removed user"}
+    return {"message": "Successfully removed user from roster"}
+
 
 @blueprint.route("/user/<user_id>/role", methods=["PATCH"])
 @min_level("ta")
@@ -247,7 +224,7 @@ def update_role(user_id):
     if get_power_level(caller["course_role"]) < get_power_level(role):
         return {"message": "You are not permitted to set this user to this role."}, 401
 
-    db.add_to_roster(user_id, role)
+    db.add_to_roster(user_id, role, g.course_id)
 
     return {"message": "Updated role."}
 

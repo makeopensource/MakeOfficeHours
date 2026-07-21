@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {ref} from "vue";
 import TableEntry from "@/components/TableEntry.vue";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
@@ -10,18 +10,21 @@ import Visit from "@/components/instructor/Visit.vue";
 import VisitTable from "@/components/instructor/VisitTable.vue";
 
 const router = useRouter()
+const route = useRoute()
+
+const course = route.params.course
 
 const me = ref<any>({});
 const manager = ref<boolean>(false);
 
-fetch("/api/me").then(res => {
+fetch(`/api/course/${course}`).then(res => {
   if (!res.ok) {
     router.push("/")
   }
   return res.json();
 }).then(data => {
   if (data["course_role"] === "student") {
-    router.push("/queue")
+    router.push(`/${course}/queue`)
   }
   if (data["course_role"] !== "ta") {
     manager.value = true;
@@ -32,9 +35,9 @@ fetch("/api/me").then(res => {
 
 const users = ref<Array<Array<any>>>([]);
 
-const getRoster = () => fetch("/api/get-roster").then(res => {
+const getRoster = () => fetch(`/api/course/${course}/get-roster`).then(res => {
   if (!res.ok) {
-    router.push("/queue")
+    router.push(`/${course}/queue`)
   }
   return res.json();
 }).then(json => {
@@ -64,7 +67,7 @@ const setCSVFile = (event: any) => csvFile.value = event.target?.files[0]
 function uploadCSV() {
   const data = new FormData()
   data.append('roster', csvFile.value)
-  fetch("/api/upload-roster", {
+  fetch(`/api/course/${course}/upload-roster`, {
     method: "POST",
     body: data
   }).then(res => {
@@ -92,7 +95,7 @@ const userToEnroll = ref(
 );
 
 function enrollUser() {
-  fetch("/api/enroll", {
+  fetch(`/api/course/${course}/enroll`, {
     method: "POST",
     body: JSON.stringify({
       "ubit": userToEnroll.value?.ubit,
@@ -123,13 +126,13 @@ let hardwareCode = ref<string>();
 
 
 const getCode = () => {
-  fetch("/api/swipe-authorization").then(res => res.json()).then(json => {
+  fetch(`/api/course/${course}/swipe-authorization`).then(res => res.json()).then(json => {
     hardwareCode.value = json["code"]
   })
 }
 
 const resetAuth = () => {
-  fetch("/api/reset-swipe-auth", {
+  fetch(`/api/course/${course}/reset-swipe-auth`, {
     method: "DELETE"
   }).then(() => {
     getCode()
@@ -167,7 +170,7 @@ function deleteUser(user: string) {
 const clearDialog = ref<typeof ConfirmationDialog>();
 
 function clearStudents() {
-  fetch("/api/clear-enrollments", { method: "DELETE"} ).then(res => {
+  fetch(`/api/course/${course}/clear-enrollments`, { method: "DELETE"} ).then(res => {
     if (!res.ok) {
       alertBox.value?.setError("Failed to clear roster.")
     } else {
@@ -263,7 +266,7 @@ function rolePrettyName(role: string) {
 
   <div id="manage-course">
       <h2>Manage Course</h2>
-      <button id="return-btn" @click="router.push('/queue')">Return to Queue</button>
+      <button id="return-btn" @click="router.push(`/${course}/queue`)">Return to Queue</button>
       <br/>
       <div class="manage-buttons">
         <button v-if="manager" @click='visitTable?.show()'>View All Visits</button>

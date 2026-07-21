@@ -1,6 +1,10 @@
 <script setup lang="ts">
 
 import {nextTick, ref} from "vue";
+import {useRoute} from "vue-router";
+
+const route = useRoute()
+const course = route.params.course
 
 const props = defineProps(["visit_info", "read_only"])
 const emit = defineEmits(["open", "close"])
@@ -32,7 +36,7 @@ function submitVisit(after?: () => void) {
   taNotesBox.value?.reportValidity();
 
   if (taNotesBox.value?.checkValidity()) {
-    fetch("/api/end-visit", {
+    fetch(`/api/course/${course}/end-visit`, {
       method: "POST",
       body: JSON.stringify({"id": props?.visit_info["visitID"], "reason": taNotesText.value}),
       headers: {"Content-Type": "application/json"}
@@ -47,7 +51,7 @@ function submitVisit(after?: () => void) {
 }
 
 const sendToFront = () => {
-  fetch("/api/enqueue-override-front", {
+  fetch(`/api/course/${course}/enqueue-override-front`, {
     method: "POST",
     body: JSON.stringify({ "identifier": props.visit_info["username"] }),
     headers: {"Content-Type": "application/json"}
@@ -59,7 +63,7 @@ const sendToFront = () => {
 }
 
 const sendToBack = () => {
-  fetch("/api/enqueue-ta-override", {
+  fetch(`/api/course/${course}/enqueue-ta-override`, {
     method: "POST",
     body: JSON.stringify({"identifier": props.visit_info["username"]}),
     headers: {"Content-Type": "application/json"}
@@ -71,7 +75,7 @@ const sendToBack = () => {
 }
 
 const cancelVisit = () => {
-  fetch("/api/cancel-visit", {
+  fetch(`/api/course/${course}/cancel-visit`, {
     method: "POST",
     body: JSON.stringify({"visit_id": props.visit_info["visitID"]}),
     headers: {"Content-Type": "application/json"}

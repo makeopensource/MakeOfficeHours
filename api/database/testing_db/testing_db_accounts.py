@@ -12,19 +12,25 @@ import api.database.testing_db.testing_db_utils as utils
 class TestingDBAccounts(IAccounts, IRoster):
     """Implementations for the accounts and roster methods"""
 
-    def clear_students(self):
+    def get_enrollments(self, user_id):
+        pass
+
+    def remove_from_roster(self, user_id, course):
+        pass
+
+    def clear_students(self, course):
         pass
 
     def create_account(self, ubit, pn):
         users.append({"ubit": ubit, "person_num": pn})
 
-    def lookup_person_number(self, person_number) -> dict[str, str]:
+    def lookup_person_number(self, person_number, course=None) -> dict[str, str]:
         return utils.lookup_person_number(person_number)
 
-    def lookup_identifier(self, identifier) -> dict[str, str]:
+    def lookup_identifier(self, identifier, course=None) -> dict[str, str]:
         return utils.lookup_identifier(identifier)
 
-    def get_authenticated_user(self, auth_token) -> dict[str, str]:
+    def get_authenticated_user(self, auth_token, course=None) -> dict[str, str]:
         for user in users:
             if user["auth"] == auth_token:
                 return user
@@ -63,18 +69,18 @@ class TestingDBAccounts(IAccounts, IRoster):
         if user is not None:
             user["fn"] = name
 
-    def set_name(self, user_id, first_name, last_name):
+    def set_initial_name(self, user_id, first_name, last_name):
         user = self.lookup_identifier(user_id)
         if user is not None:
             user["fn"] = first_name
             user["sn"] = last_name
 
-    def add_to_roster(self, user_id, role):
+    def add_to_roster(self, user_id, role, course):
         user = self.lookup_identifier(user_id)
         if user is not None and role in {"student", "ta", "instructor", "admin"}:
             user["course_role"] = role
 
-    def get_roster(self):
+    def get_roster(self, course):
         return users
 
     def delete_user(self, user_id):

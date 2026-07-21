@@ -7,6 +7,7 @@ import EditInfo from "@/components/common/EditInfo.vue";
 import Alert from "@/components/common/Alert.vue";
 
 const router = useRouter()
+const route = useRoute()
 
 let enqueued = ref(false)
 let onSite = ref(false)
@@ -30,7 +31,7 @@ let bannerText = ref("You are not in the queue!")
 const leaveQueueDialog = ref<typeof ConfirmationDialog>();
 
 function fetchPosition() {
-  fetch("/api/get-my-position").then(
+  fetch(`/api/course/${route.params.course}/get-my-position`).then(
       res => {
         return res.json()
       }
@@ -70,7 +71,7 @@ function fetchPosition() {
 let visitPollTimeout = -1;
 
 function fetchVisit() {
-  fetch("/api/restore-visit").then(res => {
+  fetch(`/api/course/${route.params.course}/restore-visit`).then(res => {
     if (res.ok) {
       return res.json()
     } else {
@@ -113,7 +114,7 @@ function leaveQueue() {
   selfDequeueReason.value?.reportValidity()
 
   if (selfDequeueReason.value?.checkValidity()) {
-    fetch("/api/remove-self-from-queue", {
+    fetch(`/api/course/${route.params.course}/remove-self-from-queue`, {
       method: "POST",
       body: JSON.stringify({"reason": selfDequeueReason.value?.value}),
       headers: {"Content-Type": "application/json"}
@@ -139,7 +140,7 @@ function updateReason() {
   }
 
 
-  fetch("/api/update-reason", {
+  fetch(`/api/course/${route.params.course}/update-reason`, {
     method: "PATCH",
     body: JSON.stringify({"reason": queueReason.value?.value}),
     headers: {"Content-Type": "application/json"}
@@ -170,7 +171,7 @@ const visitDialog = ref<typeof ConfirmationDialog>();
 const taName = ref<string>("");
 
 function selfEnqueue() {
-  fetch("/api/enqueue", { method: "POST" }).then(res => {
+  fetch(`/api/course/${route.params.course}/enqueue`, { method: "POST" }).then(res => {
     if (!res.ok) {
       alertBox.value?.setError("Failed to enqueue! Are you on site?")
     } else {

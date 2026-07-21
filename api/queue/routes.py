@@ -1,8 +1,7 @@
 """Queue Blueprint for MOH"""
 
-from flask import Blueprint, request
+from flask import Blueprint, request, g
 
-from api.auth.controller import get_user
 from api.queue.controller import (
     remove_from_queue_without_visit,
     self_add_to_queue,
@@ -14,7 +13,7 @@ from api.queue.controller import (
 from api.roster.controller import min_level
 from api.database.db import db
 
-blueprint = Blueprint("queue", __name__)
+blueprint = Blueprint("queue", __name__, url_prefix="/course/<course_id>")
 
 
 @blueprint.route("/enqueue-card-swipe", methods=["POST"])
@@ -50,7 +49,7 @@ def enqueue_card_swipe():
     if decode_pn(swipe_data) == "":
         return {"message": "Bad read"}, 400
 
-    if add_to_queue_by_card_swipe(swipe_data):
+    if add_to_queue_by_card_swipe(swipe_data, g.course_id):
         return {"message": "Student was added to the queue"}
 
     return {"message": "No student matching the card swipe was found"}, 404
@@ -84,7 +83,7 @@ def enqueue_ta_override():
     body = request.get_json()
     identifier = body["identifier"]
 
-    if add_to_queue_by_ta_override(identifier):
+    if add_to_queue_by_ta_override(identifier, g.course_id):
         return {"message": "Student was added to the queue"}
 
     return {"message": "No student matching provided identifier"}, 404
@@ -121,25 +120,29 @@ def dequeue():
 
     body = request.get_json()
 
-    if not (auth_token := request.cookies.get("auth_token")):
+    if not request.cookies.get("auth_token"):
         return {"message": "You are not logged in!"}, 403
 
-    user = db.get_authenticated_user(auth_token)
+    user = g.user
     user_id = user["user_id"]
 
-    in_progress = db.get_in_progress_visits()
+    in_progress = db.get_in_progress_visits(g.course_id)
     in_progress = list(filter(lambda v: v["ta_id"] == user_id, in_progress))
 
     if len(in_progress) != 0:
         return {"message": "You have a visit in progress."}, 400
 
-    student = db.dequeue_specified_student(body["id"])
+    student = db.dequeue_specified_student(body["id"], g.course_id)
 
     if student is None:
         return {"message": "The queue is empty"}, 400
 
     visit = db.create_visit(
-        body["id"], user_id, student["enqueue_time"], student["enqueue_reason"]
+        body["id"],
+        user_id,
+        student["enqueue_time"],
+        student["enqueue_reason"],
+        g.course_id,
     )
 
     return {
@@ -173,8 +176,7 @@ def get_queue():
         ]
         403 Forbidden - Requester does not have TA permissions
     """
-
-    return db.get_queue()
+    return db.get_queue(g.course_id)
 
 
 @blueprint.route("/get-queue-size", methods=["GET"])
@@ -189,7 +191,7 @@ def get_queue_size():
         }
     """
 
-    queue = db.get_queue()
+    queue = db.get_queue(g.course_id)
 
     return {"size": len(queue)}
 
@@ -227,13 +229,13 @@ def get_anon_queue():
 
     user_id = user["user_id"]
 
-    queue = db.get_queue()
+    queue = db.get_queue(g.course_id)
 
     for i, entry in enumerate(queue, 1):
         if entry["id"] == user_id:
             return {"position": i, "length": len(queue)}
 
-    active = is_active(user_id)
+    active = is_active(user_id, g.course_d)
 
     return {
         "message": "You are not in the queue!",
@@ -273,7 +275,9 @@ def remove_self():
     user_id = user["user_id"]
     body = request.get_json()
 
-    if remove_from_queue_without_visit(user_id, f"[SELF-REMOVE]: {body["reason"]}"):
+    if remove_from_queue_without_visit(
+        user_id, f"[SELF-REMOVE]: {body["reason"]}", g.course_id
+    ):
         return {"message": "Removed self from queue."}
 
     return {"message": "You are not in the queue!"}, 400
@@ -309,7 +313,9 @@ def remove():
     user_id = body.get("user_id")
     reason = body.get("reason")
 
-    if remove_from_queue_without_visit(user_id, f"[REMOVED BY TA]: {reason}"):
+    if remove_from_queue_without_visit(
+        user_id, f"[REMOVED BY TA]: {reason}", g.course_id
+    ):
         return {"message": "Removed student from queue"}
     return {"message": "Student is not in queue"}, 400
 
@@ -347,7 +353,7 @@ def enqueue_override_front():
     body = request.get_json()
     identifier = body["identifier"]
 
-    if add_to_queue_by_ta_override(identifier, True):
+    if add_to_queue_by_ta_override(identifier, g.course_id, True):
         return {"message": "Student was added to the front of the queue"}
 
     return {"message": "No student matching provided identifier"}, 404
@@ -367,7 +373,7 @@ def update_reason():
     """
     body = request.get_json()
 
-    user = get_user(request.cookies)
+    user = g.user
 
     if user is None:
         return {"message": "You are not authenticated"}, 401
@@ -377,7 +383,7 @@ def update_reason():
     if not reason:
         return {"message": "Malformed request"}, 400
 
-    db.set_reason(user["user_id"], reason)
+    db.set_reason(user["user_id"], reason, g.course_id)
 
     return {"message": "Reason updated"}
 
@@ -398,7 +404,7 @@ def move_to_end():
     if (user_id := body.get("user_id")) is None:
         return {"message": "Malformed request"}, 400
 
-    if db.move_to_end(user_id):
+    if db.move_to_end(user_id, g.course_id):
         return {"message": "Moved student to end of the queue"}
 
     return {"message": "Specified user is not in queue"}, 400
@@ -413,7 +419,7 @@ def get_swipe_auth_code():
 
     :return: 200 with the authorization code as: {"code": <code>}
     """
-    code = db.get_hw_authorization()
+    code = db.get_hw_authorization(g.course_id)
 
     if code is None:
         return {"message": "Auth code not set"}, 404
@@ -428,7 +434,7 @@ def reset_swipe_auth_code():
 
     :return: 200 with the newly generated code as: {"code": <code>}
     """
-    db.reset_hw_authorization()
+    db.reset_hw_authorization(g.course_id)
 
     return {"message": "Reset auth code"}
 
@@ -444,15 +450,15 @@ def self_enqueue():
              403 if the user hasn't swiped within the past two hours
     """
 
-    if not (auth_token := request.cookies.get("auth_token")):
+    if not request.cookies.get("auth_token"):
         return {"message": "You are not logged in!"}, 401
 
-    user = db.get_authenticated_user(auth_token)
+    user = g.user
 
     if not user:
         return {"message": "You are not logged in!"}, 401
 
-    if not self_add_to_queue(user["user_id"]):
+    if not self_add_to_queue(user["user_id"], g.course_id):
         return {"message": "You have not swiped in the past two hours!"}, 403
 
     return {"message": "Added yourself to the queue."}, 200
@@ -474,7 +480,7 @@ def get_on_site():
                     ...
                 ]
     """
-    return db.get_on_site()
+    return db.get_on_site(g.course_id)
 
 
 @blueprint.route("/deactivate", methods=["PATCH"])
@@ -490,6 +496,6 @@ def deactivate():
     :return: 200 on success
     """
     body = request.get_json()
-    db.reset_swipe_time(body["user_id"])
+    db.reset_swipe_time(body["user_id"], g.course_id)
 
     return {"message": "Deactivated the student."}

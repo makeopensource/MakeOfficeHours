@@ -3,6 +3,7 @@
 import {ref, watch} from "vue";
 import Table from "@/components/Table.vue";
 import TableEntry from "@/components/TableEntry.vue";
+import {useRoute} from "vue-router";
 
 const props = defineProps(["id"])
 const emit = defineEmits(["open", "close", "show-visit"])
@@ -16,6 +17,10 @@ const showing = ref<boolean>(false);
 const unf = ref<Array<any>>([]);
 
 const id = ref<number>();
+
+const route = useRoute()
+
+const course = route.params.course
 
 const show = (user: number) => {
   dialogRef.value?.showModal();
@@ -41,7 +46,7 @@ const visits = ref<Array<Array<any>>>([]);
 
 const headings = ['Enqueue Time', 'Visit Start Time', 'Visit End Time', 'Student Username', 'Student First Name', 'Student Last Name', 'TA Username', 'TA First Name', 'TA Last Name', '']
 
-const getVisits = () => fetch(`/api/visits${id.value !== undefined ? `/${id.value}` : ''}`).then(res => {
+const getVisits = () => fetch(`/api/course/${course}/visits${id.value !== undefined ? `/${id.value}` : ''}`).then(res => {
   return res.json();
 }).then(json => {
 

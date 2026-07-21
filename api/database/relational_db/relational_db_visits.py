@@ -8,15 +8,15 @@ from api.database.idb_visits import IVisits
 class RelationalDBVisits(IVisits):
     """Implementations for the visits component"""
 
-    def create_visit(self, student, ta, enqueue_time, visit_reason) -> int:
+    def create_visit(self, student, ta, enqueue_time, visit_reason, course) -> int:
         with self.cursor() as cursor:
             visit_id = cursor.execute(
                 """
-                INSERT INTO visits (student_id, ta_id, enqueue_time, student_visit_reason) VALUES (
-                ?, ?, ?, ?)
+                INSERT INTO visits (student_id, ta_id, enqueue_time, student_visit_reason, course_id) VALUES (
+                ?, ?, ?, ?, ?)
                 RETURNING visit_id
             """,
-                (student, ta, enqueue_time, visit_reason),
+                (student, ta, enqueue_time, visit_reason, course),
             ).fetchone()[0]
 
             return visit_id
@@ -65,13 +65,14 @@ class RelationalDBVisits(IVisits):
                 "UPDATE queue SET dequeued = false WHERE user_id = ?", (student,)
             )
 
-    def get_in_progress_visits(self):
+    def get_in_progress_visits(self, course):
         with self.cursor() as cursor:
             result = cursor.execute(
                 """
                 SELECT visit_id, student_id, student_visit_reason, ta_id, enqueue_time, session_start FROM visits
-                WHERE session_end IS NULL
-            """
+                WHERE session_end IS NULL AND course_id = ?
+            """,
+                (course,),
             ).fetchall()
 
         visits = []
@@ -88,7 +89,7 @@ class RelationalDBVisits(IVisits):
             )
         return visits
 
-    def get_visits(self, user_id=None):
+    def get_visits(self, course, user_id=None):
         with self.cursor() as cursor:
             if user_id is None:
                 result = cursor.execute(
@@ -105,7 +106,9 @@ class RelationalDBVisits(IVisits):
                     FROM visits
                              LEFT JOIN users as students ON students.user_id = visits.student_id
                              LEFT JOIN users as tas ON tas.user_id = visits.ta_id
-                    """
+                    WHERE course_id = ?
+                    """,
+                    (course,),
                 ).fetchall()
             else:
                 result = cursor.execute(
@@ -123,9 +126,9 @@ class RelationalDBVisits(IVisits):
                      
                      LEFT JOIN users as students ON students.user_id = visits.student_id
                      LEFT JOIN users as tas ON tas.user_id = visits.ta_id
-                    WHERE student_id = ? OR ta_id = ?
+                    WHERE (student_id = ? OR ta_id = ?) AND course_id = ?
                 """,
-                    (user_id, user_id),
+                    (user_id, user_id, course),
                 ).fetchall()
 
             visits = []

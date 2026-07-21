@@ -1,15 +1,23 @@
 <script setup lang="ts">
 import StudentQueue from "@/pages/StudentQueue.vue";
 import {ref} from "vue";
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import InstructorQueue from "@/pages/InstructorQueue.vue";
 
 const router = useRouter()
+const route = useRoute()
 
 let student = ref(true);
 let ready = ref(false)
 
-fetch("/api/me").then(res => {
+
+const course: string | undefined = route.params.course?.toString()
+
+if (course != null) {
+  localStorage.setItem("last-course", course)
+}
+
+fetch(`/api/course/${course}`).then(res => {
   if (!res.ok) {
     router.push("/")
   }

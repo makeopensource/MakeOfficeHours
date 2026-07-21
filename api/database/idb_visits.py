@@ -8,13 +8,14 @@ class IVisits(ABC):
     """Definitions for the visits component of the database interface"""
 
     @abstractmethod
-    def create_visit(self, student, ta, enqueue_time, visit_reason) -> int:
+    def create_visit(self, student, ta, enqueue_time, visit_reason, course) -> int:
         """Create a database entry for the ongoing visit
         between the specified student and TA.
 
         enqueue_time should be in format "YYYY-MM-DD HH:MM:SS"
         Should indicate the time the visit was created
 
+        :param course: the course to create a visit in
         :param student: The user ID of the student
         :param ta: The user ID of the TA
         :param enqueue_time: Timestamp when the student joined the queue,
@@ -46,9 +47,11 @@ class IVisits(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_in_progress_visits(self):
+    def get_in_progress_visits(self, course):
         """Return all database entries for visits that have
-        not ended.
+        not ended for this course.
+
+        :param course:  the course to get visits from
 
 
         :return:
@@ -56,12 +59,13 @@ class IVisits(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_visits(self, user_id=None):
+    def get_visits(self, course, user_id=None):
         """Return all database entries for visits.
 
         If user_id is set, get all visits that contain
         this user, either as a student or as a TA.
 
+        :param course: the course to get visits from
         :param user_id: Optional user_id
         :return: All visits from the database
         """

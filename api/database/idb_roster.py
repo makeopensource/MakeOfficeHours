@@ -8,18 +8,19 @@ class IRoster(ABC):
     """Definitions for the roster component of the database interface"""
 
     @abstractmethod
-    def add_to_roster(self, user_id, role):
+    def add_to_roster(self, user_id, role, course):
         """Set the user with id user_id to have the role
         specified by role.
 
         :param user_id: The user_id of the user
         :param role: The desired role.
+        :param course: the course to add to user to
         :return:
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def get_roster(self):
+    def get_roster(self, course):
         """Retrieve the entire roster and their
         relevant information from the database.
 
@@ -36,7 +37,17 @@ class IRoster(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def clear_students(self):
+    def remove_from_roster(self, user_id, course):
+        """Remove the specified user from the course
+
+        :param user_id: the user to remove
+        :param course: the course to remove from
+        :return:
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def clear_students(self, course):
         """Marks all students as deleted."""
         raise NotImplementedError
 
