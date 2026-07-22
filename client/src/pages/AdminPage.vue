@@ -174,6 +174,21 @@ label {
   gap: 8px;
 }
 
+#page {
+  margin: 32px 128px;
+}
+
+@media screen and (max-width: 991px) {
+  #sidebar {
+    display: none;
+  }
+
+  #page {
+    margin: auto;
+    padding: 32px;
+  }
+}
+
 #content {
   flex: 1;
 }
@@ -194,10 +209,6 @@ label {
   flex-direction: column;
   flex-grow: 0;
   width: fit-content;
-}
-
-#page {
-  margin: 32px 128px;
 }
 
 #top-buttons {

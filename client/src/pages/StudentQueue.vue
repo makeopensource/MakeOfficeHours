@@ -186,8 +186,6 @@ function selfEnqueue() {
 
   <header id="queue-banner" :class="bannerClass">{{ bannerText }}</header>
 
-  <slot/>
-
   <ConfirmationDialog ref="leaveQueueDialog">
     <p><strong>Sorry to see you go!</strong> If you leave the queue now, you'll lose your position.</p>
     <p>To rejoin, you will have to swipe back in.</p>
@@ -215,6 +213,7 @@ function selfEnqueue() {
   </ConfirmationDialog>
 
   <div id="queue">
+    <slot id="dropdown"/>
     <div id="info" class="queue-section">
       <div id="user">
         <h2 id="student-name">{{ studentName }}</h2>
@@ -254,4 +253,5 @@ function selfEnqueue() {
 
 <style scoped>
 @import "../assets/css/student-queue.css";
+
 </style>

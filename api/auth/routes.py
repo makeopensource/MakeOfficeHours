@@ -115,7 +115,6 @@ def login():
 def signup():
     """Creates an account using the given credentials,
     fails if ubit already registered for an account
-    or if ubit is not in the roster
     Args:
         ubit: forum data field of ubit
         password: forum data field of password
@@ -144,7 +143,6 @@ def signup():
 
 
 @blueprint.route("/update-name", methods=["PATCH"])
-@min_level("student")
 def update_preferred_name():
     """
     Update the user's preferred name.

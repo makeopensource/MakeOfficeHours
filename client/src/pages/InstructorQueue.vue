@@ -147,7 +147,7 @@ function callStudent(id: number) {
 const clearQueueDialog = ref<typeof ConfirmationDialog>();
 
 function clearQueue() {
-  fetch("/api/clear-queue", {
+  fetch(`/api/course/${course}/clear-queue`, {
     method: "DELETE"
   }).then(res => {
     if (!res.ok) {
@@ -366,7 +366,7 @@ fetchCourse();
   <Alert ref="error"/>
 
   <div id="instructor-queue">
-    <slot/>
+    <slot id="dropdown"/>
     <br/>
     <div class="queue-section">
       <h2 id="welcome-text">Hello, {{ taName }}!</h2>
@@ -425,11 +425,5 @@ fetchCourse();
 
 <style scoped>
 @import "../assets/css/instructor-queue.css";
-
-.welcome {
-  display: flex;
-}
-
-
 
 </style>

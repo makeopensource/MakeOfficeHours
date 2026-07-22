@@ -48,12 +48,12 @@ class RelationalDBSessions(ISessions):
         with self.cursor() as cursor:
             users = cursor.execute(
                 """
-                SELECT users.user_id, preferred_name, ubit, person_num
-                FROM users
-                         LEFT JOIN queue ON users.user_id = queue.user_id
-                        INNER JOIN enrollments as e on users.user_id = e.user_id
+                SELECT u.user_id, preferred_name, ubit, person_num
+                FROM enrollments as e
+                LEFT JOIN queue as q ON e.user_id = q.user_id 
+                INNER JOIN users as u on u.user_id = e.user_id
                 WHERE last_swipe > datetime('now', 'localtime', '-2 hours')
-                  AND queue.user_id IS NULL AND e.course_id = ?
+                AND q.user_id IS NULL AND e.course_id = ?
                 """,
                 (course,),
             )

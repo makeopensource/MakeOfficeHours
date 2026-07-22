@@ -1,6 +1,7 @@
 <script setup lang="ts">
 
 import {useRouter} from "vue-router";
+import nowhere from "@/assets/nowhere.png";
 
 const router = useRouter()
 
@@ -15,10 +16,13 @@ function signOut() {
 </script>
 
 <template>
+
   <div id="content">
-    <img src="../assets/makeopenhorse.png" alt="Make Open Horse logo" class="big-logo">
-    <p>Well, there is a horse here.</p>
+    <img :src="nowhere" alt="Horse behind a tree" class="big-logo">
+    <br/>
     <p>There are no courses associated with your account.</p>
+    <p>You need to be in a course to use this site.</p>
+    <br/>
     <button class="no-grow" @click="signOut">Sign Out</button>
   </div>
 </template>
@@ -26,12 +30,15 @@ function signOut() {
 <style scoped>
 
   #content {
-    margin: 16px;
+    color: black;
+    margin: 16px auto auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
     text-align: center;
     gap: 8px;
+    padding: 16px 64px;
+    max-width: fit-content;
   }
 
   .big-logo {

@@ -21,7 +21,7 @@ class TestingDBAccounts(IAccounts, IRoster):
     def clear_students(self, course):
         pass
 
-    def create_account(self, ubit, pn):
+    def create_account(self, ubit, pn, role="user"):
         users.append({"ubit": ubit, "person_num": pn})
 
     def lookup_person_number(self, person_number, course=None) -> dict[str, str]:

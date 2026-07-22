@@ -35,7 +35,7 @@ def restore_visit():
         }
         404 Not Found - no such visit exists
     """
-    user = get_user(request.cookies)
+    user = g.user
 
     if user is None:
         return {"message": "You are not authenticated!"}, 403

@@ -108,8 +108,8 @@ def self_add_to_queue(student, course):
     :return: True on success, False on failure
     """
     student = db.lookup_identifier(student, course)
-    if is_active(student, course) and student.get("course_role") is not None:
-        db.enqueue_student(student, course)
+    if is_active(student["user_id"], course) and student.get("course_role") is not None:
+        db.enqueue_student(student["user_id"], course)
         return True
     return False
 

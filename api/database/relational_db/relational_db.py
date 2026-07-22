@@ -111,7 +111,7 @@ class RelationalDB(
     def _migrate(self):
         with self.cursor() as c:
             self.db_version = c.execute("PRAGMA user_version").fetchone()[0]
-            for script in os.listdir("./api/database/relational_db/migrations"):
+            for script in sorted(os.listdir("./api/database/relational_db/migrations")):
                 if int(script.split("_")[0]) > self.db_version:
                     with open(
                         f"./api/database/relational_db/migrations/{script}",

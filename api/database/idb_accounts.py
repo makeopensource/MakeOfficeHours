@@ -8,7 +8,7 @@ class IAccounts(ABC):
     """Definitions for the accounts component of the database interface."""
 
     @abstractmethod
-    def create_account(self, ubit, pn):
+    def create_account(self, ubit, pn, role="user"):
         """Creates an account with the provided ubit and pn. Generates, and returns, a unique id for the new account"""
         raise NotImplementedError()
 

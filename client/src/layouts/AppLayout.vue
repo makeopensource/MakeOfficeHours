@@ -10,10 +10,12 @@ const admin = ref<boolean>(false);
 fetch("/api/me").then(res => {
   if (res.ok) {
     return res.json()
+  } else {
+    throw Error()
   }
 }).then(json => {
   admin.value = json["site_role"] === "admin"
-})
+}).catch(e => {})
 
 </script>
 
@@ -41,7 +43,6 @@ fetch("/api/me").then(res => {
 </template>
 
 <style scoped>
-
 
 .picture-link {
   display: flex;

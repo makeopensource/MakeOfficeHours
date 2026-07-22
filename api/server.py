@@ -21,6 +21,8 @@ import api.admin.routes as admin_routes
 URL_PREFIX = os.getenv("API_URL_PREFIX", "/")
 THE_OG_UBIT = os.getenv("THE_OG_UBIT", None)
 THE_OG_PN = os.getenv("THE_OG_PN", None)
+THE_OG_NAME = os.getenv("THE_OG_NAME", "")
+THE_OG_SURNAME = os.getenv("THE_OG_SURNAME")
 
 og = db.lookup_person_number(THE_OG_PN)
 
@@ -34,8 +36,8 @@ def create_app():
     if THE_OG_UBIT and THE_OG_PN:
         if not db.lookup_person_number(THE_OG_PN):
             # create the OG account
-            og_id = db.create_account(THE_OG_UBIT, THE_OG_PN)
-            db.add_to_roster(og_id, "admin")
+            admin = db.create_account(THE_OG_UBIT, THE_OG_PN, "admin")
+            db.set_initial_name(admin, THE_OG_NAME, THE_OG_SURNAME)
 
     app = Flask(__name__)
 

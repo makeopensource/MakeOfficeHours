@@ -172,15 +172,15 @@ def delete_user(user_id):
              401 if removing this user isn't permitted
              404 if user doesn't exist
     """
-    caller = get_user(request.cookies)
-    user = db.lookup_identifier(user_id)
+    caller = g.user
+    user = db.lookup_identifier(user_id, g.course_id)
     if get_power_level(caller["course_role"]) <= get_power_level(user["course_role"]):
         return {"message": "You cannot remove this user."}, 401
 
     for visit in filter(
         lambda v: int(v["student_id"]) == int(user_id)
         or int(v["ta_id"]) == int(user_id),
-        db.get_in_progress_visits(),
+        db.get_in_progress_visits(g.course_id),
     ):
         db.end_visit(
             visit["visit_id"],
@@ -190,7 +190,7 @@ def delete_user(user_id):
     db.remove_student(user_id, g.course_id)
     db.reset_swipe_time(user_id, g.course_id)
 
-    if db.remove_from_roster(user_id) is None:
+    if db.remove_from_roster(user_id, g.course_id) is None:
         return {"message": "User not found."}, 404
 
     return {"message": "Successfully removed user from roster"}
@@ -208,8 +208,8 @@ def update_role(user_id):
     :return: 200 on success
     """
 
-    user = db.lookup_identifier(user_id)
-    caller = get_user(request.cookies)
+    user = db.lookup_identifier(user_id, g.course_id)
+    caller = g.user
     role = request.json["role"]
 
     if user is None:

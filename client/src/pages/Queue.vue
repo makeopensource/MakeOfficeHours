@@ -37,8 +37,10 @@ function setupQueue() {
     }
     return res.json()
   }).then(data => {
+    if (data["course_role"] === null) {
+      router.push("/")
+    }
     if (data["course_role"] !== "student") {
-      console.log("not a student")
       student.value = false;
     }
     ready.value = true
@@ -73,12 +75,8 @@ setupQueue();
 <template>
 
 
-  <StudentQueue v-if="student && ready">
-    <CourseDropdown id="course-dropdown" @change="changeCourse" :current="currentCourse" :courses="myCourses"/>
-  </StudentQueue>
-  <InstructorQueue v-else-if="!student && ready">
-    <CourseDropdown id="course-dropdown" @change="changeCourse" :current="currentCourse" :courses="myCourses"/>
-  </InstructorQueue>
+  <StudentQueue v-if="student && ready"></StudentQueue>
+  <InstructorQueue v-else-if="!student && ready"></InstructorQueue>
 
 
 </template>
@@ -87,9 +85,14 @@ setupQueue();
 
 #course-dropdown {
   position: relative;
-  margin-left: auto;
-  margin-right: 32px;
   max-width: fit-content;
+  margin-bottom: 4px;
+}
+
+@media screen and (max-width: 991px) {
+  #course-dropdown {
+    margin: auto auto 16px;
+  }
 }
 
 </style>

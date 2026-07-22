@@ -23,6 +23,9 @@ fetch(`/api/course/${course}`).then(res => {
   }
   return res.json();
 }).then(data => {
+  if (data["course_role"] === null) {
+    router.push("/")
+  }
   if (data["course_role"] === "student") {
     router.push(`/${course}/queue`)
   }
@@ -164,7 +167,7 @@ function showOldVisit(visit: Array<any>) {
 }
 
 function deleteUser(user: string) {
-  fetch(`/api/user/${user}`, { method: "DELETE"}).then(res => {
+  fetch(`/api/course/${course}/user/${user}`, { method: "DELETE"}).then(res => {
       if (!res.ok) {
         alertBox.value?.setError("Failed to remove user")
       } else {
@@ -187,7 +190,7 @@ function clearStudents() {
 }
 
 function updateRole(user: string, role: string) {
-  fetch(`/api/user/${user}/role`, {
+  fetch(`/api/course/${course}/user/${user}/role`, {
     method: "PATCH",
     body: JSON.stringify({"role": role}),
     headers: {"Content-Type": "application/json"}
@@ -286,16 +289,15 @@ function rolePrettyName(role: string) {
       <TableEntry v-for="user in users" :data="user.slice(0, 5)">
         <td>
           <select v-if="user[0] != me['user_id']" v-model="user[5]" @change="() => updateRole(user[0], user[5])">
-            <option value="student" v-if="user[5] != 'admin'">Student</option>
-            <option value="ta" v-if="user[5] != 'admin'">TA</option>
-            <option value="instructor" v-if="user[5] != 'admin'">Instructor</option>
-            <option value="admin" v-if="user[5] == 'admin'">Admin</option>
+            <option value="student" v-if="manager || user[5] != 'instructor'">Student</option>
+            <option value="ta" v-if="manager || user[5] != 'instructor'">TA</option>
+            <option value="instructor" v-if="manager || user[5] == 'instructor'">Instructor</option>
           </select>
           <span v-else>{{rolePrettyName(user[5])}}</span>
         </td>
         <td id="actions">
               <button v-if="manager || me['user_id'] == user[0]" @click="visitTable?.show(user[0])">Visits</button>
-              <button @click="() => deleteUser(user[0])" v-if="me['user_id'] != user[0] && (user[5] == 'student' || (me['course_role'] != 'ta' && user[5] != 'admin'))" class="danger">Remove</button>
+              <button @click="() => deleteUser(user[0])" v-if="me['user_id'] != user[0] && (user[5] == 'student' || user[5] == 'ta' || manager)" class="danger">Remove</button>
         </td>
       </TableEntry>
     </Table>

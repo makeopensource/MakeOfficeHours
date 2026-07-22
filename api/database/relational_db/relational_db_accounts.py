@@ -71,7 +71,7 @@ class RelationalDBAccounts(IAccounts, IRoster, ICourses):
             ).fetchone()
             return dict(result) if result is not None else None
 
-    def create_account(self, ubit, pn):
+    def create_account(self, ubit, pn, role="user"):
 
         with self.cursor() as cursor:
 
@@ -86,11 +86,11 @@ class RelationalDBAccounts(IAccounts, IRoster, ICourses):
                 user_id = cursor.execute(
                     """
                     INSERT into users (ubit, person_num, site_role) VALUES (
-                        ?, ?, 'user'
+                        ?, ?, ?
                     )
                     RETURNING user_id; 
                 """,
-                    (ubit, pn),
+                    (ubit, pn, role),
                 ).fetchone()[0]
             else:
                 user_id = user_id[0]
@@ -301,12 +301,23 @@ class RelationalDBAccounts(IAccounts, IRoster, ICourses):
     def add_to_roster(self, user_id, role, course):
 
         with self.cursor() as cursor:
-            cursor.execute(
+            res = cursor.execute(
                 """
-                INSERT INTO enrollments (course_id, user_id, course_role) VALUES (?, ?, ?)
-                """,
-                (course, user_id, role),
-            )
+                SELECT user_id FROM enrollments WHERE user_id = ? AND course_id = ?
+                """, (user_id, course)
+            ).fetchone()
+
+            if res is not None:
+                cursor.execute(
+                    "UPDATE enrollments SET course_role = ? WHERE user_id = ? AND course_id = ?",
+                (role, user_id, course))
+            else:
+                cursor.execute(
+                    """
+                    INSERT INTO enrollments (course_id, user_id, course_role) VALUES (?, ?, ?)
+                    """,
+                    (course, user_id, role),
+                )
 
     def get_roster(self, course):
         with self.cursor() as cursor:

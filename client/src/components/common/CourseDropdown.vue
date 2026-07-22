@@ -18,15 +18,12 @@ watch(() => props.current, (val) => {
 
 function switchCourse(to: any) {
   window.location.href = `/${to["course_url"]}/queue`
-  // emit("change", to)
-  // props.current.value = to
-  // currentString.value = `${to["course_name"]} (${to["course_sem"]}})`
 }
 
 </script>
 
 <template>
-<div id="dropdown" v-if="current !== undefined && courses.length > 1">
+<div id="dropdown">
       <div class="dropdown-inside" @click="coursesDropdownShowing = !coursesDropdownShowing">
         {{ currentString }}
         <div :class="coursesDropdownShowing ? 'on' : ''" class="dropdown-arrow">&#9658;</div>
@@ -42,11 +39,12 @@ function switchCourse(to: any) {
 #dropdown {
   max-width: fit-content;
   margin-left: auto;
+  height: 100%;
 }
 
 .dropdown-arrow {
   margin-left: auto;
-  color: #818181;
+  color: white;
   transition: transform 100ms ease;
 }
 
@@ -56,21 +54,32 @@ function switchCourse(to: any) {
 
 .dropdown-inside {
   cursor: pointer;
-  outline: 2px solid #D9D9D9;
   display: flex;
   margin-left: auto;
-  padding: 16px;
   align-items: center;
   gap: 8px;
+  height: 100%;
 }
 
 .dropdown-content {
   position: absolute;
+  right: 0;
+  margin-right: 8%;
   margin-top: 2px;
   padding: 4px 16px;
-  outline: 2px solid #D9D9D9;
+  color: black;
+  text-align: left;
   background-color: var(--bg-color);
-  box-shadow: 2px 2px 2px lightgrey;
+  box-shadow: 2px 2px 8px lightgrey;
+}
+
+@media screen and (max-width: 991px) {
+  .dropdown-content {
+    margin: auto;
+    right: auto;
+    padding: 4px;
+  }
+
 }
 
 .dropdown-link {
