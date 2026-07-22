@@ -9,6 +9,7 @@ import {useRoute, useRouter} from "vue-router";
 import Alert from "@/components/common/Alert.vue";
 import OnSiteEntry from "@/components/instructor/OnSiteEntry.vue";
 import ActiveEntry from "@/components/instructor/ActiveEntry.vue";
+import CourseDropdown from "@/components/common/CourseDropdown.vue";
 
 const students = ref([])
 const onSite = ref([])
@@ -23,6 +24,8 @@ const taName = ref<string>("");
 
 const error = ref<typeof Alert>();
 
+const myCourses = ref([]);
+
 fetch("/api/me").then(res => {
   if (!res.ok) {
     router.push("/")
@@ -30,6 +33,7 @@ fetch("/api/me").then(res => {
   return res.json()
 }).then(data => {
   taName.value = data["preferred_name"]
+  myCourses.value = data["enrollments"]
 })
 
 function getQueue() {
@@ -171,7 +175,7 @@ function showRemoveStudentDialog(id: number) {
 }
 
 function removeStudent() {
-  fetch("/api/remove-from-queue", {
+  fetch(`/api/course/${course}/remove-from-queue`, {
     method: "POST",
     body: JSON.stringify({"reason": removeStudentReason.value, "user_id": removeStudentId}),
     headers: {"Content-Type": "application/json"}
@@ -198,7 +202,7 @@ function showDeactivateStudentDialog(id: number) {
 }
 
 function deactivateStudent() {
-  fetch("/api/deactivate", {
+  fetch(`/api/course/${course}/deactivate`, {
     method: "PATCH",
     body: JSON.stringify({"user_id": deactivateStudentId}),
     headers: {"Content-Type": "application/json"}
@@ -240,7 +244,7 @@ function signOut() {
 }
 
 function moveToEnd(id: number) {
-  fetch("/api/move-to-end", {
+  fetch(`/api/course/${course}/move-to-end`, {
     method: "PATCH",
     body: JSON.stringify({"user_id": id}),
     headers: {"Content-Type": "application/json"}
@@ -263,7 +267,7 @@ let endVisitID = 0;
 const endVisitTAName = ref<string>("");
 
 function endOtherTAsVisit(id: number) {
-  fetch("/api/end-visit", {
+  fetch(`/api/course/${course}/end-visit`, {
     method: "POST",
     body: JSON.stringify({"id": id, "reason": `[Visit canceled by ${taName.value}]`}),
     headers: {"Content-Type": "application/json"}
@@ -276,6 +280,22 @@ function endOtherTAsVisit(id: number) {
     }
   })
 }
+const currentCourse = ref();
+
+
+function fetchCourse() {
+  fetch(`/api/course/${course}`).then(res => {
+  if (res.ok) {
+      return res.json();
+  } else {
+    router.push("/")
+  }
+  }).then(json => {
+    currentCourse.value = json
+  })
+}
+
+fetchCourse();
 
 </script>
 
@@ -346,6 +366,8 @@ function endOtherTAsVisit(id: number) {
   <Alert ref="error"/>
 
   <div id="instructor-queue">
+    <slot/>
+    <br/>
     <div class="queue-section">
       <h2 id="welcome-text">Hello, {{ taName }}!</h2>
       <h2 id="student-count-text">{{ students?.length }} student{{ students?.length !== 1 ? "s" : "" }} in the queue.</h2>
@@ -357,7 +379,6 @@ function endOtherTAsVisit(id: number) {
         <button id="signout" @click="signOut">Sign Out</button>
       </div>
       <div id="buttons-r">
-        <button @click="error?.setError('Not Implemented')" >Clock In</button>
         <button @click="forceEnqueueDialog?.show()" id="enqueue-dialog-button" class="important">Enqueue Student</button>
         <button @click="clearQueueDialog?.show()" id="clear-queue-dialog-button" class="danger">Clear Queue</button>
       </div>
@@ -404,4 +425,11 @@ function endOtherTAsVisit(id: number) {
 
 <style scoped>
 @import "../assets/css/instructor-queue.css";
+
+.welcome {
+  display: flex;
+}
+
+
+
 </style>

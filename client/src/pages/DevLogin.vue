@@ -92,7 +92,7 @@ const submitLogin = () => {
       </form>
     </div>
     <p id="message">{{ message }}</p>
-    <button @click="router.push('/default/queue')">Go to Queue</button>
+    <button @click="router.push('/')">Go to Queue</button>
   </div>
 </template>
 

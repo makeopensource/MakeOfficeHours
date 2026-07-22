@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import {ref} from "vue";
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import EditInfo from "@/components/common/EditInfo.vue";
 import Alert from "@/components/common/Alert.vue";
@@ -185,6 +185,8 @@ function selfEnqueue() {
 <template>
 
   <header id="queue-banner" :class="bannerClass">{{ bannerText }}</header>
+
+  <slot/>
 
   <ConfirmationDialog ref="leaveQueueDialog">
     <p><strong>Sorry to see you go!</strong> If you leave the queue now, you'll lose your position.</p>

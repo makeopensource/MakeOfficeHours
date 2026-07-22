@@ -235,7 +235,7 @@ def get_anon_queue():
         if entry["id"] == user_id:
             return {"position": i, "length": len(queue)}
 
-    active = is_active(user_id, g.course_d)
+    active = is_active(user_id, g.course_id)
 
     return {
         "message": "You are not in the queue!",

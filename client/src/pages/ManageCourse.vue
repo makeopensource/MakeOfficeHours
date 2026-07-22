@@ -29,8 +29,15 @@ fetch(`/api/course/${course}`).then(res => {
   if (data["course_role"] !== "ta") {
     manager.value = true;
   }
-  me.value = data;
   getCode();
+})
+
+fetch("/api/me").then(res => {
+  if (res.ok) {
+    return res.json()
+  }
+}).then(json => {
+  me.value = json
 })
 
 const users = ref<Array<Array<any>>>([]);
@@ -204,7 +211,6 @@ function rolePrettyName(role: string) {
     default: return "IDK"
   }
 }
-
 </script>
 
 <template>
@@ -288,7 +294,7 @@ function rolePrettyName(role: string) {
           <span v-else>{{rolePrettyName(user[5])}}</span>
         </td>
         <td id="actions">
-              <button v-if="me['course_role'] !== 'ta' || me['user_id'] == user[0]" @click="visitTable?.show(user[0])">Visits</button>
+              <button v-if="manager || me['user_id'] == user[0]" @click="visitTable?.show(user[0])">Visits</button>
               <button @click="() => deleteUser(user[0])" v-if="me['user_id'] != user[0] && (user[5] == 'student' || (me['course_role'] != 'ta' && user[5] != 'admin'))" class="danger">Remove</button>
         </td>
       </TableEntry>

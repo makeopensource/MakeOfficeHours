@@ -105,7 +105,7 @@ function submitForm(form: HTMLFormElement | undefined) {
 
 <!--          CREATE USER FORM -->
         <h2 id="create-user">Create a user</h2>
-        <form class="mini-form-container" ref="createCourseForm" target="/api/user">
+        <form class="mini-form-container" ref="createUserForm" target="/api/user">
           <div class="input-elem">
             <label for="ubit">Username</label>
             <input name="ubit" type="text">
@@ -123,7 +123,7 @@ function submitForm(form: HTMLFormElement | undefined) {
             <input name="last_name" type="text">
           </div>
           <div class="input-elem">
-            <button type="submit" @click.prevent="() => submitForm(createCourseForm)">Create User</button>
+            <button type="submit" @click.prevent="() => submitForm(createUserForm)">Create User</button>
           </div>
         </form>
 

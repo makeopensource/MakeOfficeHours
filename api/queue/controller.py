@@ -3,6 +3,7 @@
 import datetime
 
 from api.database.db import db
+from api.database.testing_db.testing_db_utils import lookup_identifier
 
 
 def decode_pn(raw):
@@ -28,7 +29,7 @@ def add_to_queue_by_card_swipe(swipe_data, course):
     :return True on success, False on failure
     """
     pn = decode_pn(swipe_data)
-    student = db.lookup_person_number(pn)
+    student = db.lookup_person_number(pn, course)
     if student is not None:
         add_to_queue(student, course)
         db.update_swipe_time(student["user_id"], course)
@@ -45,7 +46,7 @@ def add_to_queue_by_ta_override(identifier, course, front=False):
     :param front: (optional) whether to add the user to the front or back of the queue
     :return: True on success, False on failure
     """
-    student = db.lookup_identifier(identifier)
+    student = db.lookup_identifier(identifier, course)
     if student is not None:
         if front:
             add_to_front_of_queue(student, course)
@@ -63,7 +64,8 @@ def add_to_queue(user_account, course):
     :param course: the course to enqueue into
     """
     user_id = user_account["user_id"]
-    db.enqueue_student(user_id, course)
+    if user_account.get("course_role") is not None:
+        db.enqueue_student(user_id, course)
 
 
 def add_to_front_of_queue(user_account, course):
@@ -73,7 +75,8 @@ def add_to_front_of_queue(user_account, course):
     :param course: the course to enqueue into
     """
     user_id = user_account["user_id"]
-    db.enqueue_student_front(user_id, course)
+    if user_account.get("course_role") is not None:
+        db.enqueue_student_front(user_id, course)
 
 
 def remove_from_queue_without_visit(student, reason, course):
@@ -104,7 +107,8 @@ def self_add_to_queue(student, course):
     :param course: the course to enqueue into
     :return: True on success, False on failure
     """
-    if is_active(student, course):
+    student = db.lookup_identifier(student, course)
+    if is_active(student, course) and student.get("course_role") is not None:
         db.enqueue_student(student, course)
         return True
     return False
@@ -115,6 +119,7 @@ def is_active(student, course):
     within the past two hours.
 
     :param student: The user id of the student to check
+    :param course: the course to check
     :return:        True if the user has refreshed within the past two hours,
                     False otherwise
     """
