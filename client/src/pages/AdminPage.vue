@@ -137,7 +137,7 @@ function submitForm(form: HTMLFormElement | undefined) {
           </div>
           <div class="input-elem">
             <label>Course</label>
-            <select v-model="selectedURL" @change="() => console.log(selectedURL)" type="submit">
+            <select v-model="selectedURL" type="submit">
               <option v-for="course in courses" :value="course['course_url']">{{ course['course_url'] }}</option>
             </select>
           </div>

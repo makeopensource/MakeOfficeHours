@@ -6,28 +6,50 @@ import hashlib
 
 import bcrypt
 
+import api.database.relational_db.relational_db_utils as utils
 from api.database.idb_accounts import IAccounts
-from api.database.idb_courses import ICourses
 from api.database.idb_roster import IRoster
 
 
-class RelationalDBAccounts(IAccounts, IRoster, ICourses):
+class RelationalDBAccounts(IAccounts, IRoster):
     """Implementations for the accounts and roster components."""
 
-    def get_courses(self) -> list[dict[str, str]]:
+    def save_autolab_info(self, user_id, access_token, refresh_token, expires_in):
         with self.cursor() as cursor:
-            courses = cursor.execute(
+            cursor.execute(
                 """
-                SELECT course_id, course_name, course_sem, course_url FROM courses 
-            """
-            ).fetchall()
+                UPDATE auth SET al_access_token = ?, al_refresh_token = ?, al_expires = ?
+                WHERE user_id = ?
+            """,
+                (
+                    access_token,
+                    refresh_token,
+                    utils.to_str_timestamp(expires_in),
+                    user_id,
+                ),
+            )
 
-            courses_l = []
+    def get_autolab_info(self, user_id):
+        with self.cursor() as cursor:
+            result = cursor.execute(
+                """
+                SELECT al_access_token, al_refresh_token, al_expires FROM auth
+                WHERE user_id = ?
+            """,
+                (user_id,),
+            ).fetchone()
 
-            for course in courses:
-                courses_l.append(dict(course))
+            if result is None:
+                return None
 
-        return courses_l
+            return {
+                "access_token": (
+                    result["al_access_token"]
+                    if result["al_expires"] > utils.to_str_timestamp()
+                    else None
+                ),
+                "refresh_token": result["al_refresh_token"],
+            }
 
     def get_enrollments(self, user_id):
         with self.cursor() as cursor:
@@ -46,30 +68,6 @@ class RelationalDBAccounts(IAccounts, IRoster, ICourses):
                 courses_l.append(dict(course))
 
         return courses_l
-
-    def create_course(self, name, semester, url) -> int:
-        with self.cursor() as cursor:
-            prev = cursor.execute(
-                "SELECT * FROM courses WHERE course_url = ? OR course_id = ?",
-                (url, url),
-            ).fetchone()
-            if prev is not None:
-                return -1
-
-            course = cursor.execute(
-                "INSERT INTO courses (course_name, course_sem, course_url) VALUES (?, ?, ?) RETURNING *",
-                (name, semester, url),
-            ).fetchone()
-
-            return course["course_id"]
-
-    def get_course(self, identifier) -> dict[str, str]:
-        with self.cursor() as cursor:
-            result = cursor.execute(
-                "SELECT * FROM courses WHERE course_id = ? OR course_url = ?",
-                (identifier, identifier),
-            ).fetchone()
-            return dict(result) if result is not None else None
 
     def create_account(self, ubit, pn, role="user"):
 
@@ -102,14 +100,12 @@ class RelationalDBAccounts(IAccounts, IRoster, ICourses):
         if course is None:
             return None
 
-        course = self.get_course(course)
-
         with self.cursor() as cursor:
             role = cursor.execute(
                 "SELECT course_role FROM enrollments WHERE user_id = ? AND course_id = ?",
                 (
                     user_id,
-                    course["course_id"],
+                    course,
                 ),
             ).fetchone()
         if role is not None:
@@ -304,13 +300,15 @@ class RelationalDBAccounts(IAccounts, IRoster, ICourses):
             res = cursor.execute(
                 """
                 SELECT user_id FROM enrollments WHERE user_id = ? AND course_id = ?
-                """, (user_id, course)
+                """,
+                (user_id, course),
             ).fetchone()
 
             if res is not None:
                 cursor.execute(
                     "UPDATE enrollments SET course_role = ? WHERE user_id = ? AND course_id = ?",
-                (role, user_id, course))
+                    (role, user_id, course),
+                )
             else:
                 cursor.execute(
                     """

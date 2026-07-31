@@ -12,6 +12,12 @@ import api.database.testing_db.testing_db_utils as utils
 class TestingDBAccounts(IAccounts, IRoster):
     """Implementations for the accounts and roster methods"""
 
+    def save_autolab_info(self, user_id, access_token, refresh_token, expires_in):
+        pass
+
+    def get_autolab_info(self, user_id):
+        pass
+
     def get_enrollments(self, user_id):
         pass
 

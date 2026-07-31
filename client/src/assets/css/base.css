@@ -39,7 +39,7 @@ button.danger {
 }
 
 button.danger:hover {
-    background-color: #B4221F;
+    background-color: var(--dark-accent-color);
     color: white;
 }
 

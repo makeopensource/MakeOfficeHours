@@ -9,7 +9,6 @@ import {useRoute, useRouter} from "vue-router";
 import Alert from "@/components/common/Alert.vue";
 import OnSiteEntry from "@/components/instructor/OnSiteEntry.vue";
 import ActiveEntry from "@/components/instructor/ActiveEntry.vue";
-import CourseDropdown from "@/components/common/CourseDropdown.vue";
 
 const students = ref([])
 const onSite = ref([])
@@ -24,7 +23,7 @@ const taName = ref<string>("");
 
 const error = ref<typeof Alert>();
 
-const myCourses = ref([]);
+const ready = ref(false);
 
 fetch("/api/me").then(res => {
   if (!res.ok) {
@@ -33,17 +32,17 @@ fetch("/api/me").then(res => {
   return res.json()
 }).then(data => {
   taName.value = data["preferred_name"]
-  myCourses.value = data["enrollments"]
+  nextTick(() => ready.value = true);
 })
 
 function getQueue() {
-  fetch(`/api/course/${route.params.course}/get-queue`).then(res => {
+  fetch(`/api/course/${route.params.course}/queue`).then(res => {
     return res.json()
   }).then(data => {
     students.value = data
   })
 
-  fetch(`/api/course/${route.params.course}/on-site`).then(res => {
+  fetch(`/api/course/${route.params.course}/queue/on-site`).then(res => {
     return res.json()
   }).then(data => {
     onSite.value = data
@@ -74,7 +73,7 @@ const forceEnqueueErrorMessage = ref('');
 
 
 function submitForceEnqueue() {
-  fetch(`/api/course/${route.params.course}/enqueue-ta-override`, {
+  fetch(`/api/course/${route.params.course}/enqueue/ta`, {
     method: "POST",
     body: JSON.stringify({"identifier": forceEnqueueEntry.value}),
     headers: {"Content-Type": "application/json"}
@@ -96,8 +95,7 @@ function submitForceEnqueue() {
 }
 
 function enqueueStudent(student: number) {
-  console.log("Student: ", student)
-  fetch(`/api/course/${route.params.course}/enqueue-ta-override`, {
+  fetch(`/api/course/${route.params.course}/enqueue/ta`, {
     method: "POST",
     body: JSON.stringify({"identifier": student}),
     headers: {"Content-Type": "application/json"}
@@ -125,7 +123,7 @@ const visitDialog = ref<typeof Visit>();
 
 function callStudent(id: number) {
 
-  fetch(`/api/course/${route.params.course}/help-a-student`, {
+  fetch(`/api/course/${route.params.course}/dequeue`, {
     method: "POST",
     body: JSON.stringify({"id": id}),
     headers: {"Content-Type": "application/json"}
@@ -147,7 +145,7 @@ function callStudent(id: number) {
 const clearQueueDialog = ref<typeof ConfirmationDialog>();
 
 function clearQueue() {
-  fetch(`/api/course/${course}/clear-queue`, {
+  fetch(`/api/course/${course}/queue`, {
     method: "DELETE"
   }).then(res => {
     if (!res.ok) {
@@ -299,7 +297,7 @@ fetchCourse();
 
 </script>
 
-<template>
+<template v-if="ready">
 
   <Visit ref="visitDialog" :visit_info="visitInfo" @open="getQueue" @close="() => { getQueue(); } "/>
 

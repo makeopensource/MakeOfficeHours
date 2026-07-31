@@ -3,7 +3,6 @@
 import datetime
 
 from api.database.db import db
-from api.database.testing_db.testing_db_utils import lookup_identifier
 
 
 def decode_pn(raw):

@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 import requests
 
 from api.database.db import db
+from api.student_data_lookups import autolab
 
 AUTOLAB_SECRET = os.getenv("AUTOLAB_SECRET", "client_secret")
 AUTOLAB_ID = os.getenv("AUTOLAB_CLIENT_ID", "client_id")
@@ -21,7 +22,7 @@ def get_authorization_url():
         "client_id": AUTOLAB_ID,
         "response_type": "code",
         "state": "abc",
-        "scopes": "user_info",
+        "scopes": "user_info,user_courses",
     }
     for name, value in params.items():
         autolab_url += name + "=" + value + "&"
@@ -31,12 +32,12 @@ def get_authorization_url():
 
 def handle_code_after_redirect(code):
     """Cashes in the code for a token and signs the user in"""
-    token = cash_in_code_for_token(code)
+    token, refresh_token, expires_in = cash_in_code_for_token(code)
 
     if token is None:
         return None
 
-    result = user_info(token)
+    result = autolab.user_info(token)
 
     if not result:
         return None
@@ -49,6 +50,7 @@ def handle_code_after_redirect(code):
     if not user_profile:
         return None
 
+    db.save_autolab_info(user_profile["user_id"], token, refresh_token, expires_in)
     auth_token = db.sign_in_with_autolab(user_profile["user_id"])
     return auth_token
 
@@ -74,45 +76,32 @@ def cash_in_code_for_token(code):
         return None
     the_good_stuff = json.loads(response.content.decode())
     access_token = the_good_stuff.get("access_token")
-    # refresh_token = the_good_stuff.get("refresh_token")
+    refresh_token = the_good_stuff.get("refresh_token")
     # scope = the_good_stuff.get("scope")
-    # expires_in = the_good_stuff.get("expires_in")
+    expires_in = the_good_stuff.get("expires_in")
     # created_at = the_good_stuff.get("created_at")
 
-    return access_token
+    return access_token, refresh_token, expires_in
 
 
-# def cash_in_refresh_token_for_token(refresh_token, token):
-#     token_url = "https://autolab.cse.buffalo.edu/oauth/token"
-#     headers = {
-#         "Content-Type": "application/x-www-form-urlencoded",
-#     }
-#     data = urlencode({"grant_type": "refresh_token", "refresh_token": refresh_token})
-#
-#     response = requests.post(token_url, headers=headers, data=data)
-#     the_good_stuff = json.loads(response.content.decode())
-#     access_token = the_good_stuff.get("access_token")
-#     # refresh_token = the_good_stuff.get("refresh_token")
-#     # scope = the_good_stuff.get("scope")
-#     # expires_in = the_good_stuff.get("expires_in")
-#     # created_at = the_good_stuff.get("created_at")
-#
-#     return access_token
+def cash_in_refresh_token_for_token(refresh_token):
+    """Get a new access token and refresh token given a refresh token.
 
+    @param refresh_token: The refresh token to cash in.
+    """
+    token_url = "https://autolab.cse.buffalo.edu/oauth/token"
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+    data = urlencode({"grant_type": "refresh_token", "refresh_token": refresh_token})
 
-def user_info(access_token):
-    """Hits the API's user endpoint and extracts the user's information"""
-    user_url = "https://autolab.cse.buffalo.edu/api/v1/user"
-    headers = {"Authorization": "Bearer " + access_token}
-    try:
-        response = requests.get(user_url, headers=headers, timeout=5.0)
-    except requests.Timeout:
-        return None
-    user_data = json.loads(response.content.decode())
-    email = user_data.get("email")
-    first_name = user_data.get("first_name")
-    last_name = user_data.get("last_name")
-    return [email, first_name + " " + last_name]
+    response = requests.post(token_url, headers=headers, data=data, timeout=5.0)
+    the_good_stuff = json.loads(response.content.decode())
+    access_token = the_good_stuff.get("access_token")
+    refresh_token = the_good_stuff.get("refresh_token")
+    expires_in = the_good_stuff.get("expires_in")
+
+    return access_token, refresh_token, expires_in
 
 
 # def check_token(token):

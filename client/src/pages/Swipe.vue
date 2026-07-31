@@ -28,7 +28,7 @@ const swipeInput = () => {
   }
 
   if (input) {
-    fetch(`/api/course/${course}/enqueue-card-swipe`, {
+    fetch(`/api/course/${course}/enqueue/swipe`, {
       method: "POST",
       body: JSON.stringify({"swipe_data": inputValue, "code": localStorage.getItem("auth-code")}),
       headers: {"Content-Type": "application/json"}
@@ -55,8 +55,6 @@ const swipeInput = () => {
 
 
     input.value = "";
-  } else {
-    console.log(inputValue.length);
   }
 }
 
@@ -67,7 +65,7 @@ const clearStatus = () => {
 let pollTimeout = -1;
 
 const refreshQueueLen = () => {
-  fetch(`/api/course/${course}/get-queue-size`).then(res => {
+  fetch(`/api/course/${course}/queue/size`).then(res => {
     if (res.ok) {
       return res.json()
     }

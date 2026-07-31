@@ -16,7 +16,7 @@ from api.database.db import db
 blueprint = Blueprint("queue", __name__, url_prefix="/course/<course_id>")
 
 
-@blueprint.route("/enqueue-card-swipe", methods=["POST"])
+@blueprint.route("/enqueue/swipe", methods=["POST"])
 def enqueue_card_swipe():
     """
     role: hardware
@@ -55,7 +55,7 @@ def enqueue_card_swipe():
     return {"message": "No student matching the card swipe was found"}, 404
 
 
-@blueprint.route("/enqueue-ta-override", methods=["POST"])
+@blueprint.route("/enqueue/ta", methods=["POST"])
 @min_level("ta")
 def enqueue_ta_override():
     """
@@ -89,7 +89,7 @@ def enqueue_ta_override():
     return {"message": "No student matching provided identifier"}, 404
 
 
-@blueprint.route("/help-a-student", methods=["POST"])
+@blueprint.route("/dequeue", methods=["POST"])
 @min_level("ta")
 def dequeue():
     """
@@ -155,7 +155,7 @@ def dequeue():
     }
 
 
-@blueprint.route("/get-queue", methods=["GET"])
+@blueprint.route("/queue", methods=["GET"])
 @min_level("ta")
 def get_queue():
     """
@@ -179,7 +179,7 @@ def get_queue():
     return db.get_queue(g.course_id)
 
 
-@blueprint.route("/get-queue-size", methods=["GET"])
+@blueprint.route("/queue/size", methods=["GET"])
 def get_queue_size():
     """
     Public route to get the size of queue.
@@ -196,7 +196,7 @@ def get_queue_size():
     return {"size": len(queue)}
 
 
-@blueprint.route("/get-my-position", methods=["GET"])
+@blueprint.route("/queue/position", methods=["GET"])
 def get_anon_queue():
     """
     role: self
@@ -288,7 +288,6 @@ def remove_self():
 def remove():
     """
     role: TA
-
     Removing students from the queue by id. Creates a visit in the db to store the reason for the removal
 
     Args:
@@ -320,20 +319,19 @@ def remove():
     return {"message": "Student is not in queue"}, 400
 
 
-@blueprint.route("/clear-queue", methods=["DELETE"])
+@blueprint.route("/queue", methods=["DELETE"])
 @min_level("ta")
 def clear_queue():
     """Removes all students from the queue
-
     Must be TA or higher
 
     :return: 200 with success message on success
     """
-    db.clear_queue()
+    db.clear_queue(g.course_id)
     return {"message": "Successfully cleared the queue."}
 
 
-@blueprint.route("/enqueue-override-front", methods=["POST"])
+@blueprint.route("/enqueue/front", methods=["POST"])
 @min_level("ta")
 def enqueue_override_front():
     """Exact same behavior as /enqueue-ta-override, except it sends the student to the front.
@@ -414,7 +412,6 @@ def move_to_end():
 @min_level("ta")
 def get_swipe_auth_code():
     """Get the swipe authorization code.
-
     Must be TA or higher.
 
     :return: 200 with the authorization code as: {"code": <code>}
@@ -464,7 +461,7 @@ def self_enqueue():
     return {"message": "Added yourself to the queue."}, 200
 
 
-@blueprint.route("/on-site", methods=["GET"])
+@blueprint.route("/queue/on-site", methods=["GET"])
 @min_level("ta")
 def get_on_site():
     """Return a list of students who are on-site.

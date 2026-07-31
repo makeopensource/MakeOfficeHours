@@ -18,6 +18,8 @@ import api.roster.routes as roster_routes
 import api.visits.routes as visits_routes
 import api.admin.routes as admin_routes
 
+__version__ = "2.0.0"
+
 URL_PREFIX = os.getenv("API_URL_PREFIX", "/")
 THE_OG_UBIT = os.getenv("THE_OG_UBIT", None)
 THE_OG_PN = os.getenv("THE_OG_PN", None)
@@ -104,7 +106,7 @@ def create_app():
             "ubit": user["ubit"],
         }
 
-    @app.route("/course/<course_id>")
+    @app.route(URL_PREFIX + "/course/<course_id>")
     def get_course_context():
         """Retrieve info about the specified course."""
         if g.user:
@@ -119,7 +121,9 @@ def create_app():
         if not g.user:
             return {"message": "Invalid authentication."}, 401
 
-        user = g.user | {"enrollments": db.get_enrollments(g.user["user_id"])}
+        enrollments = db.get_enrollments(g.user["user_id"])
+
+        user = g.user | {"enrollments": enrollments}
         del user["course_role"]
 
         return user

@@ -31,7 +31,7 @@ let bannerText = ref("You are not in the queue!")
 const leaveQueueDialog = ref<typeof ConfirmationDialog>();
 
 function fetchPosition() {
-  fetch(`/api/course/${route.params.course}/get-my-position`).then(
+  fetch(`/api/course/${route.params.course}/queue/position`).then(
       res => {
         return res.json()
       }

@@ -1,8 +1,6 @@
 """Roster Blueprint for MOH"""
 
 from flask import Blueprint, request, g
-
-from api.auth.controller import get_user
 from api.roster.controller import min_level, add_to_roster, get_power_level
 from api.database.db import db
 
@@ -237,11 +235,11 @@ def clear_enrollments():
 
     :return: 200 on success
     """
-    for visit in db.get_in_progress_visits():
+    for visit in db.get_in_progress_visits(g.course_id):
         db.end_visit(visit["visit_id"], "[Visit ended due to course reset.]")
 
-    db.clear_queue()
-    db.clear_on_site()
-    db.clear_students()
+    db.clear_queue(g.course_id)
+    db.clear_on_site(g.course_id)
+    db.clear_students(g.course_id)
 
     return {"message": "Removed all students from the course."}

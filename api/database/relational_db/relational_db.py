@@ -9,6 +9,7 @@ from api.database.relational_db.relational_db_queue import RelationalDBQueue
 from api.database.relational_db.relational_db_accounts import RelationalDBAccounts
 from api.database.relational_db.relational_db_sessions import RelationalDBSessions
 from api.database.relational_db.relational_db_visits import RelationalDBVisits
+from api.database.relational_db.relational_db_courses import RelationalDBCourses
 
 
 class RelationalDB(
@@ -17,6 +18,7 @@ class RelationalDB(
     RelationalDBQueue,
     RelationalDBVisits,
     RelationalDBSessions,
+    RelationalDBCourses,
 ):  # pylint: disable=too-many-ancestors
     """Implementation for the SQLite version of the database interface."""
 

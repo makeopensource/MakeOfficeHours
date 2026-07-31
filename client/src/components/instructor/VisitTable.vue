@@ -167,8 +167,7 @@ function exportVisits() {
     </div>
     <br/>
 
-    <div v-if="visits.length === 0" class="ominous-text">But nobody came.<br/></div>
-    <div v-if="visits.length === 0" class="ominous-text">(No visits{{ visitor != undefined ? " for this user" : "" }})</div>
+    <div v-if="visits.length === 0" class="ominous-text">No visits{{ visitor != undefined ? " for this user" : " for this course" }}.</div>
 
     <Table id="visits-tbl" v-if="visits.length > 0" :headings="headings" :table_data="visits">
       <TableEntry v-for="visit in visits" :data="visit.slice(0, 9)">

@@ -5,7 +5,6 @@ import json
 from flask import Blueprint, request, make_response, redirect, g
 from api.database.db import db
 from api.auth.autolab_oauth import get_authorization_url, handle_code_after_redirect
-from api.roster.controller import min_level
 from api.utils.debug import debug_access_only
 
 blueprint = Blueprint("auth", __name__)
@@ -28,7 +27,6 @@ def getting_code_from_autolab():
     Next step in the OAuth proccess. We're getting an auth code from Autolab
     and need to cash it in for an access token and refresh token
     """
-    print(request.args)
     code = request.args.get("code")
     # state = request.args.get("state")
     # TODO: check cookie to match state to session
@@ -43,7 +41,7 @@ def getting_code_from_autolab():
         )
         return res
 
-    res = make_response(redirect("/queue"))
+    res = make_response(redirect("/"))
     res.set_cookie(
         "auth_token", auth_token, max_age=int(2.592e6), httponly=True, secure=True
     )

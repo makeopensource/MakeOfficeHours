@@ -2,7 +2,6 @@
 
 from flask import Blueprint, request, g
 
-from api.auth.controller import get_user
 from api.database.db import db
 from api.roster.controller import min_level, get_power_level
 from api.visits.controller import get_students_visit, get_tas_visit

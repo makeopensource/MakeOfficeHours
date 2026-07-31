@@ -113,3 +113,29 @@ class IAccounts(ABC):
         :param user_id: the user id to query
         :return:
         """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def save_autolab_info(self, user_id, access_token, refresh_token, expires_in):
+        """Stores the respective Autolab info in the user's database entry
+
+        :param user_id: the user being updated
+        :param access_token: the user's access token
+        :param refresh_token: the user's refresh token
+        :param expires_in: how many seconds until the token expires
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_autolab_info(self, user_id):
+        """Gets the Autolab info from the specified user
+
+        :param user_id: the specified user
+        :return: dict containing:
+        {
+            "access_token": <the user's access token, or None if it is expired>
+            "refresh_token": <the user's refresh token>
+        }
+                None if the user doesn't have Autolab set up
+        """
+        raise NotImplementedError()

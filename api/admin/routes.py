@@ -21,6 +21,9 @@ def create_course():
 
     json = request.get_json()
 
+    if not all([json.get("name"), json.get("semester"), json.get("url")]):
+        return {"message": "Malformed request"}, 400
+
     try:
         json["url"].encode("ascii")
     except UnicodeEncodeError:
@@ -54,7 +57,7 @@ def create_user():
     """
     json = request.get_json()
 
-    if not all(key in json for key in ["ubit", "pn", "first_name", "last_name"]):
+    if not all(json.get(key) for key in ["ubit", "pn", "first_name", "last_name"]):
         return {"message": "Malformed request"}, 400
 
     user = db.create_account(json["ubit"], json["pn"])
@@ -76,7 +79,10 @@ def create_instructor():
     """
     json = request.get_json()
 
-    user = db.lookup_identifier(json["ubit"])
+    if not (ubit := json.get("ubit")):
+        return {"message": "Malformed request"}, 400
+
+    user = db.lookup_identifier(ubit)
 
     if not user:
         return {"message": "User not found"}, 404

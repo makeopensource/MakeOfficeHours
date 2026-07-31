@@ -121,7 +121,7 @@ class RelationalDBQueue(IQueue):
     def clear_queue(self, course):
         with self.cursor() as cursor:
             cursor.execute(
-                "DELETE FROM queue WHERE dequeued = false AND course_id = ?", course
+                "DELETE FROM queue WHERE dequeued = false AND course_id = ?", (course,)
             )
 
     def remove_student(self, student, course):

@@ -101,14 +101,24 @@ class RelationalDBVisits(IVisits):
                            tas.preferred_name      as ta_name,
                            tas.last_name           as ta_surname,
                            tas.ubit                as ta_ubit,
-                           ((tas.user_id is not null and (tas.deleted or students.deleted))
-                               or (tas.user_id is null and students.deleted)) as archived
+                           ((ta_enrollments.user_id is not null and 
+                                (tas.deleted or students.deleted or student_enrollments.user_id is null))
+                           or (ta_enrollments.user_id is null and 
+                                (students.deleted or student_enrollments.user_id is null))) as archived
                     FROM visits
                              LEFT JOIN users as students ON students.user_id = visits.student_id
+                             LEFT JOIN enrollments as student_enrollments ON 
+                                students.user_id = student_enrollments.user_id AND student_enrollments.course_id = ?
                              LEFT JOIN users as tas ON tas.user_id = visits.ta_id
-                    WHERE course_id = ?
+                             LEFT JOIN enrollments as ta_enrollments ON tas.user_id = ta_enrollments.user_id 
+                                AND ta_enrollments.course_id = ?
+                    WHERE visits.course_id = ?
                     """,
-                    (course,),
+                    (
+                        course,
+                        course,
+                        course,
+                    ),
                 ).fetchall()
             else:
                 result = cursor.execute(
@@ -120,15 +130,21 @@ class RelationalDBVisits(IVisits):
                            tas.preferred_name      as ta_name,
                            tas.last_name           as ta_surname,
                            tas.ubit                as ta_ubit,
-                           ((tas.user_id is not null and (tas.deleted or students.deleted))
-                           or (tas.user_id is null and students.deleted)) as archived
+                           ((ta_enrollments.user_id is not null and 
+                                (tas.deleted or students.deleted or student_enrollments.user_id is null))
+                           or (ta_enrollments.user_id is null and 
+                                (students.deleted or student_enrollments.user_id is null))) as archived
                     FROM visits
                      
                      LEFT JOIN users as students ON students.user_id = visits.student_id
+                     LEFT JOIN enrollments as student_enrollments ON 
+                            students.user_id = student_enrollments.user_id AND student_enrollments.course_id = ?
                      LEFT JOIN users as tas ON tas.user_id = visits.ta_id
-                    WHERE (student_id = ? OR ta_id = ?) AND course_id = ?
+                     LEFT JOIN enrollments as ta_enrollments ON 
+                            tas.user_id = ta_enrollments.user_id AND ta_enrollments.course_id = ?
+                    WHERE (student_id = ? OR ta_id = ?) AND visits.course_id = ?
                 """,
-                    (user_id, user_id, course),
+                    (course, course, user_id, user_id, course),
                 ).fetchall()
 
             visits = []
