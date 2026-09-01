@@ -57,7 +57,7 @@ defineExpose({"setError": setError, "setMessage": setMessage})
 <style scoped>
 
 #alert-container {
-  position: absolute;
+  position: fixed;
   top: 90%;
   width: 100%;
   display: flex;

@@ -1,2 +1,0 @@
-Get all the data for a student. Should pull their Autolab/DevU submissions/scores, ta.lol feedback, and anything
-else we think will be useful for helping the student

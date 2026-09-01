@@ -1,3 +1,5 @@
+"""An implementation of the database interface using SQLite."""
+
 import os
 
 from api.database.db_interface import DBInterface
@@ -5,19 +7,29 @@ from api.database.relational_db.relational_db_cursor import RelationalDBCursor
 
 from api.database.relational_db.relational_db_queue import RelationalDBQueue
 from api.database.relational_db.relational_db_accounts import RelationalDBAccounts
-from api.database.relational_db.relational_db_ratings import RelationalDBRatings
 from api.database.relational_db.relational_db_sessions import RelationalDBSessions
 from api.database.relational_db.relational_db_visits import RelationalDBVisits
+from api.database.relational_db.relational_db_courses import RelationalDBCourses
 
 
-class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, RelationalDBRatings, RelationalDBVisits, RelationalDBSessions):
+class RelationalDB(
+    DBInterface,
+    RelationalDBAccounts,
+    RelationalDBQueue,
+    RelationalDBVisits,
+    RelationalDBSessions,
+    RelationalDBCourses,
+):  # pylint: disable=too-many-ancestors
+    """Implementation for the SQLite version of the database interface."""
 
     def __init__(self):
         super().__init__()
+        self.db_version = 0
         self.filename = os.getenv("SQLITE_DB_PATH", "./moh.sqlite")
-        self.initialize()
+        self._initialize()
+        self._migrate()
 
-    def initialize(self):
+    def _initialize(self):
         with self.cursor() as c:
             c.execute(
                 """
@@ -92,8 +104,21 @@ class RelationalDB(DBInterface, RelationalDBAccounts, RelationalDBQueue, Relatio
             )
 
     def cursor(self):
+        """Creates new cursor. Use with statements to ensure connections are cleaned up."""
         return RelationalDBCursor(self)
 
     def connect(self):
         pass
 
+    def _migrate(self):
+        with self.cursor() as c:
+            self.db_version = c.execute("PRAGMA user_version").fetchone()[0]
+            for script in sorted(os.listdir("./api/database/relational_db/migrations")):
+                if int(script.split("_")[0]) > self.db_version:
+                    with open(
+                        f"./api/database/relational_db/migrations/{script}",
+                        "r",
+                        encoding="utf-8",
+                    ) as sc_file:
+                        c.executescript(sc_file.read())
+            self.db_version = c.execute("PRAGMA user_version").fetchone()[0]

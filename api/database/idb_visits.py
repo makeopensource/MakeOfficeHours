@@ -1,18 +1,21 @@
+"""The visits component of the database interface"""
+
+# pylint: disable=duplicate-code
 from abc import ABC, abstractmethod
 
-class IVisits(ABC):
 
-    def __init__(self):
-        super().__init__()
+class IVisits(ABC):
+    """Definitions for the visits component of the database interface"""
 
     @abstractmethod
-    def create_visit(self, student, ta, enqueue_time, visit_reason) -> int:
+    def create_visit(self, student, ta, enqueue_time, visit_reason, course) -> int:
         """Create a database entry for the ongoing visit
         between the specified student and TA.
 
         enqueue_time should be in format "YYYY-MM-DD HH:MM:SS"
         Should indicate the time the visit was created
 
+        :param course: the course to create a visit in
         :param student: The user ID of the student
         :param ta: The user ID of the TA
         :param enqueue_time: Timestamp when the student joined the queue,
@@ -34,22 +37,37 @@ class IVisits(ABC):
 
     @abstractmethod
     def cancel_visit(self, visit_id):
-        """ Destroy this visit from the database if it's still in progress.
+        """Destroy this visit from the database if it's still in progress.
         Un-dequeue this student from the queue if they have been dequeued.
 
         :param visit_id:
         :return:
         """
 
-
         raise NotImplementedError()
 
     @abstractmethod
-    def get_in_progress_visits(self):
-        """ Return all database entries for visits that have
-        not ended.
+    def get_in_progress_visits(self, course):
+        """Return all database entries for visits that have
+        not ended for this course.
+
+        :param course:  the course to get visits from
 
 
         :return:
         """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_visits(self, course, user_id=None):
+        """Return all database entries for visits.
+
+        If user_id is set, get all visits that contain
+        this user, either as a student or as a TA.
+
+        :param course: the course to get visits from
+        :param user_id: Optional user_id
+        :return: All visits from the database
+        """
+
         raise NotImplementedError()

@@ -1,12 +1,8 @@
 """Authentication Blueprint for MOH"""
 
 import json
-import os
-import urllib.parse
 
-import requests
-
-from flask import Blueprint, request, make_response, redirect
+from flask import Blueprint, request, make_response, redirect, g
 from api.database.db import db
 from api.auth.autolab_oauth import get_authorization_url, handle_code_after_redirect
 from api.utils.debug import debug_access_only
@@ -15,10 +11,12 @@ blueprint = Blueprint("auth", __name__)
 
 #### Autolab Paths
 
+
 @blueprint.route("/authorize", methods=["GET"])
 def login_with_autolab():
     """
-    Called when the user clicks login with Autolab. Starts the process on talking to Autolab to get an Oauth access token
+    Called when the user clicks login with Autolab. Starts the process
+    on talking to Autolab to get an Oauth access token
     """
     return redirect(get_authorization_url(), code=302)
 
@@ -26,21 +24,24 @@ def login_with_autolab():
 @blueprint.route("/callback", methods=["GET"])
 def getting_code_from_autolab():
     """
-    Next step in the OAuth proccess. We're getting an auth code from Autolab and need to cash it in for an access token and refresh token
+    Next step in the OAuth proccess. We're getting an auth code from Autolab
+    and need to cash it in for an access token and refresh token
     """
-    print(request.args)
     code = request.args.get("code")
-    state = request.args.get("state")
+    # state = request.args.get("state")
     # TODO: check cookie to match state to session
-    session = "not_implemented"
+    # session = "not_implemented"
 
-    auth_token = handle_code_after_redirect(code, state, session)
+    auth_token = handle_code_after_redirect(code)
 
     if not auth_token:
-        res = make_response("You are not enrolled in this class. If you should be, email Paul. It's his fault", 401)
+        res = make_response(
+            "You are not enrolled in this class. If you should be, email Paul. It's his fault",
+            401,
+        )
         return res
 
-    res = make_response(redirect("/queue"))
+    res = make_response(redirect("/"))
     res.set_cookie(
         "auth_token", auth_token, max_age=int(2.592e6), httponly=True, secure=True
     )
@@ -48,6 +49,7 @@ def getting_code_from_autolab():
 
 
 ### Universal Paths (Used regardless of auth provider)
+
 
 @blueprint.route("/signout", methods=["POST"])
 def signout():
@@ -75,6 +77,7 @@ def signout():
 
 
 ### Password auth paths
+
 
 @blueprint.route("/login", methods=["POST"])
 @debug_access_only
@@ -110,7 +113,6 @@ def login():
 def signup():
     """Creates an account using the given credentials,
     fails if ubit already registered for an account
-    or if ubit is not in the roster
     Args:
         ubit: forum data field of ubit
         password: forum data field of password
@@ -138,7 +140,25 @@ def signup():
     return res
 
 
+@blueprint.route("/update-name", methods=["PATCH"])
+def update_preferred_name():
+    """
+    Update the user's preferred name.
 
-# TODO: update preferred name
+    :return: 200, on success
+             400, if malformed
+             401, if user isn't authenticated
+    """
+    user = g.user
 
-# TODO: account has UBIT (For AL lookups) and pn (For card swipes)
+    if user is None:
+        return {"message": "You are not authenticated!"}, 401
+
+    body = request.get_json()
+
+    if (name := body.get("name")) is None:
+        return {"message": "Malformed request."}, 400
+
+    db.set_preferred_name(user["ubit"], name)
+
+    return {"message": "Updated preferred name."}

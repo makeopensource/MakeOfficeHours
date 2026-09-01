@@ -1,9 +1,7 @@
 """Roster Blueprint for MOH"""
 
-from flask import Blueprint, request
-
-from api.auth.controller import get_user
-from api.roster.controller import min_level, add_to_roster
+from flask import Blueprint, request, g
+from api.roster.controller import min_level, add_to_roster, get_power_level
 from api.database.db import db
 
 blueprint = Blueprint("roster", __name__)
@@ -11,32 +9,34 @@ blueprint = Blueprint("roster", __name__)
 # IMPORTANT: @blueprint.route must always be outermost decorator,
 # any other decorators such as, auth decorators (min_level, exact_level) must go below it
 
+
 @blueprint.route("/upload-roster", methods=["POST"])
-@min_level('instructor')
+@min_level("ta")
 def upload_roster():
     """
-        Role: instructor or admin
+    Role: TA or higher
 
-        Populate the database with the uploaded roster.
-        Doesn't create log-ins for the users.
+    Populate the database with the uploaded roster.
+    Doesn't create log-ins for the users.
 
-        CSV formatted ubit,pn,first_name,last_name,role
+    CSV formatted ubit,pn,first_name,last_name,role
 
-        Params:
-            - "roster": the uploaded CSV file
+    Params:
+        - "roster": the uploaded CSV file
 
-        Returns:
-            - 200 if successful
-            - 401 if unauthorized
-            - 400 if roster is missing or invalid format
+    Returns:
+        - 200 if successful
+        - 401 if unauthorized
+        - 400 if roster is missing or invalid format
     """
 
-    print(request.files)
+    user = g.user
+
     if not request.files or request.files.get("roster") is None:
         return {"message": "Invalid roster upload (missing file)"}, 400
 
     file = request.files.get("roster")
-    if file.filename == '' or not file.filename.endswith(".csv"):
+    if file.filename == "" or not file.filename.endswith(".csv"):
         return {"message": "Invalid roster upload (invalid file)"}, 400
 
     buffer = file.read()
@@ -45,7 +45,7 @@ def upload_roster():
     lines = buffer.split("\n")
     users = []
     for line in lines:
-        if line == '':
+        if line == "":
             break
 
         info = line.strip().split(",")
@@ -55,79 +55,72 @@ def upload_roster():
         if not info[1].isnumeric():
             return {"message": "Invalid roster upload (non-numeric PN)"}, 400
         pn = int(info[1])
-        # role has to be valid and not above instructor's authority
-        if info[4] not in {"student", "ta", "instructor"}:
+        # role has to be valid and not above user's authority
+        if info[4] not in {"student", "ta", "instructor"} or get_power_level(
+            info[4]
+        ) >= get_power_level(user["course_role"]):
             return {"message": "Invalid roster upload (bad role)"}, 400
 
-        users.append({
-            "ubit": info[0],
-            "pn": pn,
-            "first_name": info[2],
-            "last_name": info[3],
-            "role": info[4]
-        })
+        users.append(
+            {
+                "ubit": info[0],
+                "pn": pn,
+                "first_name": info[2],
+                "last_name": info[3],
+                "role": info[4],
+            }
+        )
 
     for user in users:
-        add_to_roster(user["ubit"], user["pn"], user["first_name"], user["last_name"], user["role"])
+        add_to_roster(
+            user["ubit"],
+            user["pn"],
+            user["first_name"],
+            user["last_name"],
+            user["role"],
+            g.course_id,
+        )
 
     return {"message": "Successfully uploaded roster"}, 200
 
 
 # TODO: get roster
 
+
 @blueprint.route("/get-roster", methods=["GET"])
-@min_level('instructor')
+@min_level("ta")
 def get_roster():
     """
-        Role: instructor or admin
+    Role: ta, instructor, or admin
 
-        Returns:
-            401 if unauthorized
-            200 if successful:
-                {
-                    roster: [
-                        {
-                            "user_id": <user id>
-                            "ubit": <ubit>,
-                            "pn": <person number>,
-                            "preferred_name": <preferred name>,
-                            "last_name": <last name>
-                            "role": <user's role in course>
-                        }
-                    ]
-                }
+    Returns:
+        401 if unauthorized
+        200 if successful:
+            {
+                roster: [
+                    {
+                        "user_id": <user id>
+                        "ubit": <ubit>,
+                        "pn": <person number>,
+                        "preferred_name": <preferred name>,
+                        "last_name": <last name>
+                        "role": <user's role in course>
+                    }
+                ]
+            }
 
 
     """
-    roster = db.get_roster()
+    roster = db.get_roster(g.course_id)
 
     return {"roster": roster}
 
 
-
-@blueprint.route("/update-name", methods=["PATCH"])
-@min_level('student')
-def update_preferred_name():
-    user = get_user(request.cookies)
-
-    if user is None:
-        return {"message": "You are not authenticated!"}, 401
-
-    body = request.get_json()
-
-    if (name := body.get("name")) is None:
-        return {"message": "Malformed request."}, 400
-
-    db.set_preferred_name(user["ubit"], name)
-
-    return {"message": "Updated preferred name."}
-
-
 @blueprint.route("/enroll", methods=["POST"])
-@min_level('instructor')
+@min_level("ta")
 def enroll_user():
     """
-    Enroll a single user. Won't enroll admins.
+    Enroll a single user. Won't enroll admins. TAs can only enroll students.
 
 
     Body:
@@ -146,9 +139,9 @@ def enroll_user():
     """
     data = request.get_json()
 
-    required_fields = ["ubit", "pn",
-                       "preferred_name", "last_name",
-                       "role"]
+    user = g.user
+
+    required_fields = ["ubit", "pn", "preferred_name", "last_name", "role"]
 
     legal_roles = {"student", "ta", "instructor"}
 
@@ -159,54 +152,94 @@ def enroll_user():
     if data["role"] not in legal_roles:
         return {"message": "Malformed request"}, 400
 
+    if get_power_level(data["role"]) >= get_power_level(user["course_role"]):
+        return {"message": "You cannot enroll a user at this level."}, 403
 
     user_id = db.create_account(data["ubit"], data["pn"])
-    db.add_to_roster(user_id, data["role"])
-    db.set_name(user_id, data["preferred_name"], data["last_name"])
+    db.add_to_roster(user_id, data["role"], g.course_id)
+    db.set_initial_name(user_id, data["preferred_name"], data["last_name"])
 
-    return {"message": "Successfully enrolled user",
-            "id": user_id}
+    return {"message": "Successfully enrolled user", "id": user_id}
 
-@blueprint.route("/visits/<user_id>", methods=["GET"])
-@blueprint.route("/visits", methods=["GET"], defaults={"user_id": None})
-@min_level('instructor')
-def get_visits(user_id):
+
+@blueprint.route("/user/<user_id>", methods=["DELETE"])
+def delete_user(user_id):
+    """Unenrolls the specified user.
+
+    :return: 200 on success
+             401 if removing this user isn't permitted
+             404 if user doesn't exist
     """
-    Get a list of visits. If a user_id is specified, only include
-    visits where the specified user is involved (either as the student
-    or TA).
+    caller = g.user
+    user = db.lookup_identifier(user_id, g.course_id)
+    if get_power_level(caller["course_role"]) <= get_power_level(user["course_role"]):
+        return {"message": "You cannot remove this user."}, 401
 
-    Params:
-        - user_id: <id of user involved in visit>
+    for visit in filter(
+        lambda v: int(v["student_id"]) == int(user_id)
+        or int(v["ta_id"]) == int(user_id),
+        db.get_in_progress_visits(g.course_id),
+    ):
+        db.end_visit(
+            visit["visit_id"],
+            "[Visit ended due to a participant's account being unenrolled.]",
+        )
 
-    Returns:
-        200 on success:
-            {
-                "visits": [
-                    {
-                        "visit_id": <id of visit>,
-                        "ta_id": <ta's user ID>,
-                        "ta_name": <ta's first and last name>
-                        "student_id": <student's user ID>,
-                        "student_name": <student's first and last name>
-                        "start_time": <visit start time>
-                        "end_time": <visit end time>
-                    }
-                ]
+    db.remove_student(user_id, g.course_id)
+    db.reset_swipe_time(user_id, g.course_id)
+
+    if db.remove_from_roster(user_id, g.course_id) is None:
+        return {"message": "User not found."}, 404
+
+    return {"message": "Successfully removed user from roster"}
+
+
+@blueprint.route("/user/<user_id>/role", methods=["PATCH"])
+@min_level("ta")
+def update_role(user_id):
+    """Update the specified user's role. Can only promote people to your level.
+
+    Body:   {
+                "role": <the desired role>
             }
 
-
-    :return:
+    :return: 200 on success
     """
 
-    pass
+    user = db.lookup_identifier(user_id, g.course_id)
+    caller = g.user
+    role = request.json["role"]
+
+    if user is None:
+        return {"message": "User not found."}, 401
+
+    if role not in {"student", "ta", "instructor"}:
+        return {"message": "Invalid role."}, 400
+
+    if get_power_level(caller["course_role"]) < get_power_level(user["course_role"]):
+        return {"message": "You are not permitted to change this user's role."}, 401
+
+    if get_power_level(caller["course_role"]) < get_power_level(role):
+        return {"message": "You are not permitted to set this user to this role."}, 401
+
+    db.add_to_roster(user_id, role, g.course_id)
+
+    return {"message": "Updated role."}
 
 
-# TODO: add to roster - to add an individual to the roster
+@blueprint.route("/clear-enrollments", methods=["DELETE"])
+@min_level("instructor")
+def clear_enrollments():
+    """Clear all student enrollments. This soft-deletes their accounts,
+    clears the queue, etc.
 
-# TODO: Remove from roster
+    :return: 200 on success
+    """
+    for visit in db.get_in_progress_visits(g.course_id):
+        db.end_visit(visit["visit_id"], "[Visit ended due to course reset.]")
 
-# TODO: Whenever someone is added to the roster, check if they have an account and create one for them if not
+    db.clear_queue(g.course_id)
+    db.clear_on_site(g.course_id)
+    db.clear_students(g.course_id)
 
-# TODO: handle roles here (Will make it easier to move to multiple courses in the future)
-
+    return {"message": "Removed all students from the course."}

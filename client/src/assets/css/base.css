@@ -1,10 +1,3 @@
-:root {
-    --accent-color: #0461cf;
-    --dark-accent-color: #03499e;
-    --bg-color: #FFFFFF;
-    --danger-color: #EC221F;
-}
-
 #queue-banner.bad {
     background-color: #FDD3D0
 }
@@ -46,7 +39,7 @@ button.danger {
 }
 
 button.danger:hover {
-    background-color: #B4221F;
+    background-color: var(--dark-accent-color);
     color: white;
 }
 

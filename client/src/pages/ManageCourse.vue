@@ -1,38 +1,64 @@
 <script setup lang="ts">
 
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {ref} from "vue";
 import TableEntry from "@/components/TableEntry.vue";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import Alert from "@/components/common/Alert.vue";
-import ManageTable from "@/components/ManageTable.vue";
+import Table from "@/components/Table.vue";
+import Visit from "@/components/instructor/Visit.vue";
+import VisitTable from "@/components/instructor/VisitTable.vue";
 
 const router = useRouter()
+const route = useRoute()
 
-const me = ref<Object>();
+const course = route.params.course
 
-fetch("/api/me").then(res => {
+const me = ref<any>({});
+const manager = ref<boolean>(false);
+
+fetch(`/api/course/${course}`).then(res => {
   if (!res.ok) {
     router.push("/")
   }
   return res.json();
 }).then(data => {
-  if (data["course_role"] !== "instructor" && data["course_role"] !== "admin") {
-    router.push("/queue")
+  if (data["course_role"] === null) {
+    router.push("/")
   }
-  me.value = data;
+  if (data["course_role"] === "student") {
+    router.push(`/${course}/queue`)
+  }
+  if (data["course_role"] !== "ta") {
+    manager.value = true;
+  }
   getCode();
 })
 
-const users = ref();
+fetch("/api/me").then(res => {
+  if (res.ok) {
+    return res.json()
+  }
+}).then(json => {
+  me.value = json
+})
 
-const getRoster = () => fetch("/api/get-roster").then(res => {
+const users = ref<Array<Array<any>>>([]);
+
+const getRoster = () => fetch(`/api/course/${course}/get-roster`).then(res => {
   if (!res.ok) {
-    router.push("/queue")
+    router.push(`/${course}/queue`)
   }
   return res.json();
 }).then(json => {
-  users.value = json["roster"]
+  users.value = []
+  const roster: Array<any> = json["roster"]
+
+  roster.sort((a, b) => { return a["ubit"].localeCompare(b["ubit"]) })
+
+  roster.forEach((user) => {
+    users.value.push([user["user_id"], user["ubit"], user["preferred_name"], user["last_name"], user["person_num"], user["course_role"]])
+  })
 });
 
 getRoster()
@@ -51,7 +77,7 @@ const setCSVFile = (event: any) => csvFile.value = event.target?.files[0]
 function uploadCSV() {
   const data = new FormData()
   data.append('roster', csvFile.value)
-  fetch("/api/upload-roster", {
+  fetch(`/api/course/${course}/upload-roster`, {
     method: "POST",
     body: data
   }).then(res => {
@@ -79,7 +105,7 @@ const userToEnroll = ref(
 );
 
 function enrollUser() {
-  fetch("/api/enroll", {
+  fetch(`/api/course/${course}/enroll`, {
     method: "POST",
     body: JSON.stringify({
       "ubit": userToEnroll.value?.ubit,
@@ -110,13 +136,13 @@ let hardwareCode = ref<string>();
 
 
 const getCode = () => {
-  fetch("/api/swipe-authorization").then(res => res.json()).then(json => {
+  fetch(`/api/course/${course}/swipe-authorization`).then(res => res.json()).then(json => {
     hardwareCode.value = json["code"]
   })
 }
 
 const resetAuth = () => {
-  fetch("/api/reset-swipe-auth", {
+  fetch(`/api/course/${course}/reset-swipe-auth`, {
     method: "DELETE"
   }).then(() => {
     getCode()
@@ -125,9 +151,83 @@ const resetAuth = () => {
 
 }
 
+const visitTable = ref<typeof VisitTable>();
+const visitRef = ref<typeof Visit>();
+
+const visitInfo = ref({});
+
+function showOldVisit(visit: Array<any>) {
+  visitInfo.value = {
+    "preferred_name": `${visit[4]} ${visit[5]}`,
+    "username": visit[3],
+    "visit_reason": visit[9],
+    "visit_result": visit[10]
+  }
+  visitRef.value?.show()
+}
+
+function deleteUser(user: string) {
+  fetch(`/api/course/${course}/user/${user}`, { method: "DELETE"}).then(res => {
+      if (!res.ok) {
+        alertBox.value?.setError("Failed to remove user")
+      } else {
+        getRoster()
+      }
+    }
+  )
+}
+
+const clearDialog = ref<typeof ConfirmationDialog>();
+
+function clearStudents() {
+  fetch(`/api/course/${course}/clear-enrollments`, { method: "DELETE"} ).then(res => {
+    if (!res.ok) {
+      alertBox.value?.setError("Failed to clear roster.")
+    } else {
+      getRoster();
+    }
+  })
+}
+
+function updateRole(user: string, role: string) {
+  fetch(`/api/course/${course}/user/${user}/role`, {
+    method: "PATCH",
+    body: JSON.stringify({"role": role}),
+    headers: {"Content-Type": "application/json"}
+  }).then(res => {
+    if (!res.ok) {
+      res.json().then((json) => {
+        alertBox.value?.setError(`Failed to change role: ${json["message"]}`)
+        getRoster()
+      })
+
+    }
+  })
+}
+
+function rolePrettyName(role: string) {
+  switch (role) {
+    case "student": return "Student"
+    case "ta": return "TA"
+    case "instructor": return "Instructor"
+    case "admin": return "Admin"
+    default: return "IDK"
+  }
+}
 </script>
 
 <template>
+
+  <Visit ref="visitRef" :visit_info="visitInfo" :read_only="true"/>
+
+  <ConfirmationDialog ref="clearDialog">
+    <p>
+      This will delete all students from the course. Reversing this action will be difficult.
+    </p>
+    <button class="danger" @click="clearStudents">Delete the students!</button>
+    <button @click="clearDialog?.hide()">Close</button>
+
+  </ConfirmationDialog>
 
   <ConfirmationDialog ref="hardwareDialog">
 
@@ -151,8 +251,8 @@ const resetAuth = () => {
     <label for="course_role">Role</label>
     <select id="course_role" v-model="userToEnroll.course_role">
       <option value="student">Student</option>
-      <option value="ta">TA</option>
-      <option value="instructor">Instructor</option>
+      <option value="ta" v-if="manager">TA</option>
+      <option value="instructor" v-if="manager">Instructor</option>
     </select>
     <br/>
     <button @click="enrollUser" class="important">Submit</button>
@@ -170,19 +270,37 @@ const resetAuth = () => {
     <button @click="uploadCSVDialog?.hide()">Close</button>
   </ConfirmationDialog>
 
+  <VisitTable id="visit-tbl" ref="visitTable" @show-visit="showOldVisit" />
 
 
   <div id="manage-course">
       <h2>Manage Course</h2>
-      <button @click="router.push('/queue')">Return to Queue</button>
+      <button id="return-btn" @click="router.push(`/${course}/queue`)">Return to Queue</button>
       <br/>
       <div class="manage-buttons">
+        <button v-if="manager" @click='visitTable?.show()'>View All Visits</button>
         <button @click="hardwareDialog?.show()">Authorize Swipe</button>
         <button @click="enrollDialog?.show()">Add User to Roster</button>
         <button @click="uploadCSVDialog?.show()">Enroll from CSV</button>
-        <button @click="alertBox?.setError('Not implemented')" class="danger">Clear all Enrollments</button>
+        <button v-if="manager" @click="clearDialog?.show()" class="danger">Remove all Students</button>
       </div>
-      <ManageTable :headings="['Role', 'Preferred Name', 'Person Number', 'Role', 'User ID', 'User ID', 'Actions']" :table_data="users"/>
+    <Table id="users-tbl" :headings="['User ID', 'Username', 'Preferred Name', 'Last Name', 'Person Number', 'Role', 'Actions']">
+
+      <TableEntry v-for="user in users" :data="user.slice(0, 5)">
+        <td>
+          <select v-if="user[0] != me['user_id']" v-model="user[5]" @change="() => updateRole(user[0], user[5])">
+            <option value="student" v-if="manager || user[5] != 'instructor'">Student</option>
+            <option value="ta" v-if="manager || user[5] != 'instructor'">TA</option>
+            <option value="instructor" v-if="manager || user[5] == 'instructor'">Instructor</option>
+          </select>
+          <span v-else>{{rolePrettyName(user[5])}}</span>
+        </td>
+        <td id="actions">
+              <button v-if="manager || me['user_id'] == user[0]" @click="visitTable?.show(user[0])">Visits</button>
+              <button @click="() => deleteUser(user[0])" v-if="me['user_id'] != user[0] && (user[5] == 'student' || user[5] == 'ta' || manager)" class="danger">Remove</button>
+        </td>
+      </TableEntry>
+    </Table>
 
   </div>
 
@@ -191,6 +309,42 @@ const resetAuth = () => {
 
 <style scoped>
 
+@media screen and (max-width: 991px) {
+
+  h2 {
+    text-align: center;
+  }
+
+  .manage-buttons {
+    flex-direction: column;
+  }
+
+  #return-btn {
+    margin: auto;
+    display: flex;
+  }
+
+  #users-tbl {
+    overflow-x: scroll;
+  }
+}
+
+#actions {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  border: none;
+  padding: 4px;
+}
+
+tr, th, td {
+    border: 2px solid #D9D9D9;
+    border-collapse: collapse;
+  }
+
+td {
+  padding: 8px;
+}
 
 #manage-course {
   margin: 32px 8%;

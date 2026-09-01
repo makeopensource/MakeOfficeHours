@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import {ref} from "vue";
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import Header from "@/components/common/Header.vue";
 
 let inputRef = ref<HTMLInputElement>();
@@ -13,6 +13,9 @@ let queueLen = ref<number>(0);
 const hostname = window.location.hostname;
 
 const router = useRouter()
+const route = useRoute()
+
+const course = route.params.course
 
 inputRef.value?.focus();
 
@@ -25,7 +28,7 @@ const swipeInput = () => {
   }
 
   if (input) {
-    fetch("/api/enqueue-card-swipe", {
+    fetch(`/api/course/${course}/enqueue/swipe`, {
       method: "POST",
       body: JSON.stringify({"swipe_data": inputValue, "code": localStorage.getItem("auth-code")}),
       headers: {"Content-Type": "application/json"}
@@ -52,8 +55,6 @@ const swipeInput = () => {
 
 
     input.value = "";
-  } else {
-    console.log(inputValue.length);
   }
 }
 
@@ -64,7 +65,7 @@ const clearStatus = () => {
 let pollTimeout = -1;
 
 const refreshQueueLen = () => {
-  fetch("/api/get-queue-size").then(res => {
+  fetch(`/api/course/${course}/queue/size`).then(res => {
     if (res.ok) {
       return res.json()
     }
@@ -88,7 +89,7 @@ router.beforeEach((to, from, next) => {
 })
 
 if (localStorage.getItem("auth-code") === null) {
-  router.push("/swipe-auth")
+  router.push(`/${course}/swipe-auth`)
 }
 
 </script>

@@ -43,27 +43,6 @@ const submitLogin = () => {
 
 <template>
   <div id="forms">
-    <div class="dev-form" id="enroll">
-      <h2>Force Enroll</h2>
-      <form @submit.prevent="submitEnroll" ref="enrollForm" action="/api/force-enroll" method="post"
-            enctype="application/x-www-form-urlencoded">
-        <label for="ubit">UBITName</label>
-        <input name="ubit" type="text" id="ubit">
-        <br/>
-        <label for="pn">Person Number</label>
-        <input name="pn" type="text" id="pn">
-        <br/>
-        <label for="role">Role</label>
-        <select name="role" id="role">
-          <option value="student">Student</option>
-          <option value="ta">TA</option>
-          <option value="instructor">Instructor</option>
-          <option value="admin">Admin</option>
-        </select>
-        <br/>
-        <button type="submit">Enroll</button>
-      </form>
-    </div>
     <div class="dev-form" id="register">
       <h2>Register</h2>
 
@@ -92,7 +71,7 @@ const submitLogin = () => {
       </form>
     </div>
     <p id="message">{{ message }}</p>
-    <button @click="router.push('/queue')">Go to Queue</button>
+    <button @click="router.push('/')">Go to Queue</button>
   </div>
 </template>
 

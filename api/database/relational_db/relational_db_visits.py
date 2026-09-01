@@ -1,50 +1,58 @@
+"""Visits component of the relational DB"""
+
 import datetime
 
 from api.database.idb_visits import IVisits
 
 
 class RelationalDBVisits(IVisits):
+    """Implementations for the visits component"""
 
-    def __init__(self):
-        super().__init__()
-
-    def create_visit(self, student, ta, enqueue_time, visit_reason) -> int:
+    def create_visit(self, student, ta, enqueue_time, visit_reason, course) -> int:
         with self.cursor() as cursor:
-            visit_id = cursor.execute("""
-                INSERT INTO visits (student_id, ta_id, enqueue_time, student_visit_reason) VALUES (
-                ?, ?, ?, ?)
+            visit_id = cursor.execute(
+                """
+                INSERT INTO visits (student_id, ta_id, enqueue_time, student_visit_reason, course_id) VALUES (
+                ?, ?, ?, ?, ?)
                 RETURNING visit_id
-            """, (student, ta, enqueue_time, visit_reason)).fetchone()[0]
+            """,
+                (student, ta, enqueue_time, visit_reason, course),
+            ).fetchone()[0]
 
             return visit_id
 
-
-
     def end_visit(self, visit_id, reason):
         # YYYY-MM-DD HH:MM:SS
-        now = str(datetime.datetime.now().isoformat(' ', timespec="seconds"))
+        now = str(datetime.datetime.now().isoformat(" ", timespec="seconds"))
 
         with self.cursor() as cursor:
 
-            student = cursor.execute("SELECT (student_id) from visits WHERE visit_id = ?", (visit_id, )).fetchone()
+            student = cursor.execute(
+                "SELECT (student_id) from visits WHERE visit_id = ?", (visit_id,)
+            ).fetchone()
 
             if student is None:
                 return
 
             student = student[0]
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE visits
                 SET session_end = ?, session_end_reason = ?
                 WHERE visit_id = ? AND session_end is null
-            """, (now, reason, visit_id))
+            """,
+                (now, reason, visit_id),
+            )
 
-        self.remove_student(student)
+            cursor.execute("DELETE FROM queue WHERE user_id = ?", (student,))
 
     def cancel_visit(self, visit_id):
         with self.cursor() as cursor:
 
-            student = cursor.execute("SELECT (student_id) from visits WHERE visit_id = ?", (visit_id,)).fetchone()
+            student = cursor.execute(
+                "SELECT (student_id) from visits WHERE visit_id = ?", (visit_id,)
+            ).fetchone()
 
             if student is None:
                 return
@@ -53,27 +61,97 @@ class RelationalDBVisits(IVisits):
 
             cursor.execute("DELETE from visits WHERE visit_id = ?", (visit_id,))
 
-            cursor.execute("UPDATE queue SET dequeued = false WHERE user_id = ?", (student, ))
+            cursor.execute(
+                "UPDATE queue SET dequeued = false WHERE user_id = ?", (student,)
+            )
 
-
-    def get_in_progress_visits(self):
+    def get_in_progress_visits(self, course):
         with self.cursor() as cursor:
-            result = cursor.execute("""
+            result = cursor.execute(
+                """
                 SELECT visit_id, student_id, student_visit_reason, ta_id, enqueue_time, session_start FROM visits
-                WHERE session_end IS NULL
-            """).fetchall()
+                WHERE session_end IS NULL AND course_id = ?
+            """,
+                (course,),
+            ).fetchall()
 
         visits = []
         for row in result:
-            visits.append({
-                "visit_id": row[0],
-                "student_id": row[1],
-                "student_visit_reason": row[2],
-                "ta_id": row[3],
-                "enqueue_time": row[4],
-                "session_start": row[5]
-            })
+            visits.append(
+                {
+                    "visit_id": row[0],
+                    "student_id": row[1],
+                    "student_visit_reason": row[2],
+                    "ta_id": row[3],
+                    "enqueue_time": row[4],
+                    "session_start": row[5],
+                }
+            )
         return visits
 
+    def get_visits(self, course, user_id=None):
+        with self.cursor() as cursor:
+            if user_id is None:
+                result = cursor.execute(
+                    """
+                    SELECT visits.*,
+                           students.preferred_name as student_name,
+                           students.last_name      as student_surname,
+                           students.ubit           as student_ubit,
+                           tas.preferred_name      as ta_name,
+                           tas.last_name           as ta_surname,
+                           tas.ubit                as ta_ubit,
+                           ((ta_enrollments.user_id is not null and 
+                                (tas.deleted or students.deleted or student_enrollments.user_id is null))
+                           or (ta_enrollments.user_id is null and 
+                                (students.deleted or student_enrollments.user_id is null))) as archived
+                    FROM visits
+                             LEFT JOIN users as students ON students.user_id = visits.student_id
+                             LEFT JOIN enrollments as student_enrollments ON 
+                                students.user_id = student_enrollments.user_id AND student_enrollments.course_id = ?
+                             LEFT JOIN users as tas ON tas.user_id = visits.ta_id
+                             LEFT JOIN enrollments as ta_enrollments ON tas.user_id = ta_enrollments.user_id 
+                                AND ta_enrollments.course_id = ?
+                    WHERE visits.course_id = ?
+                    """,
+                    (
+                        course,
+                        course,
+                        course,
+                    ),
+                ).fetchall()
+            else:
+                result = cursor.execute(
+                    """
+                    SELECT visits.*,
+                           students.preferred_name as student_name,
+                           students.last_name      as student_surname,
+                           students.ubit           as student_ubit,
+                           tas.preferred_name      as ta_name,
+                           tas.last_name           as ta_surname,
+                           tas.ubit                as ta_ubit,
+                           ((ta_enrollments.user_id is not null and 
+                                (tas.deleted or students.deleted or student_enrollments.user_id is null))
+                           or (ta_enrollments.user_id is null and 
+                                (students.deleted or student_enrollments.user_id is null))) as archived
+                    FROM visits
+                     
+                     LEFT JOIN users as students ON students.user_id = visits.student_id
+                     LEFT JOIN enrollments as student_enrollments ON 
+                            students.user_id = student_enrollments.user_id AND student_enrollments.course_id = ?
+                     LEFT JOIN users as tas ON tas.user_id = visits.ta_id
+                     LEFT JOIN enrollments as ta_enrollments ON 
+                            tas.user_id = ta_enrollments.user_id AND ta_enrollments.course_id = ?
+                    WHERE (student_id = ? OR ta_id = ?) AND visits.course_id = ?
+                """,
+                    (course, course, user_id, user_id, course),
+                ).fetchall()
 
+            visits = []
 
+            for res in result:
+                res = dict(res)
+                res["archived"] = bool(res["archived"])
+                visits.append(res)
+
+        return visits

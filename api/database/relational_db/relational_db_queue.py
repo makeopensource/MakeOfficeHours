@@ -1,22 +1,28 @@
-import datetime
+"""Queue component for the relational DB"""
 
-from api.database.idb_queue import IQueue
+import datetime
 import secrets
 
-class RelationalDBQueue(IQueue):
+from api.database.idb_queue import IQueue
 
-    def enqueue_student(self, student):
+
+class RelationalDBQueue(IQueue):
+    """Implementations of the database queue methods."""
+
+    def enqueue_student(self, student, course):
         with self.cursor() as cursor:
             cursor.execute(
                 """
-                INSERT OR IGNORE INTO queue (user_id, priority) VALUES (?, 0)
+                INSERT OR IGNORE INTO queue (user_id, priority, course_id) VALUES (?, 0, ?)
             """,
-                (student,),
+                (student, course),
             )
 
-    def enqueue_student_front(self, student):
+    def enqueue_student_front(self, student, course):
         with self.cursor() as cursor:
-            priority = cursor.execute("SELECT MAX(priority) FROM queue").fetchone()[0]
+            priority = cursor.execute(
+                "SELECT MAX(priority) FROM queue WHERE course_id = ?", (course,)
+            ).fetchone()[0]
             if priority is None:
                 priority = 0
             else:
@@ -24,13 +30,13 @@ class RelationalDBQueue(IQueue):
 
             cursor.execute(
                 """
-                INSERT OR IGNORE INTO queue (user_id, priority)
-                VALUES (?, ?)
+                INSERT OR IGNORE INTO queue (user_id, priority, course_id)
+                VALUES (?, ?, ?)
                 """,
-                (student, priority),
+                (student, priority, course),
             )
 
-    def dequeue_student(self):
+    def dequeue_student(self, course):
         with self.cursor() as cursor:
             rows = cursor.execute("SELECT COUNT(*) from queue").fetchone()[0]
             if rows == 0:
@@ -39,36 +45,16 @@ class RelationalDBQueue(IQueue):
             user = cursor.execute(
                 """
                 SELECT users.user_id, preferred_name, ubit, person_num, joined 
-                FROM queue 
+                FROM queue
                 INNER JOIN users ON queue.user_id = users.user_id 
+                WHERE course_id = ?
                 ORDER BY priority DESC, joined
-            """
+            """,
+                (course,),
             ).fetchone()
-            cursor.execute("UPDATE queue SET dequeued = true WHERE user_id = ?", (user[0],))
-
-        return {
-            "user_id": user[0],
-            "preferred_name": user[1],
-            "ubit": user[2],
-            "person_num": str(user[3]),
-            "enqueue_time": user[4]
-        }
-
-    def dequeue_specified_student(self, student_id):
-        with self.cursor() as cursor:
-            user = cursor.execute(
-                """
-                SELECT users.user_id, preferred_name, ubit, person_num, joined, enqueue_reason 
-                FROM queue 
-                INNER JOIN users ON queue.user_id = users.user_id 
-                WHERE users.user_id = ?
-            """, (student_id,)
-            ).fetchone()
-
-            if user is None:
-                return None
-
-            cursor.execute("UPDATE queue SET dequeued = true WHERE user_id = ?", (user[0],))
+            cursor.execute(
+                "UPDATE queue SET dequeued = true WHERE user_id = ?", (user[0],)
+            )
 
         return {
             "user_id": user[0],
@@ -76,21 +62,49 @@ class RelationalDBQueue(IQueue):
             "ubit": user[2],
             "person_num": str(user[3]),
             "enqueue_time": user[4],
-            "enqueue_reason": user[5]
         }
 
-    def get_queue(self):
+    def dequeue_specified_student(self, student_id, course):
+        with self.cursor() as cursor:
+            user = cursor.execute(
+                """
+                SELECT users.user_id, preferred_name, ubit, person_num, joined, enqueue_reason 
+                FROM queue 
+                INNER JOIN users ON queue.user_id = users.user_id 
+                WHERE users.user_id = ? AND course_id = ?
+            """,
+                (student_id, course),
+            ).fetchone()
+
+            if user is None:
+                return None
+
+            cursor.execute(
+                "UPDATE queue SET dequeued = true WHERE user_id = ?", (user[0],)
+            )
+
+        return {
+            "user_id": user[0],
+            "preferred_name": user[1],
+            "ubit": user[2],
+            "person_num": str(user[3]),
+            "enqueue_time": user[4],
+            "enqueue_reason": user[5],
+        }
+
+    def get_queue(self, course):
         with self.cursor() as cursor:
             users = cursor.execute(
                 """
                 SELECT users.user_id, preferred_name, ubit, person_num 
                 FROM queue INNER JOIN users ON queue.user_id = users.user_id 
-                WHERE dequeued = false
+                WHERE dequeued = false AND course_id = ?
                 ORDER BY priority DESC, joined
-                """
+                """,
+                (course,),
             )
 
-            users_l = list()
+            users_l = []
 
             for user in users:
                 users_l.append(
@@ -104,46 +118,54 @@ class RelationalDBQueue(IQueue):
 
         return users_l
 
-    def clear_queue(self):
+    def clear_queue(self, course):
         with self.cursor() as cursor:
             cursor.execute(
-                "DELETE FROM queue WHERE dequeued = false"
+                "DELETE FROM queue WHERE dequeued = false AND course_id = ?", (course,)
             )
 
-    def remove_student(self, student):
+    def remove_student(self, student, course):
         with self.cursor() as cursor:
-            queue_info = cursor.execute("SELECT * FROM queue WHERE user_id = ?", (student, )).fetchone()
+            queue_info = cursor.execute(
+                "SELECT * FROM queue WHERE user_id = ? AND course_id = ?",
+                (student, course),
+            ).fetchone()
 
             if queue_info is None:
                 return None
 
         with self.cursor() as cursor:
-
-            cursor.execute("DELETE FROM queue WHERE user_id = ?", (student, ))
+            cursor.execute(
+                "DELETE FROM queue WHERE user_id = ? AND course_id = ?",
+                (student, course),
+            )
 
             return {"user_id": queue_info[0], "joined": queue_info[1]}
 
-    def set_reason(self, student, reason):
+    def set_reason(self, student, reason, course):
         with self.cursor() as cursor:
             cursor.execute(
-                "UPDATE queue SET enqueue_reason = ? WHERE user_id = ?", (reason, student)
+                "UPDATE queue SET enqueue_reason = ? WHERE user_id = ? AND course_id = ?",
+                (reason, student, course),
             )
 
-    def move_to_end(self, student):
-        now = str(datetime.datetime.now().isoformat(' ', timespec="seconds"))
+    def move_to_end(self, student, course):
+        now = str(datetime.datetime.now().isoformat(" ", timespec="seconds"))
 
         with self.cursor() as cursor:
             res = cursor.execute(
-                "UPDATE queue SET joined = ?, priority = 0 WHERE user_id = ? RETURNING user_id", (now, student)
+                "UPDATE queue SET joined = ?, priority = 0 WHERE user_id = ? AND course_id = ? RETURNING user_id",
+                (now, student, course),
             ).fetchone()
             if res is None:
                 return False
             return True
 
-    def get_hw_authorization(self):
+    def get_hw_authorization(self, course):
         with self.cursor() as cursor:
             res = cursor.execute(
-                "SELECT authorization FROM hardware WHERE expires_at > CURRENT_TIMESTAMP"
+                "SELECT authorization FROM hardware WHERE expires_at > CURRENT_TIMESTAMP AND course_id = ?",
+                (course,),
             ).fetchone()
 
             if res is None:
@@ -151,16 +173,15 @@ class RelationalDBQueue(IQueue):
 
             return res[0]
 
-    def reset_hw_authorization(self):
+    def reset_hw_authorization(self, course):
         with self.cursor() as cursor:
-            cursor.execute(
-                "DELETE FROM hardware"
-            )
+            cursor.execute("DELETE FROM hardware")
 
             auth_code = secrets.token_urlsafe(16)
 
             cursor.execute(
-                "INSERT INTO hardware (authorization) VALUES (?)", (auth_code,)
+                "INSERT INTO hardware (authorization, course_id) VALUES (?, ?)",
+                (auth_code, course),
             )
 
             return auth_code

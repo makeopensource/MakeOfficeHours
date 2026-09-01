@@ -1,12 +1,13 @@
 <script setup lang="ts">
 
 import {ref} from "vue";
-import {useRouter} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 import EditInfo from "@/components/common/EditInfo.vue";
 import Alert from "@/components/common/Alert.vue";
 
 const router = useRouter()
+const route = useRoute()
 
 let enqueued = ref(false)
 let onSite = ref(false)
@@ -30,7 +31,7 @@ let bannerText = ref("You are not in the queue!")
 const leaveQueueDialog = ref<typeof ConfirmationDialog>();
 
 function fetchPosition() {
-  fetch("/api/get-my-position").then(
+  fetch(`/api/course/${route.params.course}/queue/position`).then(
       res => {
         return res.json()
       }
@@ -70,15 +71,17 @@ function fetchPosition() {
 let visitPollTimeout = -1;
 
 function fetchVisit() {
-  fetch("/api/restore-visit").then(res => {
+  fetch(`/api/course/${route.params.course}/restore-visit`).then(res => {
     if (res.ok) {
       return res.json()
     } else {
       visitDialog.value?.hide()
     }
   }).then(json => {
-    taName.value = json["ta_name"]
-    visitDialog.value?.show()
+    if (json) {
+      taName.value = json["ta_name"]
+      visitDialog.value?.show()
+    }
   })
 }
 
@@ -111,7 +114,7 @@ function leaveQueue() {
   selfDequeueReason.value?.reportValidity()
 
   if (selfDequeueReason.value?.checkValidity()) {
-    fetch("/api/remove-self-from-queue", {
+    fetch(`/api/course/${route.params.course}/remove-self-from-queue`, {
       method: "POST",
       body: JSON.stringify({"reason": selfDequeueReason.value?.value}),
       headers: {"Content-Type": "application/json"}
@@ -131,7 +134,13 @@ const queueReason = ref<HTMLTextAreaElement>();
 
 function updateReason() {
 
-  fetch("/api/update-reason", {
+  if (queueReason.value?.value === "") {
+    alertBox.value?.setMessage("Visit reason cannot be empty.");
+    return;
+  }
+
+
+  fetch(`/api/course/${route.params.course}/update-reason`, {
     method: "PATCH",
     body: JSON.stringify({"reason": queueReason.value?.value}),
     headers: {"Content-Type": "application/json"}
@@ -159,10 +168,10 @@ const alertBox = ref<typeof Alert>();
 
 const visitDialog = ref<typeof ConfirmationDialog>();
 
-const taName = ref<string>();
+const taName = ref<string>("");
 
 function selfEnqueue() {
-  fetch("/api/enqueue", { method: "POST" }).then(res => {
+  fetch(`/api/course/${route.params.course}/enqueue`, { method: "POST" }).then(res => {
     if (!res.ok) {
       alertBox.value?.setError("Failed to enqueue! Are you on site?")
     } else {
@@ -204,6 +213,7 @@ function selfEnqueue() {
   </ConfirmationDialog>
 
   <div id="queue">
+    <slot id="dropdown"/>
     <div id="info" class="queue-section">
       <div id="user">
         <h2 id="student-name">{{ studentName }}</h2>
@@ -243,4 +253,5 @@ function selfEnqueue() {
 
 <style scoped>
 @import "../assets/css/student-queue.css";
+
 </style>
