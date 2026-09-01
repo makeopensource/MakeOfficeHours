@@ -32,8 +32,6 @@ function setupHeader() {
     showCourse.value = false;
   }
 
-  console.log(showCourse.value)
-
   fetch("/api/me").then(res => res.json()).then(json => myCourses.value = json["enrollments"])
 }
 

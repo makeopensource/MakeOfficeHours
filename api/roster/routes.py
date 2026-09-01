@@ -10,7 +10,7 @@ blueprint = Blueprint("roster", __name__)
 # any other decorators such as, auth decorators (min_level, exact_level) must go below it
 
 
-@blueprint.route("/upload-roster", methods=["POST"])
+@blueprint.route("/roster", methods=["POST"])
 @min_level("ta")
 def upload_roster():
     """
@@ -87,7 +87,7 @@ def upload_roster():
 # TODO: get roster
 
 
-@blueprint.route("/get-roster", methods=["GET"])
+@blueprint.route("/roster", methods=["GET"])
 @min_level("ta")
 def get_roster():
     """
@@ -227,7 +227,7 @@ def update_role(user_id):
     return {"message": "Updated role."}
 
 
-@blueprint.route("/clear-enrollments", methods=["DELETE"])
+@blueprint.route("/roster", methods=["DELETE"])
 @min_level("instructor")
 def clear_enrollments():
     """Clear all student enrollments. This soft-deletes their accounts,
