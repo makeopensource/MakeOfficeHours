@@ -45,7 +45,7 @@ fetch("/api/me").then(res => {
 
 const users = ref<Array<Array<any>>>([]);
 
-const getRoster = () => fetch(`/api/course/${course}/get-roster`).then(res => {
+const getRoster = () => fetch(`/api/course/${course}/roster`).then(res => {
   if (!res.ok) {
     router.push(`/${course}/queue`)
   }
@@ -77,7 +77,7 @@ const setCSVFile = (event: any) => csvFile.value = event.target?.files[0]
 function uploadCSV() {
   const data = new FormData()
   data.append('roster', csvFile.value)
-  fetch(`/api/course/${course}/upload-roster`, {
+  fetch(`/api/course/${course}/roster`, {
     method: "POST",
     body: data
   }).then(res => {
@@ -180,7 +180,7 @@ function deleteUser(user: string) {
 const clearDialog = ref<typeof ConfirmationDialog>();
 
 function clearStudents() {
-  fetch(`/api/course/${course}/clear-enrollments`, { method: "DELETE"} ).then(res => {
+  fetch(`/api/course/${course}/roster`, { method: "DELETE"} ).then(res => {
     if (!res.ok) {
       alertBox.value?.setError("Failed to clear roster.")
     } else {

@@ -43,7 +43,7 @@ def enqueue_card_swipe():
     swipe_data = body["swipe_data"]
     code = body["code"]
 
-    if code != db.get_hw_authorization():
+    if code != db.get_hw_authorization(g.course_id):
         return {"message": "Invalid code"}, 403
 
     if decode_pn(swipe_data) == "":
