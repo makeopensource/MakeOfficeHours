@@ -152,7 +152,7 @@ def enroll_user():
     if data["role"] not in legal_roles:
         return {"message": "Malformed request"}, 400
 
-    if get_power_level(data["role"]) >= get_power_level(user["course_role"]):
+    if get_power_level(data["role"]) > get_power_level(user["course_role"]):
         return {"message": "You cannot enroll a user at this level."}, 403
 
     user_id = db.create_account(data["ubit"], data["pn"])
