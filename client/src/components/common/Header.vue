@@ -15,6 +15,7 @@ const showCourse = ref<boolean>(false)
 function fetchCourse() {
   fetch(`/api/course/${course.value}`).then(res => {
   if (res.ok) {
+      showCourse.value = true;
       return res.json();
   }
   }).then(json => {
@@ -27,7 +28,6 @@ function setupHeader() {
   course.value = route.params.course
   if (course.value !== undefined) {
     fetchCourse();
-    showCourse.value = true;
   } else {
     showCourse.value = false;
   }

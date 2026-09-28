@@ -128,7 +128,16 @@ function exportVisits() {
   for (let visit of visits.value) {
     let info = ""
     for (let i = 0; i < visit.length - 1; i++) {
-      info += visit[i] != null ? `${visit[i]},` : ','
+      if (visit[i] != null) {
+        let data = visit[i];
+        if (data.indexOf(",") > -1 || data.indexOf("\n") > -1 || data.indexOf("\r") > -1) {
+          data = `"${data}"`
+        }
+        // data = data.replaceAll("\n", " ").replaceAll("\r", " ")
+        info += data + ","
+      } else {
+        info += ","
+      }
     }
     info += visit[visit.length-1] != null ? `${visit[visit.length-1]}\n` : '\n'
     csv += info
