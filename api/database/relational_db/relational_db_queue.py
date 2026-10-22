@@ -175,7 +175,7 @@ class RelationalDBQueue(IQueue):
 
     def reset_hw_authorization(self, course):
         with self.cursor() as cursor:
-            cursor.execute("DELETE FROM hardware")
+            cursor.execute("DELETE FROM hardware WHERE course_id=?", (course,))
 
             auth_code = secrets.token_urlsafe(16)
 
